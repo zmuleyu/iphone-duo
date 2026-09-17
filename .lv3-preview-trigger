@@ -1,3 +1,4 @@
 Trigger Vercel production deployment for Step 2 Reality→RedBlack transition.
-Timestamp: 2026-09-17T16:53+08:00
+Timestamp: 2026-09-17T16:55+08:00
 Expected source: zmuleyu/iphone-duo@main
+Git connection confirmed in Vercel project iphone-duo-lv3.
