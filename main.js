@@ -7,6 +7,9 @@ import { loadDefaultUIs } from './ui.js';
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
 const play = document.querySelector('#play');
+const realityInput = document.querySelector('#ui-upload');
+const redBlackInput = document.querySelector('#redblack-upload');
+const redBlackButton = document.querySelector('#redblack-button');
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(32, 1, .1, 250);
@@ -33,8 +36,7 @@ const rim = new THREE.DirectionalLight(0xe8edf5, 2);
 rim.position.set(15, 5, -15);
 scene.add(rim);
 
-// Lv3 baseline: keep the camera completely fixed so any apparent movement comes
-// only from the physical fold geometry, never from orbit/zoom drift while recording.
+// Lv3: camera is intentionally locked for repeatable ScreenToGif capture.
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = false;
 controls.enablePan = false;
@@ -48,24 +50,26 @@ const phone = new THREE.Group();
 scene.add(phone);
 
 const bend = { value: Math.PI };
+const transitionMix = { value: 0 };
 let angle = 0;
 let playing = false;
 let playbackTime = 0;
 let ready = false;
+let uiTheme = 'wallpaper';
 const screens = {};
+const customReady = { reality: false, redblack: false };
 
 const defaultUIs = await loadDefaultUIs();
-let uiTheme = 'wallpaper';
 
-// Custom artwork is prepared once in a single fixed panorama coordinate system.
-// The inner display receives the whole panorama. The outer display receives the
-// fixed right-hand half. Neither texture is reprojected or recropped while folding.
-const innerCustomCanvas = document.createElement('canvas');
-innerCustomCanvas.width = 1600;
-innerCustomCanvas.height = 1125;
-const outerCustomCanvas = document.createElement('canvas');
-outerCustomCanvas.width = 800;
-outerCustomCanvas.height = 1125;
+function makeCanvasPair() {
+  const inner = document.createElement('canvas');
+  inner.width = 1600;
+  inner.height = 1125;
+  const outer = document.createElement('canvas');
+  outer.width = 800;
+  outer.height = 1125;
+  return { inner, outer };
+}
 
 function createCanvasTexture(canvas) {
   const texture = new THREE.CanvasTexture(canvas);
@@ -76,102 +80,155 @@ function createCanvasTexture(canvas) {
   return texture;
 }
 
+const customCanvases = {
+  reality: makeCanvasPair(),
+  redblack: makeCanvasPair(),
+};
 const customTextures = {
-  inner: createCanvasTexture(innerCustomCanvas),
-  outer: createCanvasTexture(outerCustomCanvas),
+  reality: {
+    inner: createCanvasTexture(customCanvases.reality.inner),
+    outer: createCanvasTexture(customCanvases.reality.outer),
+  },
+  redblack: {
+    inner: createCanvasTexture(customCanvases.redblack.inner),
+    outer: createCanvasTexture(customCanvases.redblack.outer),
+  },
 };
 
 for (const kind of ['inner', 'outer']) {
   const defaultTextures = {};
   for (const [theme, canvases] of Object.entries(defaultUIs)) {
-    const texture = createCanvasTexture(canvases[kind]);
-    defaultTextures[theme] = texture;
+    defaultTextures[theme] = createCanvasTexture(canvases[kind]);
   }
-  const material = new THREE.MeshBasicMaterial({
-    map: defaultTextures[uiTheme],
-    toneMapped: false,
-  });
-  screens[kind] = { material, defaultTextures };
+  const material = new THREE.MeshBasicMaterial({ map: defaultTextures[uiTheme], toneMapped: false });
+  screens[kind] = {
+    material,
+    defaultTextures,
+    targetMap: defaultTextures[uiTheme],
+    shader: null,
+  };
 }
 
-function drawCustomArtwork(img) {
-  const inner = innerCustomCanvas.getContext('2d');
+function drawArtwork(img, pair, textures) {
+  const inner = pair.inner.getContext('2d');
   inner.fillStyle = '#101418';
-  inner.fillRect(0, 0, innerCustomCanvas.width, innerCustomCanvas.height);
+  inner.fillRect(0, 0, pair.inner.width, pair.inner.height);
 
-  // Contain once at upload time. For the recommended Duo panorama aspect ratio,
-  // this is effectively a 1:1 mapping with no runtime fit calculations.
-  const scale = Math.min(innerCustomCanvas.width / img.width, innerCustomCanvas.height / img.height);
+  // Fit only once at upload time. During folding there is no runtime crop/reprojection.
+  const scale = Math.min(pair.inner.width / img.width, pair.inner.height / img.height);
   const width = img.width * scale;
   const height = img.height * scale;
-  inner.drawImage(
-    img,
-    (innerCustomCanvas.width - width) / 2,
-    (innerCustomCanvas.height - height) / 2,
-    width,
-    height,
-  );
+  inner.drawImage(img, (pair.inner.width - width) / 2, (pair.inner.height - height) / 2, width, height);
 
-  const outer = outerCustomCanvas.getContext('2d');
+  const outer = pair.outer.getContext('2d');
   outer.fillStyle = '#101418';
-  outer.fillRect(0, 0, outerCustomCanvas.width, outerCustomCanvas.height);
+  outer.fillRect(0, 0, pair.outer.width, pair.outer.height);
   outer.drawImage(
-    innerCustomCanvas,
-    innerCustomCanvas.width / 2,
+    pair.inner,
+    pair.inner.width / 2,
     0,
-    innerCustomCanvas.width / 2,
-    innerCustomCanvas.height,
+    pair.inner.width / 2,
+    pair.inner.height,
     0,
     0,
-    outerCustomCanvas.width,
-    outerCustomCanvas.height,
+    pair.outer.width,
+    pair.outer.height,
   );
 
-  customTextures.inner.needsUpdate = true;
-  customTextures.outer.needsUpdate = true;
+  textures.inner.needsUpdate = true;
+  textures.outer.needsUpdate = true;
 }
 
-const uiInput = document.querySelector('#ui-upload');
-uiInput.addEventListener('change', async () => {
-  const file = uiInput.files[0];
-  if (!file) return;
+function setScreenMaps(baseSet, targetSet = baseSet) {
+  for (const kind of ['inner', 'outer']) {
+    const screen = screens[kind];
+    screen.material.map = baseSet[kind];
+    screen.targetMap = targetSet[kind];
+    if (screen.shader) screen.shader.uniforms.transitionTarget.value = screen.targetMap;
+    screen.material.needsUpdate = true;
+  }
+}
+
+function updateThemeSelection() {
+  document.querySelectorAll('[data-ui-theme]').forEach(button => {
+    button.setAttribute('aria-selected', String(button.dataset.uiTheme === uiTheme));
+  });
+  redBlackButton.classList.toggle('is-loaded', customReady.redblack);
+  redBlackButton.textContent = customReady.redblack ? 'RedBlack ✓' : 'RedBlack';
+}
+
+async function decodeFile(file) {
   const url = URL.createObjectURL(file);
   const img = new Image();
   img.src = url;
   try {
     await img.decode();
-    drawCustomArtwork(img);
-    screens.inner.material.map = customTextures.inner;
-    screens.outer.material.map = customTextures.outer;
-    screens.inner.material.needsUpdate = true;
-    screens.outer.material.needsUpdate = true;
-    uiTheme = 'custom';
-    document.querySelectorAll('[data-ui-theme]').forEach(button => {
-      button.setAttribute('aria-selected', String(button.dataset.uiTheme === uiTheme));
-    });
-    setPlaying(false);
-    setAngle(0);
-  } catch {
-    alert('Unable to read this image. Choose a PNG, JPG, or WebP file.');
+    return img;
   } finally {
     URL.revokeObjectURL(url);
-    uiInput.value = '';
+  }
+}
+
+realityInput.addEventListener('change', async () => {
+  const file = realityInput.files[0];
+  if (!file) return;
+  try {
+    const img = await decodeFile(file);
+    drawArtwork(img, customCanvases.reality, customTextures.reality);
+    customReady.reality = true;
+    uiTheme = 'custom';
+    setScreenMaps(
+      customTextures.reality,
+      customReady.redblack ? customTextures.redblack : customTextures.reality,
+    );
+    setPlaying(false);
+    setAngle(0);
+    updateThemeSelection();
+  } catch {
+    alert('Unable to read the Reality image. Choose a PNG, JPG, or WebP file.');
+  } finally {
+    realityInput.value = '';
+  }
+});
+
+redBlackInput.addEventListener('change', async () => {
+  const file = redBlackInput.files[0];
+  if (!file) return;
+  if (!customReady.reality) {
+    alert('Upload the Reality image first.');
+    redBlackInput.value = '';
+    return;
+  }
+  try {
+    const img = await decodeFile(file);
+    drawArtwork(img, customCanvases.redblack, customTextures.redblack);
+    customReady.redblack = true;
+    uiTheme = 'custom';
+    setScreenMaps(customTextures.reality, customTextures.redblack);
+    setPlaying(false);
+    setAngle(0);
+    updateThemeSelection();
+  } catch {
+    alert('Unable to read the RedBlack image. Choose a PNG, JPG, or WebP file.');
+  } finally {
+    redBlackInput.value = '';
   }
 });
 
 function showDefaultUI() {
   for (const [kind, screen] of Object.entries(screens)) {
     screen.material.map = screen.defaultTextures[uiTheme];
+    screen.targetMap = screen.defaultTextures[uiTheme];
+    if (screen.shader) screen.shader.uniforms.transitionTarget.value = screen.targetMap;
     screen.material.needsUpdate = true;
   }
-  document.querySelectorAll('[data-ui-theme]').forEach(button => {
-    button.setAttribute('aria-selected', String(button.dataset.uiTheme === uiTheme));
-  });
+  transitionMix.value = 0;
+  updateThemeSelection();
 }
 
 document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventListener('click', () => {
   if (button.dataset.uiTheme === 'custom') {
-    uiInput.click();
+    realityInput.click();
     return;
   }
   uiTheme = button.dataset.uiTheme;
@@ -180,11 +237,20 @@ document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventLi
   setAngle(0);
 }));
 
+redBlackButton.addEventListener('click', () => redBlackInput.click());
+
 function setPlaying(value) {
   playing = value;
   document.querySelector('#pause-icon').toggleAttribute('hidden', !value);
   document.querySelector('#play-icon').toggleAttribute('hidden', value);
   play.setAttribute('aria-label', value ? 'Pause animation' : 'Play animation');
+}
+
+function smoothTransition(progress) {
+  // Reality stays untouched through the first 20% of unfolding.
+  // Blend only from 20% to 75%, then hold full RedBlack through the open state.
+  const t = THREE.MathUtils.clamp((progress - .20) / (.75 - .20), 0, 1);
+  return t * t * (3 - 2 * t);
 }
 
 function setAngle(value) {
@@ -193,7 +259,12 @@ function setAngle(value) {
   slider.style.setProperty('--progress', `${angle / 1.8}%`);
   bend.value = (180 - angle) / 180 * Math.PI;
 
-  // At full opening the cover display faces away from the viewer and is switched off.
+  const progress = angle / 180;
+  transitionMix.value = uiTheme === 'custom' && customReady.reality && customReady.redblack
+    ? smoothTransition(progress)
+    : 0;
+
+  // Cover display turns away at the fully-open pose.
   screens.outer.material.color.setScalar(angle >= 179.95 ? 0 : 1);
 }
 
@@ -222,7 +293,6 @@ function resize() {
 }
 new ResizeObserver(resize).observe(viewport);
 
-// Geometry only. No projected-UI shader, blur, darkening, flash or image-space motion.
 const foldShader = `
 uniform float foldAngle;
 vec2 rotateHinge(vec2 p) {
@@ -271,8 +341,7 @@ try {
         : null;
     const material = kind ? screens[kind].material : object.material.clone();
 
-    // These UVs are authored once from the unfolded physical screen geometry and
-    // never change with foldAngle. The image is therefore glued to the display.
+    // Fixed physical-screen UVs: fold angle never changes image-space coordinates.
     if (kind) {
       const p = geometry.attributes.position;
       const uv = new Float32Array(p.count * 2);
@@ -287,25 +356,47 @@ try {
       geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     }
 
-    if (moving || flexible) {
+    if (moving || flexible || kind) {
       material.onBeforeCompile = shader => {
         shader.uniforms.foldAngle = bend;
         shader.vertexShader = `${flexible ? '#define FLEXIBLE_SCREEN\n' : ''}${foldShader}\n${shader.vertexShader}`;
-        shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', flexible ? `
-          vec4 folded = bendStrip(position);
-          vec3 transformed = vec3(folded.x, position.y, folded.y);
-        ` : `
-          vec2 folded = rotateHinge(position.xz);
-          vec3 transformed = vec3(folded.x, position.y, folded.y);
-        `);
-        shader.vertexShader = shader.vertexShader.replace('#include <beginnormal_vertex>', `
-          vec3 objectNormal = vec3(normal);
-          ${flexible ? 'vec4 strip = bendStrip(position); float a = atan(-strip.w, strip.z);' : 'float a = foldAngle;'}
-          objectNormal.x = cos(a) * normal.x + sin(a) * normal.z;
-          objectNormal.z = -sin(a) * normal.x + cos(a) * normal.z;
-        `);
+
+        if (moving || flexible) {
+          shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', flexible ? `
+            vec4 folded = bendStrip(position);
+            vec3 transformed = vec3(folded.x, position.y, folded.y);
+          ` : `
+            vec2 folded = rotateHinge(position.xz);
+            vec3 transformed = vec3(folded.x, position.y, folded.y);
+          `);
+          shader.vertexShader = shader.vertexShader.replace('#include <beginnormal_vertex>', `
+            vec3 objectNormal = vec3(normal);
+            ${flexible ? 'vec4 strip = bendStrip(position); float a = atan(-strip.w, strip.z);' : 'float a = foldAngle;'}
+            objectNormal.x = cos(a) * normal.x + sin(a) * normal.z;
+            objectNormal.z = -sin(a) * normal.x + cos(a) * normal.z;
+          `);
+        }
+
+        if (kind) {
+          const screen = screens[kind];
+          shader.uniforms.transitionTarget = { value: screen.targetMap };
+          shader.uniforms.transitionMix = transitionMix;
+          shader.fragmentShader = `uniform sampler2D transitionTarget;\nuniform float transitionMix;\n${shader.fragmentShader}`;
+          shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
+            #ifdef USE_MAP
+              vec4 sampledDiffuseColor = texture2D(map, vMapUv);
+              vec4 targetDiffuseColor = texture2D(transitionTarget, vMapUv);
+              sampledDiffuseColor = mix(sampledDiffuseColor, targetDiffuseColor, transitionMix);
+              #ifdef DECODE_VIDEO_TEXTURE
+                sampledDiffuseColor = sRGBTransferEOTF(sampledDiffuseColor);
+              #endif
+              diffuseColor *= sampledDiffuseColor;
+            #endif
+          `);
+          screen.shader = shader;
+        }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : 'lv3-fold-cover'}-${kind || 'body'}`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v1`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -315,12 +406,13 @@ try {
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Tower Anchor Lock ready', JSON.stringify({
+  console.info('Lv3 Reality→RedBlack transition ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
     fixedCamera: true,
     fixedUV: true,
-    runtimeReprojection: false,
+    blendStart: .20,
+    blendEnd: .75,
     foldFX: false,
   }));
 
@@ -340,9 +432,7 @@ renderer.setAnimationLoop(now => {
 
   if (ready && playing) {
     playbackTime += delta;
-
-    // Deterministic 3.4 s ScreenToGif-friendly baseline:
-    // 0.0–0.6 closed hold, 0.6–2.6 physical unfold, 2.6–3.4 open hold.
+    // 0.0–0.6 closed hold, 0.6–2.6 unfold + image transition, 2.6–3.4 open hold.
     if (playbackTime < .6) {
       setAngle(0);
     } else if (playbackTime < 2.6) {
