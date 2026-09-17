@@ -13,16 +13,17 @@ const openButton = document.querySelector('#open-button');
 const progressReadout = document.querySelector('#progress-readout');
 const angleReadout = document.querySelector('#angle-readout');
 const revealReadout = document.querySelector('#reveal-readout');
-const revealMeterFill = document.querySelector('#reveal-meter-fill');
-const revealMeterMarker = document.querySelector('#reveal-meter-marker');
+const revealSummaryValue = document.querySelector('#reveal-summary-value');
+const strategySummary = document.querySelector('#strategy-summary');
 const snapButtons = [...document.querySelectorAll('[data-snap]')];
 const realityInput = document.querySelector('#ui-upload');
 const redBlackInput = document.querySelector('#redblack-upload');
 const redBlackButton = document.querySelector('#redblack-button');
 
-const boundaryButton = document.querySelector('#boundary-settings');
-const boundaryPopover = document.querySelector('#boundary-popover');
-const boundaryClose = document.querySelector('#boundary-close');
+const revealSettingsButton = document.querySelector('#reveal-settings');
+const revealSettingsPopover = document.querySelector('#reveal-settings-popover');
+const revealSettingsClose = document.querySelector('#reveal-settings-close');
+const strategyButtons = [...document.querySelectorAll('[data-reveal-strategy]')];
 const edgePresetButtons = [...document.querySelectorAll('[data-edge-preset]')];
 const revealOffsetInput = document.querySelector('#reveal-offset');
 const revealOffsetValue = document.querySelector('#reveal-offset-value');
@@ -64,7 +65,8 @@ const rim = new THREE.DirectionalLight(0xe8edf5, 2);
 rim.position.set(15, 5, -15);
 scene.add(rim);
 
-// Camera remains locked while tuning the fold/reveal relationship.
+// Keep the camera locked while validating reveal timing. Framing compensation is
+// deliberately deferred to the next step so it cannot hide fold/reveal problems.
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = false;
 controls.enablePan = false;
@@ -88,22 +90,45 @@ let playbackTime = 0;
 let ready = false;
 let uiTheme = 'wallpaper';
 let revealOffset = 0;
+let revealStrategy = 'lead';
 const screens = {};
 const customReady = { reality: false, redblack: false };
 
-// Step 3.5 baseline: keep the simpler synchronized reveal curve. The boundary
-// itself now defaults to a straight, narrow wipe so timing and geometry can be
-// judged without organic distortion. Edge styling remains available as an option.
-const REVEAL_KEYFRAMES = [
-  [0.00, 0.00],
-  [0.15, 0.02],
-  [0.25, 0.12],
-  [0.50, 0.38],
-  [0.70, 0.65],
-  [0.75, 0.80],
-  [0.90, 1.00],
-  [1.00, 1.00],
-];
+// Step 3.6: Reveal is now a narrative variable that intentionally leads the fold.
+// Lead is the Tokyo Tower default. Sync is retained as a technical baseline and
+// Aggressive is available for faster viral-style transitions.
+const REVEAL_STRATEGIES = {
+  lead: [
+    [0.00, 0.00],
+    [0.08, 0.00],
+    [0.15, 0.12],
+    [0.25, 0.35],
+    [0.35, 0.52],
+    [0.50, 0.75],
+    [0.60, 0.86],
+    [0.70, 0.94],
+    [0.82, 1.00],
+    [1.00, 1.00],
+  ],
+  sync: [
+    [0.00, 0.00],
+    [0.10, 0.06],
+    [0.25, 0.25],
+    [0.50, 0.50],
+    [0.75, 0.75],
+    [1.00, 1.00],
+  ],
+  aggressive: [
+    [0.00, 0.00],
+    [0.08, 0.10],
+    [0.15, 0.30],
+    [0.25, 0.52],
+    [0.35, 0.72],
+    [0.50, 0.90],
+    [0.65, 1.00],
+    [1.00, 1.00],
+  ],
+};
 
 // ---------------------------------------------------------------------------
 // Reusable stage background layer
@@ -363,13 +388,13 @@ redBlackButton.addEventListener('click', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Step 3.5 synchronized reveal + straight boundary baseline
+// Step 3.6 reveal strategy + primary fold timeline
 // ---------------------------------------------------------------------------
-function baseReveal(progress) {
+function sampleRevealCurve(progress, curve) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
-  for (let i = 0; i < REVEAL_KEYFRAMES.length - 1; i++) {
-    const [p0, r0] = REVEAL_KEYFRAMES[i];
-    const [p1, r1] = REVEAL_KEYFRAMES[i + 1];
+  for (let i = 0; i < curve.length - 1; i++) {
+    const [p0, r0] = curve[i];
+    const [p1, r1] = curve[i + 1];
     if (p <= p1) {
       const t = (p - p0) / Math.max(p1 - p0, 1e-6);
       return THREE.MathUtils.lerp(r0, r1, THREE.MathUtils.clamp(t, 0, 1));
@@ -381,7 +406,27 @@ function baseReveal(progress) {
 function transitionProgress(progress) {
   if (progress <= .02) return 0;
   const shiftedProgress = THREE.MathUtils.clamp(progress + revealOffset, 0, 1);
-  return baseReveal(shiftedProgress);
+  return sampleRevealCurve(shiftedProgress, REVEAL_STRATEGIES[revealStrategy]);
+}
+
+function strategyLabel(name) {
+  if (name === 'aggressive') return 'Fast';
+  if (name === 'sync') return 'Sync';
+  return 'Lead';
+}
+
+function updateStrategyUI() {
+  strategyButtons.forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.revealStrategy === revealStrategy));
+  });
+  strategySummary.textContent = strategyLabel(revealStrategy);
+}
+
+function setRevealStrategy(name) {
+  if (!REVEAL_STRATEGIES[name]) return;
+  revealStrategy = name;
+  updateStrategyUI();
+  setAngle(angle);
 }
 
 function updateTimelineUI(progress, reveal) {
@@ -390,9 +435,8 @@ function updateTimelineUI(progress, reveal) {
   progressReadout.textContent = `Progress ${progressPercent}%`;
   angleReadout.textContent = `Angle ${Math.round(angle)}°`;
   revealReadout.textContent = `Reveal ${revealPercent}%`;
+  revealSummaryValue.textContent = `${revealPercent}%`;
   slider.style.setProperty('--progress', `${progressPercent}%`);
-  revealMeterFill.style.width = `${revealPercent}%`;
-  revealMeterMarker.style.left = `${revealPercent}%`;
 
   snapButtons.forEach(button => {
     const target = Number(button.dataset.snap);
@@ -453,6 +497,7 @@ slider.addEventListener('input', () => {
   playbackTime = 0;
   setAngle(Number(slider.value));
 });
+strategyButtons.forEach(button => button.addEventListener('click', () => setRevealStrategy(button.dataset.revealStrategy)));
 
 function setBoundaryPreset(name) {
   const presets = {
@@ -491,17 +536,18 @@ edgeWidthInput.addEventListener('input', () => applyBoundaryControls(false));
 edgeTextureInput.addEventListener('input', () => applyBoundaryControls(false));
 edgePresetButtons.forEach(button => button.addEventListener('click', () => setBoundaryPreset(button.dataset.edgePreset)));
 
-function setBoundaryPopover(open) {
-  boundaryPopover.hidden = !open;
-  boundaryButton.setAttribute('aria-expanded', String(open));
+function setRevealSettingsPopover(open) {
+  revealSettingsPopover.hidden = !open;
+  revealSettingsButton.setAttribute('aria-expanded', String(open));
 }
-boundaryButton.addEventListener('click', () => setBoundaryPopover(boundaryPopover.hidden));
-boundaryClose.addEventListener('click', () => setBoundaryPopover(false));
+revealSettingsButton.addEventListener('click', () => setRevealSettingsPopover(revealSettingsPopover.hidden));
+revealSettingsClose.addEventListener('click', () => setRevealSettingsPopover(false));
 document.addEventListener('pointerdown', event => {
-  if (boundaryPopover.hidden) return;
-  if (boundaryPopover.contains(event.target) || boundaryButton.contains(event.target)) return;
-  setBoundaryPopover(false);
+  if (revealSettingsPopover.hidden) return;
+  if (revealSettingsPopover.contains(event.target) || revealSettingsButton.contains(event.target)) return;
+  setRevealSettingsPopover(false);
 });
+setRevealStrategy('lead');
 setBoundaryPreset('straight');
 
 function resize() {
@@ -613,8 +659,8 @@ try {
               vec4 sampledDiffuseColor = texture2D(map, vMapUv);
               vec4 targetDiffuseColor = texture2D(transitionTarget, vMapUv);
 
-              // Straight is the default baseline. Optional irregularity only affects
-              // the boundary if explicitly enabled from Boundary settings.
+              // Step 3.6 keeps Straight as the default baseline. Optional edge
+              // irregularity is advanced tuning and never changes timing itself.
               float boundary = mix(1.03, -0.03, transitionMix);
               float wobble = transitionEdgeNoise * (
                 sin(vMapUv.y * 15.0 + 1.1) +
@@ -638,7 +684,7 @@ try {
           screen.shader = shader;
         }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v8-step35-straight`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v9-step36`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -648,24 +694,24 @@ try {
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Step 3.5 straight-boundary baseline ready', JSON.stringify({
+  console.info('Lv3 Step 3.6 Reveal Lead ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
     fixedCamera: true,
     fixedUV: true,
-    transition: 'right-to-left synchronized reveal',
-    revealKeyframes: REVEAL_KEYFRAMES,
+    revealStrategy,
+    strategies: Object.keys(REVEAL_STRATEGIES),
     revealOffsetRange: [-.08, .08],
     defaultBoundary: 'straight',
     edgeCore: edgeCore.value,
     edgeNoise: edgeNoise.value,
-    boundaryPresets: true,
     outerCoverStaysReality: true,
     reusableBackgroundLayer: true,
     foldFX: false,
   }));
 
   updateSourceUI();
+  updateStrategyUI();
   document.querySelectorAll('.control-dock button, .control-dock input').forEach(element => element.disabled = false);
   ready = true;
   setPlaying(false);
