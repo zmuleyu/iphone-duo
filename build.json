@@ -1,6 +1,6 @@
 {
-  "build": "step41d-v2-cachefix-20260917-2308",
-  "transition": "world41d-v2",
+  "build": "v4.1D.4-20260917-2318",
+  "transition": "world41d-integrated-main",
   "cacheMode": "no-store-development",
-  "timestamp": "2026-09-17T23:08:00+08:00"
+  "timestamp": "2026-09-17T23:18:00+08:00"
 }
