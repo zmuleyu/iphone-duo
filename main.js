@@ -7,6 +7,12 @@ import { loadDefaultUIs } from './ui.js';
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
 const play = document.querySelector('#play');
+const reset = document.querySelector('#reset');
+const playLabel = document.querySelector('#play-label');
+const progressReadout = document.querySelector('#progress-readout');
+const angleReadout = document.querySelector('#angle-readout');
+const revealReadout = document.querySelector('#reveal-readout');
+const snapButtons = [...document.querySelectorAll('[data-snap]')];
 const realityInput = document.querySelector('#ui-upload');
 const redBlackInput = document.querySelector('#redblack-upload');
 const redBlackButton = document.querySelector('#redblack-button');
@@ -67,6 +73,11 @@ let uiTheme = 'wallpaper';
 const screens = {};
 const customReady = { reality: false, redblack: false };
 
+// Step 3.2 timing: RedBlack now tracks the physical opening more tightly and
+// intentionally runs slightly ahead through the middle of the unfold.
+const REVEAL_START = .10;
+const REVEAL_END = .68;
+
 // ---------------------------------------------------------------------------
 // Reusable stage background layer
 // ---------------------------------------------------------------------------
@@ -111,12 +122,7 @@ function applyBackground() {
   stageBackground.style.backgroundImage = `url("${backgroundImageUrl}")`;
   stageBackground.style.backgroundPosition = 'center';
   stageBackground.style.backgroundRepeat = 'no-repeat';
-
-  if (bgFit.value === 'contain') {
-    stageBackground.style.backgroundSize = 'contain';
-  } else {
-    stageBackground.style.backgroundSize = 'cover';
-  }
+  stageBackground.style.backgroundSize = bgFit.value === 'contain' ? 'contain' : 'cover';
 
   if (bgFit.value === 'blur') {
     stageBackground.style.filter = 'blur(14px)';
@@ -350,29 +356,50 @@ document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventLi
 
 redBlackButton.addEventListener('click', () => redBlackInput.click());
 
+// ---------------------------------------------------------------------------
+// Step 3.2 unfold controls + timeline instrumentation
+// ---------------------------------------------------------------------------
+function transitionProgress(progress) {
+  if (progress <= REVEAL_START) return 0;
+  if (progress >= REVEAL_END) return 1;
+  const t = THREE.MathUtils.clamp((progress - REVEAL_START) / (REVEAL_END - REVEAL_START), 0, 1);
+  // Mild ease-out so the visual world boundary never lags the physical opening.
+  return 1 - Math.pow(1 - t, 1.25);
+}
+
+function updateTimelineUI(progress, reveal) {
+  const progressPercent = Math.round(progress * 100);
+  const revealPercent = Math.round(reveal * 100);
+  progressReadout.textContent = `Progress ${progressPercent}%`;
+  angleReadout.textContent = `Angle ${Math.round(angle)}°`;
+  revealReadout.textContent = `Reveal ${revealPercent}%`;
+  slider.style.setProperty('--progress', `${progressPercent}%`);
+
+  snapButtons.forEach(button => {
+    const target = Number(button.dataset.snap);
+    button.classList.toggle('is-current', Math.abs(angle - target) < .6);
+  });
+}
+
 function setPlaying(value) {
   playing = value;
   document.querySelector('#pause-icon').toggleAttribute('hidden', !value);
   document.querySelector('#play-icon').toggleAttribute('hidden', value);
-  play.setAttribute('aria-label', value ? 'Pause animation' : 'Play animation');
-}
-
-function transitionProgress(progress) {
-  // Step 3.1: hold Reality first, then sweep the RedBlack world from right to left.
-  const t = THREE.MathUtils.clamp((progress - .25) / (.80 - .25), 0, 1);
-  return t * t * (3 - 2 * t);
+  playLabel.textContent = value ? 'Pause' : 'Unfold';
+  play.setAttribute('aria-label', value ? 'Pause unfold animation' : 'Play unfold animation');
 }
 
 function setAngle(value) {
   angle = THREE.MathUtils.clamp(value, 0, 180);
   slider.value = angle;
-  slider.style.setProperty('--progress', `${angle / 1.8}%`);
   bend.value = (180 - angle) / 180 * Math.PI;
 
   const progress = angle / 180;
-  transitionMix.value = uiTheme === 'custom' && customReady.reality && customReady.redblack
+  const reveal = uiTheme === 'custom' && customReady.reality && customReady.redblack
     ? transitionProgress(progress)
     : 0;
+  transitionMix.value = reveal;
+  updateTimelineUI(progress, reveal);
 
   // The cover display faces away when the device is fully open.
   screens.outer.material.color.setScalar(angle >= 179.95 ? 0 : 1);
@@ -388,8 +415,21 @@ play.addEventListener('click', () => {
   setPlaying(true);
 });
 
+reset.addEventListener('click', () => {
+  setPlaying(false);
+  playbackTime = 0;
+  setAngle(0);
+});
+
+snapButtons.forEach(button => button.addEventListener('click', () => {
+  setPlaying(false);
+  playbackTime = 0;
+  setAngle(Number(button.dataset.snap));
+}));
+
 slider.addEventListener('input', () => {
   setPlaying(false);
+  playbackTime = 0;
   setAngle(Number(slider.value));
 });
 
@@ -501,11 +541,10 @@ try {
               vec4 sampledDiffuseColor = texture2D(map, vMapUv);
               vec4 targetDiffuseColor = texture2D(transitionTarget, vMapUv);
 
-              // Step 3.1 world reveal: RedBlack begins at the right edge and the
-              // boundary travels left as the device unfolds. The narrow feather
-              // prevents a harsh seam without reading as a broad glow band.
-              float boundary = mix(1.08, -0.08, transitionMix);
-              float feather = 0.035;
+              // Step 3.2: RedBlack begins at the right edge and the boundary
+              // travels left in sync with the physical unfolding progress.
+              float boundary = mix(1.06, -0.06, transitionMix);
+              float feather = 0.028;
               float rightToLeftReveal = smoothstep(
                 boundary - feather,
                 boundary + feather,
@@ -523,7 +562,7 @@ try {
           screen.shader = shader;
         }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v3-rtl`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v4-step32`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -533,15 +572,17 @@ try {
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Step 3.1 ready', JSON.stringify({
+  console.info('Lv3 Step 3.2 ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
     fixedCamera: true,
     fixedUV: true,
-    transition: 'right-to-left spatial reveal',
-    revealStart: .25,
-    revealEnd: .80,
-    feather: .035,
+    transition: 'right-to-left synced reveal',
+    revealStart: REVEAL_START,
+    revealEnd: REVEAL_END,
+    feather: .028,
+    snapControls: true,
+    timelineReadouts: true,
     outerCoverStaysReality: true,
     reusableBackgroundLayer: true,
     foldFX: false,
@@ -550,6 +591,7 @@ try {
   showDefaultUI();
   document.querySelectorAll('.control-dock button, .control-dock input').forEach(element => element.disabled = false);
   ready = true;
+  setPlaying(false);
   setAngle(0);
 } catch (error) {
   alert('Unable to load the model. Refresh the page to try again.');
@@ -563,14 +605,14 @@ renderer.setAnimationLoop(now => {
 
   if (ready && playing) {
     playbackTime += delta;
-    // 0.0–0.6 closed hold, 0.6–2.6 unfold + right-to-left reveal, 2.6–3.4 open hold.
-    if (playbackTime < .6) {
+    // ScreenToGif-friendly unfold: short closed hold, 1.8 s unfold, open hold.
+    if (playbackTime < .45) {
       setAngle(0);
-    } else if (playbackTime < 2.6) {
-      const p = (playbackTime - .6) / 2.0;
+    } else if (playbackTime < 2.25) {
+      const p = (playbackTime - .45) / 1.8;
       const ease = p * p * (3 - 2 * p);
       setAngle(THREE.MathUtils.lerp(0, 180, ease));
-    } else if (playbackTime < 3.4) {
+    } else if (playbackTime < 3.10) {
       setAngle(180);
     } else {
       setAngle(180);
