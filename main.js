@@ -65,10 +65,10 @@ const rim = new THREE.DirectionalLight(0xe8edf5, 2);
 rim.position.set(15, 5, -15);
 scene.add(rim);
 
-// Step 3.7.1 keeps the camera locked and calibrates the phone group optically.
-// The previous pure geometry formula aligned the endpoints but still drifted left
-// through the mid/late unfold. We now retain that physical baseline and layer a
-// small empirical X correction on top, measured from the recorded preview.
+// Step 3.7.2 keeps the camera locked and retains the physical framing baseline.
+// The optical correction is deliberately weak and uses one smooth bump instead of
+// piecewise keyframes, so it can reduce the mid-fold drift without causing a
+// visible rightward kick or a subsequent snap-back.
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = false;
 controls.enablePan = false;
@@ -85,21 +85,12 @@ const HALF_DEVICE_WIDTH = 7.89935;
 const FRAMING_STRENGTH = 0.90;
 const OPEN_SCALE = 0.97;
 
-// Additional rightward compensation, in scene units, on top of the Step 3.7
-// geometric baseline. Closed and Open remain unchanged; the correction peaks
-// around the visually weakest 55–70% portion of the unfold.
-const OPTICAL_X_KEYFRAMES = [
-  [0.00, 0.00],
-  [0.35, 0.00],
-  [0.45, 0.55],
-  [0.50, 1.65],
-  [0.60, 2.30],
-  [0.68, 2.05],
-  [0.75, 1.55],
-  [0.85, 0.90],
-  [0.94, 0.30],
-  [1.00, 0.00],
-];
+// Damped optical correction. Peak amplitude is ~28% of Step 3.7.1's +2.30,
+// and both sides use smoothstep so velocity approaches zero at start / peak / end.
+const OPTICAL_X_START = 0.45;
+const OPTICAL_X_PEAK_PROGRESS = 0.65;
+const OPTICAL_X_END = 0.92;
+const OPTICAL_X_PEAK = 0.65;
 
 const bend = { value: Math.PI };
 const transitionMix = { value: 0 };
@@ -411,7 +402,7 @@ redBlackButton.addEventListener('click', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Step 3.6 reveal strategy + Step 3.7.1 optical framing calibration
+// Step 3.6 reveal strategy + Step 3.7.2 damped optical framing
 // ---------------------------------------------------------------------------
 function sampleRevealCurve(progress, curve) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
@@ -467,36 +458,33 @@ function updateTimelineUI(progress, reveal) {
   });
 }
 
-function sampleOpticalX(progress) {
+function smoothOpticalX(progress) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
-  for (let i = 0; i < OPTICAL_X_KEYFRAMES.length - 1; i++) {
-    const [p0, x0] = OPTICAL_X_KEYFRAMES[i];
-    const [p1, x1] = OPTICAL_X_KEYFRAMES[i + 1];
-    if (p <= p1) {
-      const linearT = THREE.MathUtils.clamp((p - p0) / Math.max(p1 - p0, 1e-6), 0, 1);
-      const smoothT = linearT * linearT * (3 - 2 * linearT);
-      return THREE.MathUtils.lerp(x0, x1, smoothT);
-    }
+  if (p <= OPTICAL_X_START || p >= OPTICAL_X_END) return 0;
+
+  if (p <= OPTICAL_X_PEAK_PROGRESS) {
+    const t = THREE.MathUtils.smoothstep(p, OPTICAL_X_START, OPTICAL_X_PEAK_PROGRESS);
+    return OPTICAL_X_PEAK * t;
   }
-  return 0;
+
+  const t = THREE.MathUtils.smoothstep(p, OPTICAL_X_PEAK_PROGRESS, OPTICAL_X_END);
+  return OPTICAL_X_PEAK * (1 - t);
 }
 
 function updateFraming(progress) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
   const foldAngle = (1 - p) * Math.PI;
 
-  // Preserve the physical baseline from Step 3.7 so Closed/Open framing does not
-  // change. The measured optical correction only acts through the mid/late fold,
-  // where the 3D perspective previously pulled the device left by ~40–90 px.
+  // Preserve Step 3.7's physical baseline. The optical layer now behaves like a
+  // weak damping influence rather than a tracking correction: it only removes a
+  // fraction of the mid-fold drift and never tries to lock the object dead-center.
   const projectedCenter = p <= .5
     ? HALF_DEVICE_WIDTH * .5
     : HALF_DEVICE_WIDTH * (1 - Math.cos(foldAngle)) * .5;
   const baseX = -projectedCenter * FRAMING_STRENGTH;
-  const opticalX = sampleOpticalX(p);
-  phone.position.x = baseX + opticalX;
+  phone.position.x = baseX + smoothOpticalX(p);
 
-  // Keep the scale behavior unchanged from Step 3.7 so this pass tests X framing
-  // only. A separate scale/vertical pass can follow if the calibrated center holds.
+  // Keep the existing late-stage scale trim unchanged so this pass isolates X motion.
   const lateOpen = THREE.MathUtils.smoothstep(p, .52, 1.0);
   const compensatedScale = THREE.MathUtils.lerp(1.0, OPEN_SCALE, lateOpen);
   phone.scale.setScalar(compensatedScale);
@@ -743,7 +731,7 @@ try {
           screen.shader = shader;
         }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v11-step371`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v12-step372`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -751,7 +739,6 @@ try {
     mesh.frustumCulled = false;
     phone.add(mesh);
 
-    // Preserve the moving-shell tag for the next Step 3.8 selective motion blur.
     if (moving && !kind && !flexible) {
       mesh.userData.isMovingShell = true;
       movingShellMeshes.push(mesh);
@@ -760,15 +747,16 @@ try {
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Step 3.7.1 Optical Framing Calibration ready', JSON.stringify({
+  console.info('Lv3 Step 3.7.2 Damped Optical Framing ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
     movingShellMeshes: movingShellMeshes.length,
     fixedCamera: true,
     framingCompensation: true,
-    opticalCalibration: true,
+    opticalCalibration: 'smooth-bump-damped',
     framingStrength: FRAMING_STRENGTH,
-    opticalXKeyframes: OPTICAL_X_KEYFRAMES,
+    opticalPeak: OPTICAL_X_PEAK,
+    opticalWindow: [OPTICAL_X_START, OPTICAL_X_PEAK_PROGRESS, OPTICAL_X_END],
     openScale: OPEN_SCALE,
     fixedUV: true,
     revealStrategy,
