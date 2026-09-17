@@ -65,9 +65,10 @@ const rim = new THREE.DirectionalLight(0xe8edf5, 2);
 rim.position.set(15, 5, -15);
 scene.add(rim);
 
-// Step 3.7.3 keeps the camera locked and preserves the physical framing baseline.
-// The optical correction now rises monotonically and then holds a plateau, so it
-// cannot create the late reverse motion seen when the Step 3.7.2 bump decayed.
+// Step 3.7.2 keeps the camera locked and retains the physical framing baseline.
+// The optical correction is deliberately weak and uses one smooth bump instead of
+// piecewise keyframes, so it can reduce the mid-fold drift without causing a
+// visible rightward kick or a subsequent snap-back.
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = false;
 controls.enablePan = false;
@@ -84,11 +85,12 @@ const HALF_DEVICE_WIDTH = 7.89935;
 const FRAMING_STRENGTH = 0.90;
 const OPEN_SCALE = 0.97;
 
-// Monotonic plateau correction. It remains intentionally weak: framing may move
-// naturally during the unfold, but the correction itself never reverses direction.
-const OPTICAL_X_START = 0.40;
-const OPTICAL_X_PLATEAU_START = 0.68;
-const OPTICAL_X_PLATEAU = 0.55;
+// Damped optical correction. Peak amplitude is ~28% of Step 3.7.1's +2.30,
+// and both sides use smoothstep so velocity approaches zero at start / peak / end.
+const OPTICAL_X_START = 0.45;
+const OPTICAL_X_PEAK_PROGRESS = 0.65;
+const OPTICAL_X_END = 0.92;
+const OPTICAL_X_PEAK = 0.65;
 
 const bend = { value: Math.PI };
 const transitionMix = { value: 0 };
@@ -400,7 +402,7 @@ redBlackButton.addEventListener('click', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Step 3.6 reveal strategy + Step 3.7.3 monotonic plateau framing
+// Step 3.6 reveal strategy + Step 3.7.2 damped optical framing
 // ---------------------------------------------------------------------------
 function sampleRevealCurve(progress, curve) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
@@ -456,29 +458,33 @@ function updateTimelineUI(progress, reveal) {
   });
 }
 
-function plateauOpticalX(progress) {
+function smoothOpticalX(progress) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
-  if (p <= OPTICAL_X_START) return 0;
-  if (p >= OPTICAL_X_PLATEAU_START) return OPTICAL_X_PLATEAU;
+  if (p <= OPTICAL_X_START || p >= OPTICAL_X_END) return 0;
 
-  const t = THREE.MathUtils.smoothstep(p, OPTICAL_X_START, OPTICAL_X_PLATEAU_START);
-  return OPTICAL_X_PLATEAU * t;
+  if (p <= OPTICAL_X_PEAK_PROGRESS) {
+    const t = THREE.MathUtils.smoothstep(p, OPTICAL_X_START, OPTICAL_X_PEAK_PROGRESS);
+    return OPTICAL_X_PEAK * t;
+  }
+
+  const t = THREE.MathUtils.smoothstep(p, OPTICAL_X_PEAK_PROGRESS, OPTICAL_X_END);
+  return OPTICAL_X_PEAK * (1 - t);
 }
 
 function updateFraming(progress) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
   const foldAngle = (1 - p) * Math.PI;
 
-  // Keep Step 3.7's physical baseline, but the optical layer can only rise and
-  // plateau. It never decays, so the correction itself cannot generate a late
-  // rightward return or snap-back.
+  // Preserve Step 3.7's physical baseline. The optical layer now behaves like a
+  // weak damping influence rather than a tracking correction: it only removes a
+  // fraction of the mid-fold drift and never tries to lock the object dead-center.
   const projectedCenter = p <= .5
     ? HALF_DEVICE_WIDTH * .5
     : HALF_DEVICE_WIDTH * (1 - Math.cos(foldAngle)) * .5;
   const baseX = -projectedCenter * FRAMING_STRENGTH;
-  phone.position.x = baseX + plateauOpticalX(p);
+  phone.position.x = baseX + smoothOpticalX(p);
 
-  // Keep the existing scale trim unchanged; this pass isolates X trajectory.
+  // Keep the existing late-stage scale trim unchanged so this pass isolates X motion.
   const lateOpen = THREE.MathUtils.smoothstep(p, .52, 1.0);
   const compensatedScale = THREE.MathUtils.lerp(1.0, OPEN_SCALE, lateOpen);
   phone.scale.setScalar(compensatedScale);
@@ -725,7 +731,7 @@ try {
           screen.shader = shader;
         }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v13-step373`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v12-step372`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -741,17 +747,16 @@ try {
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Step 3.7.3 Monotonic Plateau Framing ready', JSON.stringify({
+  console.info('Lv3 Step 3.7.2 Damped Optical Framing ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
     movingShellMeshes: movingShellMeshes.length,
     fixedCamera: true,
     framingCompensation: true,
-    opticalCalibration: 'monotonic-plateau',
+    opticalCalibration: 'smooth-bump-damped',
     framingStrength: FRAMING_STRENGTH,
-    opticalStart: OPTICAL_X_START,
-    opticalPlateauStart: OPTICAL_X_PLATEAU_START,
-    opticalPlateau: OPTICAL_X_PLATEAU,
+    opticalPeak: OPTICAL_X_PEAK,
+    opticalWindow: [OPTICAL_X_START, OPTICAL_X_PEAK_PROGRESS, OPTICAL_X_END],
     openScale: OPEN_SCALE,
     fixedUV: true,
     revealStrategy,
