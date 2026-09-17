@@ -1,4 +1,4 @@
-// Step 4.1C bootstrap: directional shell motion blur, physical screen-layer hand-off, then scene.
+// Step 4.1D bootstrap: shell motion blur, unified world shader transition, then scene.
 await import('./motionblur381.js');
-await import('./physicalcross41c.js');
+await import('./worldtransition41d.js');
 await import('./main.js');
