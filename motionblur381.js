@@ -20,6 +20,7 @@ const STRONG_PEAK_PX = 15;
 
 function makeState(renderer) {
   const postScene = new THREE.Scene();
+  postScene.userData.skipMotionBlur = true;
   const postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   const postMaterial = new THREE.ShaderMaterial({
     transparent: true,
@@ -165,7 +166,13 @@ function withVisibility(objects, visible, fn) {
 THREE.WebGLRenderer.prototype.render = function patchedRender(scene, camera) {
   const state = rendererState.get(this) || makeState(this);
 
-  if (state.busy || this.getRenderTarget() !== null || !scene?.isScene) {
+  // Step 4.1 compatibility: defocus post-process scenes can explicitly opt out.
+  if (
+    state.busy
+    || this.getRenderTarget() !== null
+    || !scene?.isScene
+    || scene?.userData?.skipMotionBlur
+  ) {
     return originalRender.call(this, scene, camera);
   }
 
@@ -251,4 +258,5 @@ console.info('Lv3 Step 3.8.1 asymmetric directional shell motion blur ready', {
   signedVelocity: true,
   shellOnly: true,
   staticSliderStatesStaySharp: true,
+  defocusCompatibility: true,
 });
