@@ -25,11 +25,26 @@ function installVersionBadge() {
   });
   document.body.appendChild(badge);
   document.title = `iPhone Duo · ${BUILD_ID}`;
+  return badge;
 }
 
-installVersionBadge();
+const badge = installVersionBadge();
+const summaryLabel = document.querySelector('.reveal-summary > span:not(.reveal-dot)');
+if (summaryLabel) summaryLabel.textContent = 'World';
+const timelineSubtitle = document.querySelector('.timeline-title-block span');
+if (timelineSubtitle) timelineSubtitle.textContent = 'Reality → RedBlack unified world hand-off';
 console.info('iPhone Duo build', BUILD_ID);
 
-// One shader authority: the unified world transition now lives inside main_v41d4.js.
-await import(`./motionblur381.js?build=${BUILD_ID}`);
-await import(`./main_v41d4.js?build=${BUILD_ID}`);
+try {
+  // One shader authority: the unified world transition now lives inside main_v41d4.js.
+  await import(`./motionblur381.js?build=${BUILD_ID}`);
+  await import(`./main_v41d4.js?build=${BUILD_ID}`);
+  badge.textContent = `Build ${BUILD_ID} · ready`;
+} catch (error) {
+  console.error('iPhone Duo build failed', error);
+  badge.textContent = `Build ${BUILD_ID} · JS ERROR`;
+  badge.style.background = 'rgba(255,235,232,.96)';
+  badge.style.color = '#9b2f24';
+  badge.style.borderColor = 'rgba(155,47,36,.24)';
+  throw error;
+}
