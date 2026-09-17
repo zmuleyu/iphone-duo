@@ -247,9 +247,9 @@ function setPlaying(value) {
 }
 
 function smoothTransition(progress) {
-  // Reality stays untouched through the first 20% of unfolding.
-  // Blend only from 20% to 75%, then hold full RedBlack through the open state.
-  const t = THREE.MathUtils.clamp((progress - .20) / (.75 - .20), 0, 1);
+  // Step 3: the alternate world starts to emerge shortly after the hinge opens,
+  // then expands spatially from the crease instead of dissolving over the whole image.
+  const t = THREE.MathUtils.clamp((progress - .16) / (.90 - .16), 0, 1);
   return t * t * (3 - 2 * t);
 }
 
@@ -381,12 +381,26 @@ try {
           const screen = screens[kind];
           shader.uniforms.transitionTarget = { value: screen.targetMap };
           shader.uniforms.transitionMix = transitionMix;
-          shader.fragmentShader = `uniform sampler2D transitionTarget;\nuniform float transitionMix;\n${shader.fragmentShader}`;
+          shader.uniforms.transitionSpatialMode = { value: kind === 'inner' ? 1 : 0 };
+          shader.fragmentShader = `uniform sampler2D transitionTarget;\nuniform float transitionMix;\nuniform float transitionSpatialMode;\n${shader.fragmentShader}`;
           shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
             #ifdef USE_MAP
               vec4 sampledDiffuseColor = texture2D(map, vMapUv);
               vec4 targetDiffuseColor = texture2D(transitionTarget, vMapUv);
-              sampledDiffuseColor = mix(sampledDiffuseColor, targetDiffuseColor, transitionMix);
+
+              // Spatial fold reveal: RedBlack grows outward from the physical hinge.
+              // The outer cover display stays Reality while it is still visible.
+              float revealRadius = mix(-0.06, 1.06, transitionMix);
+              float distanceFromHinge = abs(vMapUv.x - 0.5) * 2.0;
+              float feather = 0.055;
+              float spatialReveal = 1.0 - smoothstep(
+                revealRadius - feather,
+                revealRadius + feather,
+                distanceFromHinge
+              );
+              float finalMix = transitionSpatialMode > 0.5 ? spatialReveal : 0.0;
+              sampledDiffuseColor = mix(sampledDiffuseColor, targetDiffuseColor, finalMix);
+
               #ifdef DECODE_VIDEO_TEXTURE
                 sampledDiffuseColor = sRGBTransferEOTF(sampledDiffuseColor);
               #endif
@@ -396,7 +410,7 @@ try {
           screen.shader = shader;
         }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v1`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v2-spatial-hinge`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -406,13 +420,15 @@ try {
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Reality→RedBlack transition ready', JSON.stringify({
+  console.info('Lv3 Step 3 spatial hinge reveal ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
     fixedCamera: true,
     fixedUV: true,
-    blendStart: .20,
-    blendEnd: .75,
+    transition: 'hinge-outward spatial reveal',
+    revealStart: .16,
+    revealEnd: .90,
+    outerCoverStaysReality: true,
     foldFX: false,
   }));
 
@@ -432,7 +448,7 @@ renderer.setAnimationLoop(now => {
 
   if (ready && playing) {
     playbackTime += delta;
-    // 0.0–0.6 closed hold, 0.6–2.6 unfold + image transition, 2.6–3.4 open hold.
+    // 0.0–0.6 closed hold, 0.6–2.6 unfold + spatial image reveal, 2.6–3.4 open hold.
     if (playbackTime < .6) {
       setAngle(0);
     } else if (playbackTime < 2.6) {
