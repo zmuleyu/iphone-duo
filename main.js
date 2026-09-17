@@ -79,9 +79,8 @@ scene.add(phone);
 
 const bend = { value: Math.PI };
 const transitionMix = { value: 0 };
-const edgeCore = { value: .010 };
-const edgeHalo = { value: .025 };
-const edgeNoise = { value: .006 };
+const edgeCore = { value: .004 };
+const edgeNoise = { value: 0 };
 
 let angle = 0;
 let playing = false;
@@ -92,9 +91,9 @@ let revealOffset = 0;
 const screens = {};
 const customReady = { reality: false, redblack: false };
 
-// Step 3.5: return to the simpler synchronized baseline, but keep a little
-// restraint early and a faster finish late. This is intentionally less "clever"
-// than the perceptual curve because the previous synchronized motion read better.
+// Step 3.5 baseline: keep the simpler synchronized reveal curve. The boundary
+// itself now defaults to a straight, narrow wipe so timing and geometry can be
+// judged without organic distortion. Edge styling remains available as an option.
 const REVEAL_KEYFRAMES = [
   [0.00, 0.00],
   [0.15, 0.02],
@@ -364,7 +363,7 @@ redBlackButton.addEventListener('click', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Step 3.5 synchronized reveal + organic boundary
+// Step 3.5 synchronized reveal + straight boundary baseline
 // ---------------------------------------------------------------------------
 function baseReveal(progress) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
@@ -457,11 +456,11 @@ slider.addEventListener('input', () => {
 
 function setBoundaryPreset(name) {
   const presets = {
-    natural: { width: 1.0, texture: .6 },
-    soft: { width: 1.7, texture: .35 },
-    crisp: { width: .6, texture: .2 },
+    straight: { width: .4, texture: 0 },
+    soft: { width: 1.4, texture: 0 },
+    natural: { width: 1.0, texture: .4 },
   };
-  const preset = presets[name] || presets.natural;
+  const preset = presets[name] || presets.straight;
   edgeWidthInput.value = String(preset.width);
   edgeTextureInput.value = String(preset.texture);
   applyBoundaryControls(true);
@@ -477,7 +476,6 @@ function applyBoundaryControls(keepPreset = false) {
 
   const widthPercent = Number(edgeWidthInput.value);
   edgeCore.value = widthPercent / 100;
-  edgeHalo.value = edgeCore.value * 2.5;
   edgeWidthValue.textContent = `${widthPercent.toFixed(1)}%`;
 
   const texturePercent = Number(edgeTextureInput.value);
@@ -504,7 +502,7 @@ document.addEventListener('pointerdown', event => {
   if (boundaryPopover.contains(event.target) || boundaryButton.contains(event.target)) return;
   setBoundaryPopover(false);
 });
-setBoundaryPreset('natural');
+setBoundaryPreset('straight');
 
 function resize() {
   const { width, height } = viewport.getBoundingClientRect();
@@ -608,35 +606,27 @@ try {
           shader.uniforms.transitionMix = transitionMix;
           shader.uniforms.transitionSpatialMode = { value: kind === 'inner' ? 1 : 0 };
           shader.uniforms.transitionEdgeCore = edgeCore;
-          shader.uniforms.transitionEdgeHalo = edgeHalo;
           shader.uniforms.transitionEdgeNoise = edgeNoise;
-          shader.fragmentShader = `uniform sampler2D transitionTarget;\nuniform float transitionMix;\nuniform float transitionSpatialMode;\nuniform float transitionEdgeCore;\nuniform float transitionEdgeHalo;\nuniform float transitionEdgeNoise;\n${shader.fragmentShader}`;
+          shader.fragmentShader = `uniform sampler2D transitionTarget;\nuniform float transitionMix;\nuniform float transitionSpatialMode;\nuniform float transitionEdgeCore;\nuniform float transitionEdgeNoise;\n${shader.fragmentShader}`;
           shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
             #ifdef USE_MAP
               vec4 sampledDiffuseColor = texture2D(map, vMapUv);
               vec4 targetDiffuseColor = texture2D(transitionTarget, vMapUv);
 
-              // Step 3.5: right-to-left reveal with a narrow core, a soft halo,
-              // and extremely subtle low-frequency vertical variation. The goal is
-              // to remove the ruler-straight UI-wipe look without becoming an FX.
+              // Straight is the default baseline. Optional irregularity only affects
+              // the boundary if explicitly enabled from Boundary settings.
               float boundary = mix(1.03, -0.03, transitionMix);
               float wobble = transitionEdgeNoise * (
                 sin(vMapUv.y * 15.0 + 1.1) +
                 0.42 * sin(vMapUv.y * 37.0 + 2.4)
               );
               float warpedX = vMapUv.x + wobble;
-              float coreReveal = smoothstep(
+              float revealMask = smoothstep(
                 boundary - transitionEdgeCore,
                 boundary + transitionEdgeCore,
                 warpedX
               );
-              float haloReveal = smoothstep(
-                boundary - transitionEdgeHalo,
-                boundary + transitionEdgeHalo,
-                warpedX
-              );
-              float organicReveal = clamp(coreReveal * 0.82 + haloReveal * 0.18, 0.0, 1.0);
-              float finalMix = transitionSpatialMode > 0.5 ? organicReveal : 0.0;
+              float finalMix = transitionSpatialMode > 0.5 ? revealMask : 0.0;
               sampledDiffuseColor = mix(sampledDiffuseColor, targetDiffuseColor, finalMix);
 
               #ifdef DECODE_VIDEO_TEXTURE
@@ -648,7 +638,7 @@ try {
           screen.shader = shader;
         }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v7-step35`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v8-step35-straight`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -658,16 +648,16 @@ try {
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Step 3.5 ready', JSON.stringify({
+  console.info('Lv3 Step 3.5 straight-boundary baseline ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
     fixedCamera: true,
     fixedUV: true,
-    transition: 'right-to-left synchronized organic reveal',
+    transition: 'right-to-left synchronized reveal',
     revealKeyframes: REVEAL_KEYFRAMES,
     revealOffsetRange: [-.08, .08],
+    defaultBoundary: 'straight',
     edgeCore: edgeCore.value,
-    edgeHalo: edgeHalo.value,
     edgeNoise: edgeNoise.value,
     boundaryPresets: true,
     outerCoverStaysReality: true,
