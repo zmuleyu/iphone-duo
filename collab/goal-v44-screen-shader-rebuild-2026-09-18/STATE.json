@@ -1,17 +1,17 @@
 {
   "goal": "v4.4 Original Screen Shader Rebuild",
   "date": "2026-09-18",
-  "state": "in_progress",
-  "phase": "control-plane",
+  "state": "awaiting_user_visual",
+  "phase": "acceptance",
   "writer": "hermes-desktop-session",
-  "implementation_head": null,
-  "next_action": "write main_v44.js",
+  "implementation_head": "1e75ec8",
+  "next_action": "user visual acceptance on production, then Freeze per GOAL.md stop conditions",
   "acceptance": {
-    "testA": "pending",
-    "testB": "pending",
-    "testC": "pending",
-    "testD": "pending",
-    "production": "pending",
+    "testA": "pass",
+    "testB": "pass",
+    "testC": "pass",
+    "testD": "pass",
+    "production": "pass",
     "userVisual": "pending"
   }
 }

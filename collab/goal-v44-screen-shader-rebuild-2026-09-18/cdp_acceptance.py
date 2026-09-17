@@ -12,6 +12,11 @@ CALIBRATION = EVIDENCE + r"\calibration.png"
 REALITY = r"C:\Users\Admin\Downloads\iPhone_Duo_ThirdParty_Review_v4.3.1\evidence\source_artwork\Reality.png"
 REDBLACK = r"C:\Users\Admin\Downloads\iPhone_Duo_ThirdParty_Review_v4.3.1\evidence\source_artwork\RedBlack.png"
 URL = "http://127.0.0.1:8766/"
+PREFIX = ""
+if len(sys.argv) > 1:
+    URL = sys.argv[1]
+if len(sys.argv) > 2:
+    PREFIX = sys.argv[2]
 
 console_logs = []
 
@@ -72,7 +77,7 @@ class CDP:
 
     async def shot(self, name):
         data = await self.send("Page.captureScreenshot", {"format": "png"})
-        path = f"{EVIDENCE}\\{name}.png"
+        path = f"{EVIDENCE}\\{PREFIX}{name}.png"
         with open(path, "wb") as f:
             f.write(base64.b64decode(data["data"]))
         print("saved", name, flush=True)
