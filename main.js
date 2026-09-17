@@ -11,13 +11,21 @@ const realityInput = document.querySelector('#ui-upload');
 const redBlackInput = document.querySelector('#redblack-upload');
 const redBlackButton = document.querySelector('#redblack-button');
 
+const stageBackground = document.querySelector('#stage-background');
+const bgSolidButton = document.querySelector('#bg-solid');
+const bgImageButton = document.querySelector('#bg-image');
+const bgTransparentButton = document.querySelector('#bg-transparent');
+const bgUpload = document.querySelector('#bg-upload');
+const bgFit = document.querySelector('#bg-fit');
+const bgColor = document.querySelector('#bg-color');
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(32, 1, .1, 250);
 camera.position.set(0, 0, 40);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setClearColor(0xf6f6f3, 0);
+renderer.setClearColor(0x000000, 0);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.18;
 viewport.appendChild(renderer.domElement);
@@ -36,7 +44,7 @@ const rim = new THREE.DirectionalLight(0xe8edf5, 2);
 rim.position.set(15, 5, -15);
 scene.add(rim);
 
-// Lv3: camera is intentionally locked for repeatable ScreenToGif capture.
+// Fixed camera for repeatable recording and clean transition comparisons.
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = false;
 controls.enablePan = false;
@@ -59,6 +67,99 @@ let uiTheme = 'wallpaper';
 const screens = {};
 const customReady = { reality: false, redblack: false };
 
+// ---------------------------------------------------------------------------
+// Reusable stage background layer
+// ---------------------------------------------------------------------------
+let backgroundMode = 'solid';
+let backgroundImageUrl = null;
+
+function applyBackground() {
+  const modeButtons = {
+    solid: bgSolidButton,
+    image: bgImageButton,
+    transparent: bgTransparentButton,
+  };
+  for (const [mode, button] of Object.entries(modeButtons)) {
+    button.setAttribute('aria-pressed', String(mode === backgroundMode));
+  }
+
+  stageBackground.style.filter = 'none';
+  stageBackground.style.transform = 'none';
+  bgFit.disabled = backgroundMode !== 'image' || !backgroundImageUrl;
+  bgColor.disabled = backgroundMode !== 'solid';
+
+  if (backgroundMode === 'transparent') {
+    stageBackground.style.background = 'transparent';
+    stageBackground.style.opacity = '0';
+    return;
+  }
+
+  stageBackground.style.opacity = '1';
+  if (backgroundMode === 'solid') {
+    stageBackground.style.backgroundImage = 'none';
+    stageBackground.style.backgroundColor = bgColor.value;
+    return;
+  }
+
+  if (!backgroundImageUrl) {
+    stageBackground.style.backgroundImage = 'none';
+    stageBackground.style.backgroundColor = bgColor.value;
+    return;
+  }
+
+  stageBackground.style.backgroundColor = '#111';
+  stageBackground.style.backgroundImage = `url("${backgroundImageUrl}")`;
+  stageBackground.style.backgroundPosition = 'center';
+  stageBackground.style.backgroundRepeat = 'no-repeat';
+
+  if (bgFit.value === 'contain') {
+    stageBackground.style.backgroundSize = 'contain';
+  } else {
+    stageBackground.style.backgroundSize = 'cover';
+  }
+
+  if (bgFit.value === 'blur') {
+    stageBackground.style.filter = 'blur(14px)';
+    stageBackground.style.transform = 'scale(1.045)';
+  }
+}
+
+bgSolidButton.addEventListener('click', () => {
+  backgroundMode = 'solid';
+  applyBackground();
+});
+
+bgTransparentButton.addEventListener('click', () => {
+  backgroundMode = 'transparent';
+  applyBackground();
+});
+
+bgImageButton.addEventListener('click', () => {
+  if (!backgroundImageUrl) {
+    bgUpload.click();
+    return;
+  }
+  backgroundMode = 'image';
+  applyBackground();
+});
+
+bgUpload.addEventListener('change', () => {
+  const file = bgUpload.files[0];
+  if (!file) return;
+  if (backgroundImageUrl) URL.revokeObjectURL(backgroundImageUrl);
+  backgroundImageUrl = URL.createObjectURL(file);
+  backgroundMode = 'image';
+  applyBackground();
+  bgUpload.value = '';
+});
+
+bgFit.addEventListener('change', applyBackground);
+bgColor.addEventListener('input', applyBackground);
+applyBackground();
+
+// ---------------------------------------------------------------------------
+// Screen textures
+// ---------------------------------------------------------------------------
 const defaultUIs = await loadDefaultUIs();
 
 function makeCanvasPair() {
@@ -84,6 +185,7 @@ const customCanvases = {
   reality: makeCanvasPair(),
   redblack: makeCanvasPair(),
 };
+
 const customTextures = {
   reality: {
     inner: createCanvasTexture(customCanvases.reality.inner),
@@ -100,7 +202,10 @@ for (const kind of ['inner', 'outer']) {
   for (const [theme, canvases] of Object.entries(defaultUIs)) {
     defaultTextures[theme] = createCanvasTexture(canvases[kind]);
   }
-  const material = new THREE.MeshBasicMaterial({ map: defaultTextures[uiTheme], toneMapped: false });
+  const material = new THREE.MeshBasicMaterial({
+    map: defaultTextures[uiTheme],
+    toneMapped: false,
+  });
   screens[kind] = {
     material,
     defaultTextures,
@@ -114,11 +219,17 @@ function drawArtwork(img, pair, textures) {
   inner.fillStyle = '#101418';
   inner.fillRect(0, 0, pair.inner.width, pair.inner.height);
 
-  // Fit only once at upload time. During folding there is no runtime crop/reprojection.
+  // Fit exactly once at upload time; no runtime recrop during folding.
   const scale = Math.min(pair.inner.width / img.width, pair.inner.height / img.height);
   const width = img.width * scale;
   const height = img.height * scale;
-  inner.drawImage(img, (pair.inner.width - width) / 2, (pair.inner.height - height) / 2, width, height);
+  inner.drawImage(
+    img,
+    (pair.inner.width - width) / 2,
+    (pair.inner.height - height) / 2,
+    width,
+    height,
+  );
 
   const outer = pair.outer.getContext('2d');
   outer.fillStyle = '#101418';
@@ -246,10 +357,9 @@ function setPlaying(value) {
   play.setAttribute('aria-label', value ? 'Pause animation' : 'Play animation');
 }
 
-function smoothTransition(progress) {
-  // Step 3: the alternate world starts to emerge shortly after the hinge opens,
-  // then expands spatially from the crease instead of dissolving over the whole image.
-  const t = THREE.MathUtils.clamp((progress - .16) / (.90 - .16), 0, 1);
+function transitionProgress(progress) {
+  // Step 3.1: hold Reality first, then sweep the RedBlack world from right to left.
+  const t = THREE.MathUtils.clamp((progress - .25) / (.80 - .25), 0, 1);
   return t * t * (3 - 2 * t);
 }
 
@@ -261,10 +371,10 @@ function setAngle(value) {
 
   const progress = angle / 180;
   transitionMix.value = uiTheme === 'custom' && customReady.reality && customReady.redblack
-    ? smoothTransition(progress)
+    ? transitionProgress(progress)
     : 0;
 
-  // Cover display turns away at the fully-open pose.
+  // The cover display faces away when the device is fully open.
   screens.outer.material.color.setScalar(angle >= 179.95 ? 0 : 1);
 }
 
@@ -293,6 +403,9 @@ function resize() {
 }
 new ResizeObserver(resize).observe(viewport);
 
+// ---------------------------------------------------------------------------
+// Physical fold geometry
+// ---------------------------------------------------------------------------
 const foldShader = `
 uniform float foldAngle;
 vec2 rotateHinge(vec2 p) {
@@ -341,7 +454,7 @@ try {
         : null;
     const material = kind ? screens[kind].material : object.material.clone();
 
-    // Fixed physical-screen UVs: fold angle never changes image-space coordinates.
+    // UVs are authored once in unfolded physical-screen coordinates.
     if (kind) {
       const p = geometry.attributes.position;
       const uv = new Float32Array(p.count * 2);
@@ -388,17 +501,17 @@ try {
               vec4 sampledDiffuseColor = texture2D(map, vMapUv);
               vec4 targetDiffuseColor = texture2D(transitionTarget, vMapUv);
 
-              // Spatial fold reveal: RedBlack grows outward from the physical hinge.
-              // The outer cover display stays Reality while it is still visible.
-              float revealRadius = mix(-0.06, 1.06, transitionMix);
-              float distanceFromHinge = abs(vMapUv.x - 0.5) * 2.0;
-              float feather = 0.055;
-              float spatialReveal = 1.0 - smoothstep(
-                revealRadius - feather,
-                revealRadius + feather,
-                distanceFromHinge
+              // Step 3.1 world reveal: RedBlack begins at the right edge and the
+              // boundary travels left as the device unfolds. The narrow feather
+              // prevents a harsh seam without reading as a broad glow band.
+              float boundary = mix(1.08, -0.08, transitionMix);
+              float feather = 0.035;
+              float rightToLeftReveal = smoothstep(
+                boundary - feather,
+                boundary + feather,
+                vMapUv.x
               );
-              float finalMix = transitionSpatialMode > 0.5 ? spatialReveal : 0.0;
+              float finalMix = transitionSpatialMode > 0.5 ? rightToLeftReveal : 0.0;
               sampledDiffuseColor = mix(sampledDiffuseColor, targetDiffuseColor, finalMix);
 
               #ifdef DECODE_VIDEO_TEXTURE
@@ -410,7 +523,7 @@ try {
           screen.shader = shader;
         }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v2-spatial-hinge`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v3-rtl`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -420,20 +533,22 @@ try {
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Step 3 spatial hinge reveal ready', JSON.stringify({
+  console.info('Lv3 Step 3.1 ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
     fixedCamera: true,
     fixedUV: true,
-    transition: 'hinge-outward spatial reveal',
-    revealStart: .16,
-    revealEnd: .90,
+    transition: 'right-to-left spatial reveal',
+    revealStart: .25,
+    revealEnd: .80,
+    feather: .035,
     outerCoverStaysReality: true,
+    reusableBackgroundLayer: true,
     foldFX: false,
   }));
 
   showDefaultUI();
-  document.querySelectorAll('button, input').forEach(element => element.disabled = false);
+  document.querySelectorAll('.control-dock button, .control-dock input').forEach(element => element.disabled = false);
   ready = true;
   setAngle(0);
 } catch (error) {
@@ -448,7 +563,7 @@ renderer.setAnimationLoop(now => {
 
   if (ready && playing) {
     playbackTime += delta;
-    // 0.0–0.6 closed hold, 0.6–2.6 unfold + spatial image reveal, 2.6–3.4 open hold.
+    // 0.0–0.6 closed hold, 0.6–2.6 unfold + right-to-left reveal, 2.6–3.4 open hold.
     if (playbackTime < .6) {
       setAngle(0);
     } else if (playbackTime < 2.6) {
