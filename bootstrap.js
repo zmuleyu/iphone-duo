@@ -1,4 +1,4 @@
-const BUILD_ID = 'v4.1D.4-20260917-2318';
+const BUILD_ID = '4.2';
 
 globalThis.__IPHONE_DUO_BUILD__ = BUILD_ID;
 document.documentElement.dataset.build = BUILD_ID;
@@ -6,7 +6,7 @@ document.documentElement.dataset.build = BUILD_ID;
 function installVersionBadge() {
   const badge = document.createElement('div');
   badge.id = 'build-version-badge';
-  badge.textContent = `Build ${BUILD_ID}`;
+  badge.textContent = `v${BUILD_ID}`;
   Object.assign(badge.style, {
     position: 'fixed',
     top: '14px',
@@ -24,7 +24,7 @@ function installVersionBadge() {
     pointerEvents: 'none',
   });
   document.body.appendChild(badge);
-  document.title = `iPhone Duo · ${BUILD_ID}`;
+  document.title = `iPhone Duo · v${BUILD_ID}`;
   return badge;
 }
 
@@ -32,17 +32,17 @@ const badge = installVersionBadge();
 const summaryLabel = document.querySelector('.reveal-summary > span:not(.reveal-dot)');
 if (summaryLabel) summaryLabel.textContent = 'World';
 const timelineSubtitle = document.querySelector('.timeline-title-block span');
-if (timelineSubtitle) timelineSubtitle.textContent = 'Reality → RedBlack unified world hand-off';
+if (timelineSubtitle) timelineSubtitle.textContent = 'Geometry-driven Reality → RedBlack hand-off';
 console.info('iPhone Duo build', BUILD_ID);
 
 try {
-  // One shader authority: the unified world transition now lives inside main_v41d4.js.
   await import(`./motionblur381.js?build=${BUILD_ID}`);
   await import(`./main_v41d4.js?build=${BUILD_ID}`);
-  badge.textContent = `Build ${BUILD_ID} · ready`;
+  await import(`./geometrytiming42.js?build=${BUILD_ID}`);
+  badge.textContent = `v${BUILD_ID}`;
 } catch (error) {
   console.error('iPhone Duo build failed', error);
-  badge.textContent = `Build ${BUILD_ID} · JS ERROR`;
+  badge.textContent = `v${BUILD_ID} · ERROR`;
   badge.style.background = 'rgba(255,235,232,.96)';
   badge.style.color = '#9b2f24';
   badge.style.borderColor = 'rgba(155,47,36,.24)';
