@@ -1,7 +1,8 @@
 {
-  "build": "4.3",
-  "transition": "unified-panorama-coordinates",
-  "timing": "geometry-driven-4.2",
+  "build": "4.3.1",
+  "transition": "physical-inner-panorama",
+  "leftPanelBlur": "original-inner-gradient",
+  "timing": "geometry-driven-4.2-preserved",
   "cacheMode": "no-store-development",
-  "timestamp": "2026-09-18T00:05:00+08:00"
+  "timestamp": "2026-09-18T00:32:00+08:00"
 }
