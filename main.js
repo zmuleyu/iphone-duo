@@ -65,8 +65,8 @@ const rim = new THREE.DirectionalLight(0xe8edf5, 2);
 rim.position.set(15, 5, -15);
 scene.add(rim);
 
-// Keep the camera locked while validating reveal timing. Framing compensation is
-// deliberately deferred to the next step so it cannot hide fold/reveal problems.
+// Step 3.7 keeps the camera itself locked. Compensation happens on the phone
+// group so the optical center stays stable while the left half swings outward.
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = false;
 controls.enablePan = false;
@@ -78,6 +78,15 @@ controls.enabled = false;
 
 const phone = new THREE.Group();
 scene.add(phone);
+
+// The authored inner display spans roughly -7.89935 ... +7.89935. When closed,
+// the moving half overlaps the fixed half, so the projected device center sits
+// about half a panel to the right of the hinge. As it opens beyond 90°, that
+// center naturally walks back toward the hinge. We counter most (not all) of
+// that walk, retaining a small amount of physical motion so the fold still feels real.
+const HALF_DEVICE_WIDTH = 7.89935;
+const FRAMING_STRENGTH = 0.90;
+const OPEN_SCALE = 0.97;
 
 const bend = { value: Math.PI };
 const transitionMix = { value: 0 };
@@ -93,6 +102,7 @@ let revealOffset = 0;
 let revealStrategy = 'lead';
 const screens = {};
 const customReady = { reality: false, redblack: false };
+const movingShellMeshes = [];
 
 // Step 3.6: Reveal is now a narrative variable that intentionally leads the fold.
 // Lead is the Tokyo Tower default. Sync is retained as a technical baseline and
@@ -388,7 +398,7 @@ redBlackButton.addEventListener('click', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Step 3.6 reveal strategy + primary fold timeline
+// Step 3.6 reveal strategy + Step 3.7 framing compensation
 // ---------------------------------------------------------------------------
 function sampleRevealCurve(progress, curve) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
@@ -444,6 +454,26 @@ function updateTimelineUI(progress, reveal) {
   });
 }
 
+function updateFraming(progress) {
+  const p = THREE.MathUtils.clamp(progress, 0, 1);
+  const foldAngle = (1 - p) * Math.PI;
+
+  // Before 90° the moving half remains inside the fixed half's horizontal
+  // footprint. After 90° it extends left by W*cos(theta), so the projected
+  // bounding-box center walks from +W/2 toward 0.
+  const projectedCenter = p <= .5
+    ? HALF_DEVICE_WIDTH * .5
+    : HALF_DEVICE_WIDTH * (1 - Math.cos(foldAngle)) * .5;
+
+  phone.position.x = -projectedCenter * FRAMING_STRENGTH;
+
+  // Only a tiny late-stage scale trim is used. The horizontal growth remains
+  // visible (important to the Duo story) while Open no longer feels like a zoom-in.
+  const lateOpen = THREE.MathUtils.smoothstep(p, .52, 1.0);
+  const compensatedScale = THREE.MathUtils.lerp(1.0, OPEN_SCALE, lateOpen);
+  phone.scale.setScalar(compensatedScale);
+}
+
 function setPlaying(value) {
   playing = value;
   document.querySelector('#pause-icon').toggleAttribute('hidden', !value);
@@ -463,6 +493,7 @@ function setAngle(value) {
     : 0;
   transitionMix.value = reveal;
   updateTimelineUI(progress, reveal);
+  updateFraming(progress);
 
   screens.outer.material.color.setScalar(angle >= 179.95 ? 0 : 1);
 }
@@ -684,29 +715,38 @@ try {
           screen.shader = shader;
         }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v9-step36`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v10-step37`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = object.name;
     mesh.frustumCulled = false;
     phone.add(mesh);
+
+    // Tag the actual moving cover/chassis meshes now so the next pass can apply
+    // selective motion softness without touching either display texture.
+    if (moving && !kind && !flexible) {
+      mesh.userData.isMovingShell = true;
+      movingShellMeshes.push(mesh);
+    }
+
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Step 3.6 Reveal Lead ready', JSON.stringify({
+  console.info('Lv3 Step 3.7 Framing Compensation ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
+    movingShellMeshes: movingShellMeshes.length,
     fixedCamera: true,
+    framingCompensation: true,
+    framingStrength: FRAMING_STRENGTH,
+    openScale: OPEN_SCALE,
     fixedUV: true,
     revealStrategy,
     strategies: Object.keys(REVEAL_STRATEGIES),
-    revealOffsetRange: [-.08, .08],
     defaultBoundary: 'straight',
-    edgeCore: edgeCore.value,
-    edgeNoise: edgeNoise.value,
     outerCoverStaysReality: true,
-    reusableBackgroundLayer: true,
+    shellSofteningPrepared: true,
     foldFX: false,
   }));
 
