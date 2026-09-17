@@ -33,8 +33,8 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/></svg>
     </a>
 
-    <div class="control-dock step35">
-      <section class="source-column" aria-label="Scene sources">
+    <div class="control-dock step36">
+      <section class="source-column" aria-label="Scene sources and playback">
         <div class="section-label">Sources</div>
         <div class="source-buttons">
           <button role="tab" data-ui-theme="custom" aria-selected="false" disabled>Reality</button>
@@ -43,31 +43,31 @@
         <input id="ui-upload" type="file" accept="image/*" hidden disabled>
         <input id="redblack-upload" type="file" accept="image/*" hidden disabled>
 
-        <div class="transport-buttons">
-          <button id="play" class="action-primary" aria-label="Play unfold animation" disabled>
-            <svg id="pause-icon" viewBox="0 0 24 24" hidden><path d="M8 6v12M16 6v12"/></svg>
-            <svg id="play-icon" viewBox="0 0 24 24"><path d="m9 5 10 7-10 7Z"/></svg>
-            <span id="play-label">Unfold</span>
-          </button>
-          <div class="endpoint-buttons">
-            <button id="closed-button" type="button" disabled>Closed</button>
-            <button id="open-button" type="button" disabled>Open</button>
-          </div>
+        <button id="play" class="action-primary" aria-label="Play unfold animation" disabled>
+          <svg id="pause-icon" viewBox="0 0 24 24" hidden><path d="M8 6v12M16 6v12"/></svg>
+          <svg id="play-icon" viewBox="0 0 24 24"><path d="m9 5 10 7-10 7Z"/></svg>
+          <span id="play-label">Unfold</span>
+        </button>
+        <div class="endpoint-buttons">
+          <button id="closed-button" type="button" disabled>Closed</button>
+          <button id="open-button" type="button" disabled>Open</button>
         </div>
       </section>
 
-      <section class="timeline-column" aria-label="Fold and reveal controls">
-        <div class="status-row" aria-live="polite">
-          <span id="progress-readout">Progress 0%</span>
-          <span id="angle-readout">Angle 0°</span>
-          <span id="reveal-readout" class="reveal-status">Reveal 0%</span>
+      <section class="timeline-column" aria-label="Fold controls">
+        <div class="timeline-topline">
+          <div class="timeline-title-block">
+            <strong>Fold Progress</strong>
+            <span>Reveal leads the physical unfold</span>
+          </div>
+          <div class="status-row" aria-live="polite">
+            <span id="progress-readout">Progress 0%</span>
+            <span id="angle-readout">Angle 0°</span>
+            <span id="reveal-readout" class="reveal-status">Reveal 0%</span>
+          </div>
         </div>
 
-        <div class="control-row fold-control">
-          <div class="control-row-head">
-            <span class="row-title">Fold Progress</span>
-            <span class="row-hint">drag or jump to a marker</span>
-          </div>
+        <div class="progress-control">
           <input id="angle" aria-label="Fold progress" type="range" min="0" max="180" value="0" step="0.1" disabled>
           <div class="progress-markers" aria-label="Fold presets">
             <span class="endpoint-label">0%</span>
@@ -78,32 +78,45 @@
           </div>
         </div>
 
-        <div class="control-row reveal-control">
-          <div class="control-row-head">
-            <span class="row-title">Reveal</span>
-            <button id="boundary-settings" class="settings-button" type="button" aria-expanded="false" aria-controls="boundary-popover">Boundary</button>
+        <div class="advanced-row">
+          <div class="reveal-summary" aria-label="Reveal status">
+            <span class="reveal-dot"></span>
+            <span>Reveal</span>
+            <strong id="reveal-summary-value">0%</strong>
+            <small id="strategy-summary">Lead</small>
           </div>
-          <div class="reveal-meter" aria-label="Current reveal amount">
-            <div id="reveal-meter-fill" class="reveal-meter-fill"></div>
-            <div id="reveal-meter-marker" class="reveal-meter-marker"></div>
-          </div>
-          <div class="reveal-scale" aria-hidden="true"><span>Reality</span><span>RedBlack</span></div>
+          <button id="reveal-settings" class="settings-button" type="button" aria-expanded="false" aria-controls="reveal-settings-popover">Reveal Settings</button>
         </div>
 
-        <div id="boundary-popover" class="boundary-popover" hidden>
+        <div id="reveal-settings-popover" class="reveal-settings-popover" hidden>
           <div class="popover-head">
-            <div><strong>Boundary</strong><small>transition edge</small></div>
-            <button id="boundary-close" type="button" aria-label="Close boundary settings">×</button>
+            <div><strong>Reveal Settings</strong><small>timing first, boundary second</small></div>
+            <button id="reveal-settings-close" type="button" aria-label="Close reveal settings">×</button>
           </div>
-          <div class="boundary-presets" role="group" aria-label="Boundary style">
-            <button type="button" data-edge-preset="straight" aria-pressed="true">Straight</button>
-            <button type="button" data-edge-preset="soft" aria-pressed="false">Soft</button>
-            <button type="button" data-edge-preset="natural" aria-pressed="false">Natural</button>
+
+          <div class="settings-group">
+            <label>Strategy</label>
+            <div class="strategy-presets" role="group" aria-label="Reveal strategy">
+              <button type="button" data-reveal-strategy="lead" aria-pressed="true">Lead</button>
+              <button type="button" data-reveal-strategy="sync" aria-pressed="false">Sync</button>
+              <button type="button" data-reveal-strategy="aggressive" aria-pressed="false">Fast</button>
+            </div>
           </div>
+
           <label class="setting-line" for="reveal-offset"><span>Timing bias</span><output id="reveal-offset-value">+0%</output></label>
           <input id="reveal-offset" type="range" min="-8" max="8" value="0" step="1" aria-label="Reveal timing bias percent">
+
+          <div class="settings-divider"></div>
+          <div class="settings-group">
+            <label>Boundary</label>
+            <div class="boundary-presets" role="group" aria-label="Boundary style">
+              <button type="button" data-edge-preset="straight" aria-pressed="true">Straight</button>
+              <button type="button" data-edge-preset="soft" aria-pressed="false">Soft</button>
+              <button type="button" data-edge-preset="natural" aria-pressed="false">Natural</button>
+            </div>
+          </div>
           <label class="setting-line" for="edge-width"><span>Edge width</span><output id="edge-width-value">0.4%</output></label>
-          <input id="edge-width" type="range" min="0.2" max="2.5" value="0.4" step="0.1" aria-label="Boundary edge width percent">
+          <input id="edge-width" type="range" min="0.3" max="2.5" value="0.4" step="0.1" aria-label="Boundary edge width percent">
           <label class="setting-line" for="edge-texture"><span>Irregularity</span><output id="edge-texture-value">0.0%</output></label>
           <input id="edge-texture" type="range" min="0" max="1.2" value="0" step="0.1" aria-label="Boundary irregularity percent">
         </div>
