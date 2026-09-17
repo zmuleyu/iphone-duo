@@ -1,8 +1,8 @@
 {
-  "build": "4.3.1",
-  "transition": "physical-inner-panorama",
+  "build": "4.4",
+  "transition": "original-screen-shader-rebuild",
   "leftPanelBlur": "original-inner-gradient",
-  "timing": "geometry-driven-4.2-preserved",
+  "timing": "geometry-driven-simple+debug-override",
   "cacheMode": "no-store-development",
-  "timestamp": "2026-09-18T00:32:00+08:00"
+  "timestamp": "2026-09-18T00:52:00+08:00"
 }

@@ -1,0 +1,17 @@
+{
+  "goal": "v4.4 Original Screen Shader Rebuild",
+  "date": "2026-09-18",
+  "state": "in_progress",
+  "phase": "control-plane",
+  "writer": "hermes-desktop-session",
+  "implementation_head": null,
+  "next_action": "write main_v44.js",
+  "acceptance": {
+    "testA": "pending",
+    "testB": "pending",
+    "testC": "pending",
+    "testD": "pending",
+    "production": "pending",
+    "userVisual": "pending"
+  }
+}
