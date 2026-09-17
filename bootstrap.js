@@ -1,3 +1,4 @@
-// Step 3.8.1 bootstrap: install asymmetric directional shell blur before the Three.js scene is created.
+// Step 4.1 bootstrap: motion blur first, then cinematic foreground defocus, then the scene.
 await import('./motionblur381.js');
+await import('./defocus41.js');
 await import('./main.js');
