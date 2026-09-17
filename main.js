@@ -17,6 +17,34 @@ const realityInput = document.querySelector('#ui-upload');
 const redBlackInput = document.querySelector('#redblack-upload');
 const redBlackButton = document.querySelector('#redblack-button');
 
+const timelineBlock = document.querySelector('.timeline-block');
+const revealOffsetControl = document.createElement('div');
+revealOffsetControl.className = 'reveal-offset-control';
+revealOffsetControl.innerHTML = `
+  <div class="reveal-offset-head">
+    <label for="reveal-offset">Reveal offset</label>
+    <output id="reveal-offset-value" for="reveal-offset">+0%</output>
+  </div>
+  <input id="reveal-offset" type="range" min="-10" max="10" value="0" step="1" aria-label="Reveal offset percent">
+`;
+timelineBlock.appendChild(revealOffsetControl);
+const revealOffsetInput = document.querySelector('#reveal-offset');
+const revealOffsetValue = document.querySelector('#reveal-offset-value');
+
+const step33Style = document.createElement('style');
+step33Style.textContent = `
+.reveal-offset-control{display:grid;grid-template-columns:132px minmax(160px,1fr);align-items:center;gap:10px;margin-top:2px;padding-top:7px;border-top:1px solid #edf0e9}
+.reveal-offset-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-variant-numeric:tabular-nums}
+.reveal-offset-head label{font-size:10px;color:#6d7567;white-space:nowrap}
+.reveal-offset-head output{font-size:10px;font-weight:600;color:#8c3029;min-width:34px;text-align:right}
+#reveal-offset{height:22px}
+#reveal-offset::-webkit-slider-runnable-track{height:5px;background:linear-gradient(to right,#e1e5dc 0 50%,#c7cec0 50% 50.5%,#e1e5dc 50.5% 100%);border-radius:5px}
+#reveal-offset::-webkit-slider-thumb{width:16px;height:16px;margin-top:-5.5px;border-width:2px}
+#reveal-offset::-moz-range-track{height:5px;background:#e1e5dc}
+@media(max-width:720px){.reveal-offset-control{grid-template-columns:1fr;gap:3px}.reveal-offset-head{max-width:180px}}
+`;
+document.head.appendChild(step33Style);
+
 const stageBackground = document.querySelector('#stage-background');
 const bgSolidButton = document.querySelector('#bg-solid');
 const bgImageButton = document.querySelector('#bg-image');
@@ -70,13 +98,21 @@ let playing = false;
 let playbackTime = 0;
 let ready = false;
 let uiTheme = 'wallpaper';
+let revealOffset = 0;
 const screens = {};
 const customReady = { reality: false, redblack: false };
 
-// Step 3.2 timing: RedBlack now tracks the physical opening more tightly and
-// intentionally runs slightly ahead through the middle of the unfold.
-const REVEAL_START = .10;
-const REVEAL_END = .68;
+// Step 3.3: geometry-coupled reveal targets. These are intentionally close to
+// physical fold progress instead of using a separate fast/slow transition window.
+const REVEAL_KEYFRAMES = [
+  [0.00, 0.00],
+  [0.15, 0.03],
+  [0.25, 0.18],
+  [0.50, 0.55],
+  [0.75, 0.90],
+  [0.90, 1.00],
+  [1.00, 1.00],
+];
 
 // ---------------------------------------------------------------------------
 // Reusable stage background layer
@@ -357,14 +393,27 @@ document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventLi
 redBlackButton.addEventListener('click', () => redBlackInput.click());
 
 // ---------------------------------------------------------------------------
-// Step 3.2 unfold controls + timeline instrumentation
+// Step 3.3 geometry-coupled reveal + timeline instrumentation
 // ---------------------------------------------------------------------------
+function baseGeometryReveal(progress) {
+  const p = THREE.MathUtils.clamp(progress, 0, 1);
+  for (let i = 0; i < REVEAL_KEYFRAMES.length - 1; i++) {
+    const [p0, r0] = REVEAL_KEYFRAMES[i];
+    const [p1, r1] = REVEAL_KEYFRAMES[i + 1];
+    if (p <= p1) {
+      const t = (p - p0) / Math.max(p1 - p0, 1e-6);
+      return THREE.MathUtils.lerp(r0, r1, THREE.MathUtils.clamp(t, 0, 1));
+    }
+  }
+  return 1;
+}
+
 function transitionProgress(progress) {
-  if (progress <= REVEAL_START) return 0;
-  if (progress >= REVEAL_END) return 1;
-  const t = THREE.MathUtils.clamp((progress - REVEAL_START) / (REVEAL_END - REVEAL_START), 0, 1);
-  // Mild ease-out so the visual world boundary never lags the physical opening.
-  return 1 - Math.pow(1 - t, 1.25);
+  // Offset shifts the fold progress used to sample the reveal curve. Closed is
+  // always locked to pure Reality so tuning can never contaminate the first frame.
+  if (progress <= .02) return 0;
+  const shiftedProgress = THREE.MathUtils.clamp(progress + revealOffset, 0, 1);
+  return baseGeometryReveal(shiftedProgress);
 }
 
 function updateTimelineUI(progress, reveal) {
@@ -431,6 +480,13 @@ slider.addEventListener('input', () => {
   setPlaying(false);
   playbackTime = 0;
   setAngle(Number(slider.value));
+});
+
+revealOffsetInput.addEventListener('input', () => {
+  const offsetPercent = Number(revealOffsetInput.value);
+  revealOffset = offsetPercent / 100;
+  revealOffsetValue.textContent = `${offsetPercent >= 0 ? '+' : ''}${offsetPercent}%`;
+  setAngle(angle);
 });
 
 function resize() {
@@ -541,10 +597,10 @@ try {
               vec4 sampledDiffuseColor = texture2D(map, vMapUv);
               vec4 targetDiffuseColor = texture2D(transitionTarget, vMapUv);
 
-              // Step 3.2: RedBlack begins at the right edge and the boundary
-              // travels left in sync with the physical unfolding progress.
-              float boundary = mix(1.06, -0.06, transitionMix);
-              float feather = 0.028;
+              // Step 3.3: the right-to-left boundary is driven by the geometry-
+              // coupled reveal curve. A narrow feather keeps the boundary legible.
+              float boundary = mix(1.04, -0.04, transitionMix);
+              float feather = 0.018;
               float rightToLeftReveal = smoothstep(
                 boundary - feather,
                 boundary + feather,
@@ -562,7 +618,7 @@ try {
           screen.shader = shader;
         }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v4-step32`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v5-step33`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -572,15 +628,15 @@ try {
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Step 3.2 ready', JSON.stringify({
+  console.info('Lv3 Step 3.3 ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
     fixedCamera: true,
     fixedUV: true,
-    transition: 'right-to-left synced reveal',
-    revealStart: REVEAL_START,
-    revealEnd: REVEAL_END,
-    feather: .028,
+    transition: 'right-to-left geometry-coupled reveal',
+    revealKeyframes: REVEAL_KEYFRAMES,
+    revealOffsetRange: [-.10, .10],
+    feather: .018,
     snapControls: true,
     timelineReadouts: true,
     outerCoverStaysReality: true,
