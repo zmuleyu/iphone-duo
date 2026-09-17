@@ -96,16 +96,16 @@
             <button id="boundary-close" type="button" aria-label="Close boundary settings">×</button>
           </div>
           <div class="boundary-presets" role="group" aria-label="Boundary style">
-            <button type="button" data-edge-preset="natural" aria-pressed="true">Natural</button>
+            <button type="button" data-edge-preset="straight" aria-pressed="true">Straight</button>
             <button type="button" data-edge-preset="soft" aria-pressed="false">Soft</button>
-            <button type="button" data-edge-preset="crisp" aria-pressed="false">Crisp</button>
+            <button type="button" data-edge-preset="natural" aria-pressed="false">Natural</button>
           </div>
           <label class="setting-line" for="reveal-offset"><span>Timing bias</span><output id="reveal-offset-value">+0%</output></label>
           <input id="reveal-offset" type="range" min="-8" max="8" value="0" step="1" aria-label="Reveal timing bias percent">
-          <label class="setting-line" for="edge-width"><span>Edge width</span><output id="edge-width-value">1.0%</output></label>
-          <input id="edge-width" type="range" min="0.5" max="2.5" value="1.0" step="0.1" aria-label="Boundary edge width percent">
-          <label class="setting-line" for="edge-texture"><span>Irregularity</span><output id="edge-texture-value">0.6%</output></label>
-          <input id="edge-texture" type="range" min="0" max="1.2" value="0.6" step="0.1" aria-label="Boundary irregularity percent">
+          <label class="setting-line" for="edge-width"><span>Edge width</span><output id="edge-width-value">0.4%</output></label>
+          <input id="edge-width" type="range" min="0.2" max="2.5" value="0.4" step="0.1" aria-label="Boundary edge width percent">
+          <label class="setting-line" for="edge-texture"><span>Irregularity</span><output id="edge-texture-value">0.0%</output></label>
+          <input id="edge-texture" type="range" min="0" max="1.2" value="0" step="0.1" aria-label="Boundary irregularity percent">
         </div>
       </section>
     </div>
