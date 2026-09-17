@@ -102,14 +102,18 @@ let revealOffset = 0;
 const screens = {};
 const customReady = { reality: false, redblack: false };
 
-// Step 3.3: geometry-coupled reveal targets. These are intentionally close to
-// physical fold progress instead of using a separate fast/slow transition window.
+// Step 3.4: perceptual reveal mapping. The first half of the physical unfold is
+// deliberately conservative because only the stationary right half of the inner
+// display is visually dominant around 50°. The reveal then accelerates after 60%.
 const REVEAL_KEYFRAMES = [
   [0.00, 0.00],
-  [0.15, 0.03],
-  [0.25, 0.18],
-  [0.50, 0.55],
-  [0.75, 0.90],
+  [0.15, 0.00],
+  [0.25, 0.10],
+  [0.50, 0.22],
+  [0.60, 0.42],
+  [0.70, 0.66],
+  [0.75, 0.80],
+  [0.85, 0.96],
   [0.90, 1.00],
   [1.00, 1.00],
 ];
@@ -393,7 +397,7 @@ document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventLi
 redBlackButton.addEventListener('click', () => redBlackInput.click());
 
 // ---------------------------------------------------------------------------
-// Step 3.3 geometry-coupled reveal + timeline instrumentation
+// Step 3.4 perceptual reveal + timeline instrumentation
 // ---------------------------------------------------------------------------
 function baseGeometryReveal(progress) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
@@ -409,8 +413,8 @@ function baseGeometryReveal(progress) {
 }
 
 function transitionProgress(progress) {
-  // Offset shifts the fold progress used to sample the reveal curve. Closed is
-  // always locked to pure Reality so tuning can never contaminate the first frame.
+  // Offset shifts the fold progress used to sample the perceptual reveal curve.
+  // Closed is always locked to pure Reality so tuning never contaminates frame one.
   if (progress <= .02) return 0;
   const shiftedProgress = THREE.MathUtils.clamp(progress + revealOffset, 0, 1);
   return baseGeometryReveal(shiftedProgress);
@@ -597,10 +601,10 @@ try {
               vec4 sampledDiffuseColor = texture2D(map, vMapUv);
               vec4 targetDiffuseColor = texture2D(transitionTarget, vMapUv);
 
-              // Step 3.3: the right-to-left boundary is driven by the geometry-
-              // coupled reveal curve. A narrow feather keeps the boundary legible.
-              float boundary = mix(1.04, -0.04, transitionMix);
-              float feather = 0.018;
+              // Step 3.4: the right-to-left boundary follows the perceptual reveal
+              // map rather than raw fold progress. A tight feather keeps it spatial.
+              float boundary = mix(1.03, -0.03, transitionMix);
+              float feather = 0.015;
               float rightToLeftReveal = smoothstep(
                 boundary - feather,
                 boundary + feather,
@@ -618,7 +622,7 @@ try {
           screen.shader = shader;
         }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v5-step33`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v6-step34`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -628,15 +632,15 @@ try {
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Step 3.3 ready', JSON.stringify({
+  console.info('Lv3 Step 3.4 ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
     fixedCamera: true,
     fixedUV: true,
-    transition: 'right-to-left geometry-coupled reveal',
+    transition: 'right-to-left perceptual reveal',
     revealKeyframes: REVEAL_KEYFRAMES,
     revealOffsetRange: [-.10, .10],
-    feather: .018,
+    feather: .015,
     snapControls: true,
     timelineReadouts: true,
     outerCoverStaysReality: true,
