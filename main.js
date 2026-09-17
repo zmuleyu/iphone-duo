@@ -7,43 +7,29 @@ import { loadDefaultUIs } from './ui.js';
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
 const play = document.querySelector('#play');
-const reset = document.querySelector('#reset');
 const playLabel = document.querySelector('#play-label');
+const closedButton = document.querySelector('#closed-button');
+const openButton = document.querySelector('#open-button');
 const progressReadout = document.querySelector('#progress-readout');
 const angleReadout = document.querySelector('#angle-readout');
 const revealReadout = document.querySelector('#reveal-readout');
+const revealMeterFill = document.querySelector('#reveal-meter-fill');
+const revealMeterMarker = document.querySelector('#reveal-meter-marker');
 const snapButtons = [...document.querySelectorAll('[data-snap]')];
 const realityInput = document.querySelector('#ui-upload');
 const redBlackInput = document.querySelector('#redblack-upload');
 const redBlackButton = document.querySelector('#redblack-button');
 
-const timelineBlock = document.querySelector('.timeline-block');
-const revealOffsetControl = document.createElement('div');
-revealOffsetControl.className = 'reveal-offset-control';
-revealOffsetControl.innerHTML = `
-  <div class="reveal-offset-head">
-    <label for="reveal-offset">Reveal offset</label>
-    <output id="reveal-offset-value" for="reveal-offset">+0%</output>
-  </div>
-  <input id="reveal-offset" type="range" min="-10" max="10" value="0" step="1" aria-label="Reveal offset percent">
-`;
-timelineBlock.appendChild(revealOffsetControl);
+const boundaryButton = document.querySelector('#boundary-settings');
+const boundaryPopover = document.querySelector('#boundary-popover');
+const boundaryClose = document.querySelector('#boundary-close');
+const edgePresetButtons = [...document.querySelectorAll('[data-edge-preset]')];
 const revealOffsetInput = document.querySelector('#reveal-offset');
 const revealOffsetValue = document.querySelector('#reveal-offset-value');
-
-const step33Style = document.createElement('style');
-step33Style.textContent = `
-.reveal-offset-control{display:grid;grid-template-columns:132px minmax(160px,1fr);align-items:center;gap:10px;margin-top:2px;padding-top:7px;border-top:1px solid #edf0e9}
-.reveal-offset-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-variant-numeric:tabular-nums}
-.reveal-offset-head label{font-size:10px;color:#6d7567;white-space:nowrap}
-.reveal-offset-head output{font-size:10px;font-weight:600;color:#8c3029;min-width:34px;text-align:right}
-#reveal-offset{height:22px}
-#reveal-offset::-webkit-slider-runnable-track{height:5px;background:linear-gradient(to right,#e1e5dc 0 50%,#c7cec0 50% 50.5%,#e1e5dc 50.5% 100%);border-radius:5px}
-#reveal-offset::-webkit-slider-thumb{width:16px;height:16px;margin-top:-5.5px;border-width:2px}
-#reveal-offset::-moz-range-track{height:5px;background:#e1e5dc}
-@media(max-width:720px){.reveal-offset-control{grid-template-columns:1fr;gap:3px}.reveal-offset-head{max-width:180px}}
-`;
-document.head.appendChild(step33Style);
+const edgeWidthInput = document.querySelector('#edge-width');
+const edgeWidthValue = document.querySelector('#edge-width-value');
+const edgeTextureInput = document.querySelector('#edge-texture');
+const edgeTextureValue = document.querySelector('#edge-texture-value');
 
 const stageBackground = document.querySelector('#stage-background');
 const bgSolidButton = document.querySelector('#bg-solid');
@@ -78,7 +64,7 @@ const rim = new THREE.DirectionalLight(0xe8edf5, 2);
 rim.position.set(15, 5, -15);
 scene.add(rim);
 
-// Fixed camera for repeatable recording and clean transition comparisons.
+// Camera remains locked while tuning the fold/reveal relationship.
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = false;
 controls.enablePan = false;
@@ -93,6 +79,10 @@ scene.add(phone);
 
 const bend = { value: Math.PI };
 const transitionMix = { value: 0 };
+const edgeCore = { value: .010 };
+const edgeHalo = { value: .025 };
+const edgeNoise = { value: .006 };
+
 let angle = 0;
 let playing = false;
 let playbackTime = 0;
@@ -102,18 +92,16 @@ let revealOffset = 0;
 const screens = {};
 const customReady = { reality: false, redblack: false };
 
-// Step 3.4: perceptual reveal mapping. The first half of the physical unfold is
-// deliberately conservative because only the stationary right half of the inner
-// display is visually dominant around 50°. The reveal then accelerates after 60%.
+// Step 3.5: return to the simpler synchronized baseline, but keep a little
+// restraint early and a faster finish late. This is intentionally less "clever"
+// than the perceptual curve because the previous synchronized motion read better.
 const REVEAL_KEYFRAMES = [
   [0.00, 0.00],
-  [0.15, 0.00],
-  [0.25, 0.10],
-  [0.50, 0.22],
-  [0.60, 0.42],
-  [0.70, 0.66],
+  [0.15, 0.02],
+  [0.25, 0.12],
+  [0.50, 0.38],
+  [0.70, 0.65],
   [0.75, 0.80],
-  [0.85, 0.96],
   [0.90, 1.00],
   [1.00, 1.00],
 ];
@@ -174,12 +162,10 @@ bgSolidButton.addEventListener('click', () => {
   backgroundMode = 'solid';
   applyBackground();
 });
-
 bgTransparentButton.addEventListener('click', () => {
   backgroundMode = 'transparent';
   applyBackground();
 });
-
 bgImageButton.addEventListener('click', () => {
   if (!backgroundImageUrl) {
     bgUpload.click();
@@ -188,7 +174,6 @@ bgImageButton.addEventListener('click', () => {
   backgroundMode = 'image';
   applyBackground();
 });
-
 bgUpload.addEventListener('change', () => {
   const file = bgUpload.files[0];
   if (!file) return;
@@ -198,7 +183,6 @@ bgUpload.addEventListener('change', () => {
   applyBackground();
   bgUpload.value = '';
 });
-
 bgFit.addEventListener('change', applyBackground);
 bgColor.addEventListener('input', applyBackground);
 applyBackground();
@@ -231,7 +215,6 @@ const customCanvases = {
   reality: makeCanvasPair(),
   redblack: makeCanvasPair(),
 };
-
 const customTextures = {
   reality: {
     inner: createCanvasTexture(customCanvases.reality.inner),
@@ -249,13 +232,13 @@ for (const kind of ['inner', 'outer']) {
     defaultTextures[theme] = createCanvasTexture(canvases[kind]);
   }
   const material = new THREE.MeshBasicMaterial({
-    map: defaultTextures[uiTheme],
+    map: defaultTextures.wallpaper,
     toneMapped: false,
   });
   screens[kind] = {
     material,
     defaultTextures,
-    targetMap: defaultTextures[uiTheme],
+    targetMap: defaultTextures.wallpaper,
     shader: null,
   };
 }
@@ -265,7 +248,6 @@ function drawArtwork(img, pair, textures) {
   inner.fillStyle = '#101418';
   inner.fillRect(0, 0, pair.inner.width, pair.inner.height);
 
-  // Fit exactly once at upload time; no runtime recrop during folding.
   const scale = Math.min(pair.inner.width / img.width, pair.inner.height / img.height);
   const width = img.width * scale;
   const height = img.height * scale;
@@ -306,9 +288,9 @@ function setScreenMaps(baseSet, targetSet = baseSet) {
   }
 }
 
-function updateThemeSelection() {
+function updateSourceUI() {
   document.querySelectorAll('[data-ui-theme]').forEach(button => {
-    button.setAttribute('aria-selected', String(button.dataset.uiTheme === uiTheme));
+    button.setAttribute('aria-selected', String(uiTheme === 'custom'));
   });
   redBlackButton.classList.toggle('is-loaded', customReady.redblack);
   redBlackButton.textContent = customReady.redblack ? 'RedBlack ✓' : 'RedBlack';
@@ -340,7 +322,7 @@ realityInput.addEventListener('change', async () => {
     );
     setPlaying(false);
     setAngle(0);
-    updateThemeSelection();
+    updateSourceUI();
   } catch {
     alert('Unable to read the Reality image. Choose a PNG, JPG, or WebP file.');
   } finally {
@@ -364,7 +346,7 @@ redBlackInput.addEventListener('change', async () => {
     setScreenMaps(customTextures.reality, customTextures.redblack);
     setPlaying(false);
     setAngle(0);
-    updateThemeSelection();
+    updateSourceUI();
   } catch {
     alert('Unable to read the RedBlack image. Choose a PNG, JPG, or WebP file.');
   } finally {
@@ -372,34 +354,19 @@ redBlackInput.addEventListener('change', async () => {
   }
 });
 
-function showDefaultUI() {
-  for (const [kind, screen] of Object.entries(screens)) {
-    screen.material.map = screen.defaultTextures[uiTheme];
-    screen.targetMap = screen.defaultTextures[uiTheme];
-    if (screen.shader) screen.shader.uniforms.transitionTarget.value = screen.targetMap;
-    screen.material.needsUpdate = true;
-  }
-  transitionMix.value = 0;
-  updateThemeSelection();
-}
-
-document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventListener('click', () => {
-  if (button.dataset.uiTheme === 'custom') {
-    realityInput.click();
+document.querySelector('[data-ui-theme="custom"]').addEventListener('click', () => realityInput.click());
+redBlackButton.addEventListener('click', () => {
+  if (!customReady.reality) {
+    alert('Upload the Reality image first.');
     return;
   }
-  uiTheme = button.dataset.uiTheme;
-  showDefaultUI();
-  setPlaying(false);
-  setAngle(0);
-}));
-
-redBlackButton.addEventListener('click', () => redBlackInput.click());
+  redBlackInput.click();
+});
 
 // ---------------------------------------------------------------------------
-// Step 3.4 perceptual reveal + timeline instrumentation
+// Step 3.5 synchronized reveal + organic boundary
 // ---------------------------------------------------------------------------
-function baseGeometryReveal(progress) {
+function baseReveal(progress) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
   for (let i = 0; i < REVEAL_KEYFRAMES.length - 1; i++) {
     const [p0, r0] = REVEAL_KEYFRAMES[i];
@@ -413,11 +380,9 @@ function baseGeometryReveal(progress) {
 }
 
 function transitionProgress(progress) {
-  // Offset shifts the fold progress used to sample the perceptual reveal curve.
-  // Closed is always locked to pure Reality so tuning never contaminates frame one.
   if (progress <= .02) return 0;
   const shiftedProgress = THREE.MathUtils.clamp(progress + revealOffset, 0, 1);
-  return baseGeometryReveal(shiftedProgress);
+  return baseReveal(shiftedProgress);
 }
 
 function updateTimelineUI(progress, reveal) {
@@ -427,6 +392,8 @@ function updateTimelineUI(progress, reveal) {
   angleReadout.textContent = `Angle ${Math.round(angle)}°`;
   revealReadout.textContent = `Reveal ${revealPercent}%`;
   slider.style.setProperty('--progress', `${progressPercent}%`);
+  revealMeterFill.style.width = `${revealPercent}%`;
+  revealMeterMarker.style.left = `${revealPercent}%`;
 
   snapButtons.forEach(button => {
     const target = Number(button.dataset.snap);
@@ -454,7 +421,6 @@ function setAngle(value) {
   transitionMix.value = reveal;
   updateTimelineUI(progress, reveal);
 
-  // The cover display faces away when the device is fully open.
   screens.outer.material.color.setScalar(angle >= 179.95 ? 0 : 1);
 }
 
@@ -468,30 +434,77 @@ play.addEventListener('click', () => {
   setPlaying(true);
 });
 
-reset.addEventListener('click', () => {
+closedButton.addEventListener('click', () => {
   setPlaying(false);
   playbackTime = 0;
   setAngle(0);
 });
-
+openButton.addEventListener('click', () => {
+  setPlaying(false);
+  playbackTime = 0;
+  setAngle(180);
+});
 snapButtons.forEach(button => button.addEventListener('click', () => {
   setPlaying(false);
   playbackTime = 0;
   setAngle(Number(button.dataset.snap));
 }));
-
 slider.addEventListener('input', () => {
   setPlaying(false);
   playbackTime = 0;
   setAngle(Number(slider.value));
 });
 
-revealOffsetInput.addEventListener('input', () => {
+function setBoundaryPreset(name) {
+  const presets = {
+    natural: { width: 1.0, texture: .6 },
+    soft: { width: 1.7, texture: .35 },
+    crisp: { width: .6, texture: .2 },
+  };
+  const preset = presets[name] || presets.natural;
+  edgeWidthInput.value = String(preset.width);
+  edgeTextureInput.value = String(preset.texture);
+  applyBoundaryControls(true);
+  edgePresetButtons.forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.edgePreset === name));
+  });
+}
+
+function applyBoundaryControls(keepPreset = false) {
   const offsetPercent = Number(revealOffsetInput.value);
   revealOffset = offsetPercent / 100;
   revealOffsetValue.textContent = `${offsetPercent >= 0 ? '+' : ''}${offsetPercent}%`;
+
+  const widthPercent = Number(edgeWidthInput.value);
+  edgeCore.value = widthPercent / 100;
+  edgeHalo.value = edgeCore.value * 2.5;
+  edgeWidthValue.textContent = `${widthPercent.toFixed(1)}%`;
+
+  const texturePercent = Number(edgeTextureInput.value);
+  edgeNoise.value = texturePercent / 100;
+  edgeTextureValue.textContent = `${texturePercent.toFixed(1)}%`;
+
+  if (!keepPreset) edgePresetButtons.forEach(button => button.setAttribute('aria-pressed', 'false'));
   setAngle(angle);
+}
+
+revealOffsetInput.addEventListener('input', () => applyBoundaryControls(false));
+edgeWidthInput.addEventListener('input', () => applyBoundaryControls(false));
+edgeTextureInput.addEventListener('input', () => applyBoundaryControls(false));
+edgePresetButtons.forEach(button => button.addEventListener('click', () => setBoundaryPreset(button.dataset.edgePreset)));
+
+function setBoundaryPopover(open) {
+  boundaryPopover.hidden = !open;
+  boundaryButton.setAttribute('aria-expanded', String(open));
+}
+boundaryButton.addEventListener('click', () => setBoundaryPopover(boundaryPopover.hidden));
+boundaryClose.addEventListener('click', () => setBoundaryPopover(false));
+document.addEventListener('pointerdown', event => {
+  if (boundaryPopover.hidden) return;
+  if (boundaryPopover.contains(event.target) || boundaryButton.contains(event.target)) return;
+  setBoundaryPopover(false);
 });
+setBoundaryPreset('natural');
 
 function resize() {
   const { width, height } = viewport.getBoundingClientRect();
@@ -554,7 +567,6 @@ try {
         : null;
     const material = kind ? screens[kind].material : object.material.clone();
 
-    // UVs are authored once in unfolded physical-screen coordinates.
     if (kind) {
       const p = geometry.attributes.position;
       const uv = new Float32Array(p.count * 2);
@@ -595,22 +607,36 @@ try {
           shader.uniforms.transitionTarget = { value: screen.targetMap };
           shader.uniforms.transitionMix = transitionMix;
           shader.uniforms.transitionSpatialMode = { value: kind === 'inner' ? 1 : 0 };
-          shader.fragmentShader = `uniform sampler2D transitionTarget;\nuniform float transitionMix;\nuniform float transitionSpatialMode;\n${shader.fragmentShader}`;
+          shader.uniforms.transitionEdgeCore = edgeCore;
+          shader.uniforms.transitionEdgeHalo = edgeHalo;
+          shader.uniforms.transitionEdgeNoise = edgeNoise;
+          shader.fragmentShader = `uniform sampler2D transitionTarget;\nuniform float transitionMix;\nuniform float transitionSpatialMode;\nuniform float transitionEdgeCore;\nuniform float transitionEdgeHalo;\nuniform float transitionEdgeNoise;\n${shader.fragmentShader}`;
           shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
             #ifdef USE_MAP
               vec4 sampledDiffuseColor = texture2D(map, vMapUv);
               vec4 targetDiffuseColor = texture2D(transitionTarget, vMapUv);
 
-              // Step 3.4: the right-to-left boundary follows the perceptual reveal
-              // map rather than raw fold progress. A tight feather keeps it spatial.
+              // Step 3.5: right-to-left reveal with a narrow core, a soft halo,
+              // and extremely subtle low-frequency vertical variation. The goal is
+              // to remove the ruler-straight UI-wipe look without becoming an FX.
               float boundary = mix(1.03, -0.03, transitionMix);
-              float feather = 0.015;
-              float rightToLeftReveal = smoothstep(
-                boundary - feather,
-                boundary + feather,
-                vMapUv.x
+              float wobble = transitionEdgeNoise * (
+                sin(vMapUv.y * 15.0 + 1.1) +
+                0.42 * sin(vMapUv.y * 37.0 + 2.4)
               );
-              float finalMix = transitionSpatialMode > 0.5 ? rightToLeftReveal : 0.0;
+              float warpedX = vMapUv.x + wobble;
+              float coreReveal = smoothstep(
+                boundary - transitionEdgeCore,
+                boundary + transitionEdgeCore,
+                warpedX
+              );
+              float haloReveal = smoothstep(
+                boundary - transitionEdgeHalo,
+                boundary + transitionEdgeHalo,
+                warpedX
+              );
+              float organicReveal = clamp(coreReveal * 0.82 + haloReveal * 0.18, 0.0, 1.0);
+              float finalMix = transitionSpatialMode > 0.5 ? organicReveal : 0.0;
               sampledDiffuseColor = mix(sampledDiffuseColor, targetDiffuseColor, finalMix);
 
               #ifdef DECODE_VIDEO_TEXTURE
@@ -622,7 +648,7 @@ try {
           screen.shader = shader;
         }
       };
-      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v6-step34`;
+      material.customProgramCacheKey = () => `${flexible ? 'lv3-fold-flexible' : moving ? 'lv3-fold-cover' : 'lv3-screen'}-${kind || 'body'}-transition-v7-step35`;
     }
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -632,23 +658,24 @@ try {
     count[flexible ? 'flexible' : moving ? 'moving' : 'fixed']++;
   });
 
-  console.info('Lv3 Step 3.4 ready', JSON.stringify({
+  console.info('Lv3 Step 3.5 ready', JSON.stringify({
     ...count,
     sourceMeshes: phone.children.length,
     fixedCamera: true,
     fixedUV: true,
-    transition: 'right-to-left perceptual reveal',
+    transition: 'right-to-left synchronized organic reveal',
     revealKeyframes: REVEAL_KEYFRAMES,
-    revealOffsetRange: [-.10, .10],
-    feather: .015,
-    snapControls: true,
-    timelineReadouts: true,
+    revealOffsetRange: [-.08, .08],
+    edgeCore: edgeCore.value,
+    edgeHalo: edgeHalo.value,
+    edgeNoise: edgeNoise.value,
+    boundaryPresets: true,
     outerCoverStaysReality: true,
     reusableBackgroundLayer: true,
     foldFX: false,
   }));
 
-  showDefaultUI();
+  updateSourceUI();
   document.querySelectorAll('.control-dock button, .control-dock input').forEach(element => element.disabled = false);
   ready = true;
   setPlaying(false);
@@ -665,7 +692,6 @@ renderer.setAnimationLoop(now => {
 
   if (ready && playing) {
     playbackTime += delta;
-    // ScreenToGif-friendly unfold: short closed hold, 1.8 s unfold, open hold.
     if (playbackTime < .45) {
       setAngle(0);
     } else if (playbackTime < 2.25) {
