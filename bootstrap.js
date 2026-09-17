@@ -1,4 +1,4 @@
-const BUILD_ID = '4.3';
+const BUILD_ID = '4.3.1';
 
 globalThis.__IPHONE_DUO_BUILD__ = BUILD_ID;
 document.documentElement.dataset.build = BUILD_ID;
@@ -32,14 +32,16 @@ const badge = installVersionBadge();
 const summaryLabel = document.querySelector('.reveal-summary > span:not(.reveal-dot)');
 if (summaryLabel) summaryLabel.textContent = 'World';
 const timelineSubtitle = document.querySelector('.timeline-title-block span');
-if (timelineSubtitle) timelineSubtitle.textContent = 'Unified panorama · geometry-driven world hand-off';
+if (timelineSubtitle) timelineSubtitle.textContent = 'One panorama · inner left-panel defocus';
 console.info('iPhone Duo build', BUILD_ID);
 
 try {
+  // Keep the proven shell motion blur and integrated world shader.
+  // v4.3.1 replaces the two wrapper modules with one physical screen coordinator:
+  // external cover fades early; the flexible inner display becomes the continuous panorama.
   await import(`./motionblur381.js?build=${BUILD_ID}`);
   await import(`./main_v41d4.js?build=${BUILD_ID}`);
-  await import(`./unifiedpanorama43.js?build=${BUILD_ID}`);
-  await import(`./geometrytiming42.js?build=${BUILD_ID}`);
+  await import(`./physicaldisplay431.js?build=${BUILD_ID}`);
   badge.textContent = `v${BUILD_ID}`;
 } catch (error) {
   console.error('iPhone Duo build failed', error);
