@@ -1,0 +1,20 @@
+{
+  "goal": "操作区信息架构重组（Control Dock IA Rework）",
+  "date": "2026-09-18",
+  "state": "awaiting_user_visual",
+  "phase": "review-evidence-ready",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v5.2-control-dock-ia",
+  "implementation_head": "8e35022",
+  "verification": "CDP 8-step PASS + vision 5-frame PASS + 0 console errors; evidence in evidence/",
+  "deviations": [
+    "stage cards default all-collapsed (viewport economy; Setup shows active ring instead of default-open)",
+    "degree ticks on dedicated row below slider"
+  ],
+  "observations": [
+    "fold preset label flips to Custom after interaction — pre-existing on production, untouched code path"
+  ],
+  "next_action": "user visual review on localhost:8766; merge to main only after user pass",
+  "merge_policy": "no merge to main without user visual pass (V5.1 baseline change policy)",
+  "production": "untouched (main stays V5.1)"
+}

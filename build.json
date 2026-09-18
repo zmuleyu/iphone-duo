@@ -1,67 +1,15 @@
 {
-  "build": "5.1",
-  "baseline": "5.0.8",
-  "milestone": "Production Fold Baseline",
-  "status": "FROZEN_PRODUCTION_BASELINE",
-  "productionBaselineId": "v5.1-production-fold",
-  "locked": {
-    "architecture": "Reality + RedBlack; one panorama coordinate system shared across physical screens",
-    "reveal": "V5.0.4 clean crossfade",
-    "geometry": [
-      "fixed right-panel anchor",
-      "no dynamic recenter or scale",
-      "hinge continuity lock",
-      "1.2° endpoint convergence",
-      "exact 0° / 180° endpoint snap",
-      "invalid panorama coordinate guard"
-    ],
-    "motion": [
-      "Fast Viral",
-      "Cinematic",
-      "Slow Demo",
-      "Custom manual timing",
-      "Off / Natural / Strong motion blur"
-    ],
-    "qa": [
-      "Master Pair QA",
-      "0° / 45° / 90° / 135° / 180° visual acceptance",
-      "Recording / Editing Mode",
-      "16:9 / 1:1 / 9:16 safe frames",
-      "30 / 60 fps deterministic record clock",
-      "Export Acceptance automatic + 5-item manual QC"
-    ]
-  },
-  "productionDefaults": {
-    "reveal": "clean-crossfade",
-    "motion": "Fast Viral",
-    "format": "16:9",
-    "fps": 60,
-    "guide": true
-  },
-  "guards": {
-    "stagedReveal": "Blocked in normal production URLs; available only with explicit ?dev=1&reveal=staged",
-    "worldMixOverride": "Blocked unless ?dev=1",
-    "stageOverride": "Blocked unless ?dev=1",
-    "noFxGeometryTest": "?nofx=1 remains available for QA"
-  },
-  "excludedFromBaseline": [
-    "Hero Tower FX",
-    "Bird FX",
-    "displacement experiments",
-    "new reveal art",
-    "independent Tower asset",
-    "third visual source"
+  "build": "5.2-rc1",
+  "baseline": "5.1",
+  "milestone": "Control Dock IA Rework",
+  "status": "RD_CANDIDATE",
+  "basedOn": "v5.1-production-fold",
+  "changes": [
+    "G1: transport row rework — endpoint chips, angle degree ticks (data-snap), thumb angle bubble, sequence strip with phase bands + fold anchors + playhead",
+    "G2: single-column dock; Assets merged into Setup; 4-stage workflow cards (Setup/Quality/Capture/Accept) with graphic node states",
+    "G3: [hidden] display guard — record HUD no longer always visible; export review wrap same class fix"
   ],
-  "changePolicy": {
-    "productionBranch": "main remains V5.1 Fold-only baseline unless a reviewed baseline update is explicitly approved",
-    "experimentalWork": "Tower / Bird / new transition / displacement work must start from separate R&D branches",
-    "promotionRule": "Experimental features must pass independent visual validation before reintegration into a future production baseline"
-  },
-  "priorMilestones": [
-    "V5.0.6.2 Master Pair QA",
-    "V5.0.6.3 Fold Motion Tuning",
-    "V5.0.7 Recording / Editing Mode",
-    "V5.0.8 Export Acceptance"
-  ],
+  "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
+  "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
   "timestamp": "2026-09-18"
 }
