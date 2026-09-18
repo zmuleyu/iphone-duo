@@ -113,7 +113,8 @@ const camera = new THREE.PerspectiveCamera(32, 1, .1, 250);
 camera.position.set(0, 0, 40);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// Capture runs (?cap=1) force 2x supersampling for crisp downscaled delivery.
+renderer.setPixelRatio(new URLSearchParams(location.search).has('cap') ? 2 : Math.min(devicePixelRatio, 2));
 renderer.setClearColor(0x000000, 0);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.18;
@@ -1629,7 +1630,7 @@ function startCapture() {
   const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
     ? 'video/webm;codecs=vp9'
     : 'video/webm';
-  capRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 20_000_000 });
+  capRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 40_000_000 });
   capChunks = [];
   capRecorder.ondataavailable = e => { if (e.data && e.data.size) capChunks.push(e.data); };
   capRecorder.onstop = finalizeCapture;
@@ -1641,7 +1642,7 @@ function finalizeCapture() {
   const blob = new Blob(capChunks, { type: 'video/webm' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `duo_v${'5.4'}_${recordFormat}_${recordFps}fps_${activeFoldPreset || 'custom'}.webm`;
+  a.download = `duo_v${'5.5'}_${recordFormat}_${recordFps}fps_${activeFoldPreset || 'custom'}.webm`;
   document.body.appendChild(a);
   a.click();
   a.remove();

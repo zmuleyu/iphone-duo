@@ -1,13 +1,13 @@
 {
-  "build": "5.4",
-  "baseline": "5.3",
-  "milestone": "T3 Capture Pipeline + Record Framing",
+  "build": "5.5",
+  "baseline": "5.4",
+  "milestone": "Capture Quality (2x supersample, 40Mbps, grain, CRF16)",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "?cap=1 in-page deterministic canvas capture (VP9 webm, auto-download, captureDone flag)",
-    "recording-mode cinematic framing: dolly-out + pan per format during record (16:9 unchanged)",
-    "capture tail pad +0.5s"
+    "?cap=1 forces renderer pixelRatio 2 (2880x1800 supersample)",
+    "capture bitrate 20->40Mbps",
+    "delivery pipeline: grain + CRF16 + poster frames"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
