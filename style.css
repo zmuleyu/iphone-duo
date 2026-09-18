@@ -159,3 +159,52 @@ button:focus-visible,.github-link:focus-visible,input:focus-visible{outline:2px 
   .qa-assets{grid-template-columns:1fr}
   .qa-angle-row{grid-template-columns:minmax(0,1fr) 48px 48px}
 }
+
+
+/* V5.0.7 — Recording / Editing Mode */
+.recording-panel{grid-column:1/-1}
+.recording-panel summary strong{color:#4b5563}
+.recording-panel summary small{padding:2px 6px;border-radius:999px;background:#f3f4f6;color:#68717d}
+.recording-editor-body{display:grid;grid-template-columns:1.2fr .9fr .8fr auto;gap:9px;align-items:end}
+.recording-setting{display:flex;flex-direction:column;gap:4px;min-width:0}
+.recording-setting>span{font-size:7.8px;color:#727b6d}
+.recording-format,.recording-fps,.recording-guide{min-width:0}
+.recording-enter{height:31px;padding:0 12px;border:1px solid #cfd6dd;border-radius:9px;background:#4f5966;color:#fff;font-size:8.3px;font-weight:650;white-space:nowrap}
+.recording-enter:hover:not(:disabled){background:#3f4854}
+.recording-note{grid-column:1/-1;margin:0;font-size:7.4px;line-height:1.45;color:#8a9099}
+
+.record-safe-frame{position:fixed;left:50%;top:50%;z-index:9000;transform:translate(-50%,-50%);pointer-events:none;border:1px solid rgba(255,255,255,.72);box-shadow:0 0 0 1px rgba(0,0,0,.2),0 0 0 9999px rgba(0,0,0,.08);border-radius:2px}
+.record-safe-frame span{position:absolute;left:8px;top:7px;padding:3px 6px;border-radius:999px;background:rgba(20,23,27,.62);color:rgba(255,255,255,.92);font:600 9px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.04em}
+html[data-record-format="16x9"] .record-safe-frame{width:min(88vw,calc(82vh * 16 / 9));aspect-ratio:16/9}
+html[data-record-format="1x1"] .record-safe-frame{width:min(78vw,78vh);aspect-ratio:1}
+html[data-record-format="9x16"] .record-safe-frame{height:min(82vh,82vw * 16 / 9);aspect-ratio:9/16}
+
+.record-hud{position:fixed;left:50%;bottom:18px;z-index:9100;transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:8px 10px;border:1px solid rgba(255,255,255,.32);border-radius:13px;background:rgba(24,27,31,.76);box-shadow:0 10px 35px rgba(0,0,0,.20);backdrop-filter:blur(14px);color:#fff;transition:opacity .16s ease,transform .16s ease}
+.record-hud-status{display:grid;grid-template-columns:auto auto;column-gap:8px;row-gap:2px;align-items:center;min-width:240px}
+.record-hud-status strong{font-size:9px}
+.record-hud-status span{font-size:7.4px;color:rgba(255,255,255,.70);font-variant-numeric:tabular-nums}
+#record-mode-time{grid-column:1/-1}
+.record-hud-actions{display:flex;gap:5px}
+.record-hud-actions button{height:28px;padding:0 10px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:rgba(255,255,255,.10);color:#fff;font-size:8px}
+.record-hud-actions button:hover:not(:disabled){background:rgba(255,255,255,.18)}
+.record-hud-actions button:disabled{opacity:.38}
+#record-start{background:#f2f5f8;color:#242a31;border-color:#fff}
+#record-start:hover:not(:disabled){background:#fff}
+
+html[data-recording-mode="1"] .control-dock,
+html[data-recording-mode="1"] .github-link,
+html[data-recording-mode="1"] #build-version-badge{opacity:0!important;pointer-events:none!important}
+html[data-recording-mode="1"] .record-hud,
+html[data-recording-mode="1"] .record-safe-frame{display:flex}
+html[data-recording-mode="1"][data-recording-active="1"] .record-hud{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(8px)}
+html[data-recording-mode="1"][data-recording-active="1"] .record-safe-frame{opacity:0}
+html[data-recording-guide="off"] .record-safe-frame{display:none!important}
+html[data-recording-mode="1"] #viewport{inset:0!important}
+
+@media(max-width:760px){
+  .recording-editor-body{grid-template-columns:1fr}
+  .recording-note{grid-column:1}
+  .record-hud{bottom:10px;width:min(94vw,520px);box-sizing:border-box;flex-direction:column;align-items:stretch}
+  .record-hud-status{min-width:0}
+  .record-hud-actions{display:grid;grid-template-columns:repeat(4,1fr)}
+}
