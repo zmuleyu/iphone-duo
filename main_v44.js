@@ -496,6 +496,7 @@ realityInput.addEventListener('change', async () => {
     customReady.reality = true;
     qaState.locked = false;
     resetQaVerdicts();
+    resetExportAcceptanceAll({ clearFiles: true });
     uiTheme = 'custom';
     applyCustomWorld();
     setPlaying(false); setAngle(0); updateSourceUI();
@@ -525,6 +526,7 @@ redBlackInput.addEventListener('change', async () => {
     customReady.redblack = true;
     qaState.locked = false;
     resetQaVerdicts();
+    resetExportAcceptanceAll({ clearFiles: true });
     uiTheme = 'custom';
     applyCustomWorld();
     setPlaying(false); setAngle(0); updateSourceUI();
@@ -1478,6 +1480,7 @@ try {
     foldMotionDefault: `${FOLD_PRESETS[DEFAULT_FOLD_PRESET].label} via ?motion=${DEFAULT_FOLD_PRESET}`,
     recordingEditingMode: 'clean UI + 16:9/1:1/9:16 safe frames + 30/60fps deterministic record clock',
     recordingQueries: '?studio=1&format=16x9|1x1|9x16&fps=30|60; ?record=1 auto-starts',
+    exportAcceptance: 'load local export -> auto aspect/duration/capture QC -> 5 manual visual checks -> EXPORT PASS',
     masterPairQA: 'source dimension/aspect checks + 0/45/90/135/180 visual verdicts + pair lock',
     towerFxControls: 'removed from production; deferred for separate discussion',
     recordTimeline: 'uses editable Fold Motion timing only',
@@ -1492,6 +1495,7 @@ try {
   setAngle(0);
   updateQaUI();
   updateRecordingUI();
+  updateExportAcceptanceUI();
   if (RECORDING_MODE_AUTO) setRecordingMode(true);
   if (RECORD_AUTO) startRecord();
 } catch (error) {
@@ -1511,6 +1515,23 @@ function startRecord() {
   recording = true;
   setPlaying(false);
   setAngle(0);
+
+  const duration = foldSequenceDuration();
+  captureHistory[recordFormat] = {
+    done: false,
+    format: recordFormat,
+    fps: recordFps,
+    duration,
+    expectedFrames: Math.ceil(duration * recordFps),
+    finalFrame: 0,
+    clockPass: false,
+    endpointAngle: 0,
+    masterPairPass: masterPairCheck().pass,
+    preset: activeFoldPreset,
+    motionBlur: document.documentElement.dataset.motionBlur || 'natural',
+  };
+  resetExportVerdicts(recordFormat);
+
   document.documentElement.dataset.recordingActive = '1';
   document.documentElement.dataset.recordFps = String(recordFps);
   document.documentElement.dataset.recordFormat = recordFormat;
@@ -1518,7 +1539,7 @@ function startRecord() {
   delete document.documentElement.dataset.recordDone;
   delete document.documentElement.dataset.recordT;
   delete document.documentElement.dataset.recordFrame;
-  document.documentElement.dataset.recordDuration = foldSequenceDuration().toFixed(2);
+  document.documentElement.dataset.recordDuration = duration.toFixed(2);
   updateRecordingUI();
 }
 
@@ -1575,6 +1596,16 @@ function driveRecord(nowMs) {
     document.documentElement.dataset.recordDone = '1';
     document.documentElement.removeAttribute('data-recording-active');
     setAngle(180);
+
+    const capture = captureHistory[recordFormat];
+    if (capture) {
+      capture.done = true;
+      capture.finalFrame = recordFrameIndex;
+      capture.clockPass = Math.abs(recordFrameIndex - capture.expectedFrames) <= 2;
+      capture.endpointAngle = angle;
+      capture.completedAt = Date.now();
+    }
+
     updateRecordingUI();
   }
 }
@@ -1589,6 +1620,10 @@ window.__duo = {
   setRecordFormat,
   setRecordFps,
   resetRecordingSession,
+  resetExportAcceptance: () => {
+    resetExportVerdicts();
+    updateExportAcceptanceUI();
+  },
   play: () => {
     if (angle > .1) setAngle(0);
     playbackTime = 0;
@@ -1621,6 +1656,13 @@ window.__duo = {
         fps: recordFps,
         guide: recordGuide,
         frame: recordFrameIndex,
+      },
+      exportAcceptance: {
+        format: recordFormat,
+        auto: exportAutoCheck(),
+        verdicts: { ...currentExportState().verdicts },
+        capture: captureHistory[recordFormat] ? { ...captureHistory[recordFormat] } : null,
+        video: currentExportState().videoMeta ? { ...currentExportState().videoMeta } : null,
       },
       masterPairQA: {
         locked: qaState.locked,
