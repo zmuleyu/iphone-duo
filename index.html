@@ -179,8 +179,62 @@
             </div>
           </details>
 
+          <details id="recording-editing-panel" class="edit-panel recording-panel">
+            <summary>
+              <span><strong>Recording / Editing</strong><small id="recording-summary">16:9 · 60 fps</small></span>
+              <i aria-hidden="true">⌄</i>
+            </summary>
+            <div class="edit-panel-body recording-editor-body">
+              <div class="recording-setting">
+                <span>Safe Frame</span>
+                <div class="segmented recording-format" role="group" aria-label="Recording safe frame">
+                  <button type="button" data-record-format="16x9" aria-pressed="true" disabled>16:9</button>
+                  <button type="button" data-record-format="1x1" aria-pressed="false" disabled>1:1</button>
+                  <button type="button" data-record-format="9x16" aria-pressed="false" disabled>9:16</button>
+                </div>
+              </div>
+
+              <div class="recording-setting">
+                <span>Frame Rate</span>
+                <div class="segmented recording-fps" role="group" aria-label="Recording frame rate">
+                  <button type="button" data-record-fps="30" aria-pressed="false" disabled>30</button>
+                  <button type="button" data-record-fps="60" aria-pressed="true" disabled>60</button>
+                </div>
+              </div>
+
+              <div class="recording-setting">
+                <span>Guide</span>
+                <div class="segmented recording-guide" role="group" aria-label="Safe frame guide">
+                  <button type="button" data-record-guide="on" aria-pressed="true" disabled>On</button>
+                  <button type="button" data-record-guide="off" aria-pressed="false" disabled>Off</button>
+                </div>
+              </div>
+
+              <button id="enter-recording-mode" class="recording-enter" type="button" disabled>Enter Recording Mode</button>
+              <p class="recording-note">Recording Mode hides development UI. Preview and ?record=1 use the same active Fold Motion timing.</p>
+            </div>
+          </details>
+
         </div>
       </section>
+    </div>
+
+    <div id="record-safe-frame" class="record-safe-frame" hidden aria-hidden="true">
+      <span id="record-safe-frame-label">16:9 SAFE FRAME</span>
+    </div>
+
+    <div id="record-hud" class="record-hud" hidden>
+      <div class="record-hud-status">
+        <strong id="record-mode-status">Ready</strong>
+        <span id="record-mode-meta">16:9 · 60 fps · Fast Viral</span>
+        <span id="record-mode-time">0.00 / 1.85s</span>
+      </div>
+      <div class="record-hud-actions">
+        <button id="record-start" type="button" disabled>Start</button>
+        <button id="record-replay" type="button" disabled>Replay</button>
+        <button id="record-reset" type="button" disabled>Reset</button>
+        <button id="record-exit" type="button" disabled>Exit</button>
+      </div>
     </div>
   </main>
   <script type="module" src="./bootstrap.js"></script>
