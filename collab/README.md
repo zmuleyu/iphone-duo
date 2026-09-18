@@ -18,4 +18,5 @@
 | G-C 屏幕 chrome 状态栏（v5.7） | 2026-09-18 | done→production（?ui=1 状态栏层） |
 | G-D AI 飞鸟底板 | 2026-09-18 | done（双画幅底板+prompt 文档已交付；AI 工具运行=外部卡点） |
 | G-E/F 锁屏 chrome + 音效成片（v5.8） | 2026-09-19 | done→production（三画幅有声成片已交付；音乐后撤） |
-| G-G/H 叙事修复+白底成片（v5.9） | 2026-09-19 | done→production（红随展开25-150°+塔第二击+白底无音乐终出；母图mock目检中） | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |
+| G-G/H 叙事修复+白底成片（v5.9） | 2026-09-19 | done→production（红随展开25-150°+塔第二击+白底无音乐终出；母图mock目检中） |
+| V6.0 塔激活性叙事（v6.0） | 2026-09-19 | done→production（Reality口袋+0.3s激活+图形化母图+16:9居中） | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |

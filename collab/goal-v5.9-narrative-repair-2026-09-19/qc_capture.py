@@ -82,7 +82,7 @@ def main(video, tower_crop=None, grid_crop=None, tower_checks=True):
         b_early, b_late = blue(1.10), blue(1.75)
         print(f"tower-region blue: 1.10s={b_early:.1f} 1.75s={b_late:.1f}")
         # informational only (boost contaminates blue); visual beat is vision-checked
-    if len(lum) == 2:
+    if tower_crop and len(lum) == 2:
             rise = (lum[1.75] - lum[1.30]) / max(lum[1.30], 1e-6)
             print(f"tower-core lum: 1.30s={lum[1.30]:.1f} 1.75s={lum[1.75]:.1f} rise={rise:+.1%}")
             # informational; the pocket-flip drama is vision-checked on frames
