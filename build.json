@@ -22,13 +22,21 @@
     "totalDuration": "live readout",
     "reset": true
   },
-  "recording": "uses the same editable fold timing; no hidden tower event in production",
+  "recording": "uses the same editable fold timing and motion blur mode; no hidden tower event in production",
   "towerFx": {
     "panel": "separate collapsed placeholder",
     "active": false,
     "targetVersion": "5.0.7",
     "activationRule": "Open state only, after Open Hold begins",
-    "legacyExperiment": "?towerfx=legacy"
+    "legacyExperiment": "?towerfx=legacy",
+    "startGate": "begin V5.0.7 only after V5.0.6 fold playback + 0/45/90/135/180 visual acceptance",
+    "plannedControls": [
+      "Open delay",
+      "Activation duration",
+      "Intensity",
+      "Pulse",
+      "Preview/Reset"
+    ]
   },
   "displacement": "deferred",
   "timestamp": "2026-09-18"
