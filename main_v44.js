@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.2';
+const BUILD_VERSION = 'v5.0.2a';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -494,8 +494,10 @@ float leakPattern(vec2 uv) {
   float leftDistance = clamp((center - uv.x) / max(center, 0.001), 0.0, 1.0);
   float g = 1.0 - leftDistance;
   float movingHalf = step(uv.x, center + 0.002);
+  float validUV = step(0.0, uv.x) * step(uv.x, 1.0)
+    * step(0.0, uv.y) * step(uv.y, 1.0);
   float j = fract(sin(dot(floor(uv * vec2(220.0, 160.0)), vec2(12.9898, 78.233))) * 43758.5453);
-  return clamp(g + (j - 0.5) * 0.10, 0.0, 1.0) * movingHalf;
+  return clamp(g + (j - 0.5) * 0.10, 0.0, 1.0) * movingHalf * validUV;
 }
 
 // Tokyo Tower anchor measured on the final B asset (2670x1878).
@@ -504,12 +506,20 @@ float towerMask(vec2 uv) {
   return 1.0 - smoothstep(0.7, 1.0, length(d));
 }
 
+float towerContentMask(vec2 uv, vec3 bCol) {
+  float region = towerMask(uv);
+  float lum = dot(bCol, vec3(0.299, 0.587, 0.114));
+  float warm = clamp((bCol.r - bCol.b) * 2.4 + (bCol.r - bCol.g) * 0.8, 0.0, 1.0);
+  float bright = smoothstep(0.22, 0.58, lum);
+  return region * warm * bright;
+}
+
 // Staged reveal of world B: hinge leak first, city collapse next, tower locks last.
 float stagedReveal(vec2 uv, vec3 bCol) {
   float leak = leakPattern(uv);
   float lumB = dot(bCol, vec3(0.299, 0.587, 0.114));
   float city = 1.0 - smoothstep(0.045, 0.15, lumB);
-  float tower = towerMask(uv);
+  float tower = towerContentMask(uv, bCol);
   float base = smoothstep(1.0 - uLeak - 0.06, 1.0 - uLeak + 0.06, leak);
   base *= step(0.001, uLeak); // no leak stage -> no speckle from the noise term
   float reveal = base;
@@ -579,6 +589,9 @@ vec3 screenColor() {
         // Blur the image and its coverage together so color spreads into the black margin.
         vec2 tapCoverage = smoothstep(-footprint, footprint, sampleUV)
           * (1.0 - smoothstep(vec2(1.0) - footprint, vec2(1.0) + footprint, sampleUV));
+        float tapValid = step(0.0, sampleUV.x) * step(sampleUV.x, 1.0)
+          * step(0.0, sampleUV.y) * step(sampleUV.y, 1.0);
+        tapCoverage *= tapValid;
         vec2 clampedUV = clamp(sampleUV, vec2(0.0), vec2(1.0));
         vec3 tapA = textureLod(map, clampedUV, lod).rgb;
         vec3 tapB = textureLod(transitionTarget, clampedUV, lod).rgb;
@@ -600,15 +613,16 @@ vec3 screenColor() {
     float bb = mix(textureLod(map, uvB, baseLod).rgb.b, bB2.b, stagedReveal(uvB, bB2));
     color.r = mix(color.r, rr, uImpact);
     color.b = mix(color.b, bb, uImpact);
-    color = mix(color, vec3(1.0, 0.97, 0.94), uImpact * (0.42 + 0.30 * towerMask(sourceUV)));
+    float towerImpact = towerContentMask(sourceUV, colB);
+    color = mix(color, vec3(1.0, 0.97, 0.94), uImpact * (0.38 + 0.10 * towerImpact));
   }
 
   // Lv1 pulse @3.18s: tower-centered warm glow + ~25% response on warm windows.
   if (uPulse > 0.001) {
-    float tw = towerMask(sourceUV);
+    float tw = towerContentMask(sourceUV, colB);
     float lumC = dot(color, vec3(0.299, 0.587, 0.114));
     float warm = clamp((color.r - color.b) * 2.0, 0.0, 1.0) * smoothstep(0.12, 0.35, lumC);
-    color += vec3(1.0, 0.62, 0.25) * uPulse * (tw * 0.85 + warm * 0.25);
+    color += vec3(1.0, 0.62, 0.25) * uPulse * (tw * 0.22 + warm * 0.10);
   }
 
   return color;
@@ -727,6 +741,8 @@ try {
     framing: 'step-3.7.2',
     openEndpointRepair: 'projected-uv -> authored-uv + endpoint coverage lock',
     revealDirection: 'hinge-to-left-moving-panel',
+    connectionArtifactGuard: 'valid-panorama-only + no blur bleed',
+    towerHighlightGuard: 'content-aware tower mask; no broad ellipse glow',
   });
 
   updateSourceUI();
