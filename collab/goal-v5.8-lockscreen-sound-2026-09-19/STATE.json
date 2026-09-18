@@ -1,0 +1,8 @@
+{
+  "goal": "v5.8 锁屏 chrome 修正 + 音效成片（G-E/G-F）",
+  "date": "2026-09-19",
+  "state": "in-progress",
+  "phase": "G-E verified, ready-for-merge",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v5.8-lockscreen-sound"
+}

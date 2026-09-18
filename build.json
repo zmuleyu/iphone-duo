@@ -1,12 +1,12 @@
 {
-  "build": "5.7",
-  "baseline": "5.6",
-  "milestone": "Screen Chrome (iOS status bar, ?ui=1)",
+  "build": "5.8",
+  "baseline": "5.7",
+  "milestone": "Lock Screen Chrome + Record Push-in",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "?ui=1 / setScreenChrome: iOS status bar + home indicator painted into world canvas",
-    "folds with screen, captured by ?cap=1; baseline unchanged"
+    "lock-screen chrome (?ui=1): big 9:41 + date top-center, WiFi TR, flashlight/camera BR, home bar; redblack world only",
+    "record open-hold micro push-in zoom x1.015"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",

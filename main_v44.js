@@ -379,85 +379,97 @@ document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventLi
 // Upload pipeline — one image fills ONE world canvas; no per-screen crops.
 // ---------------------------------------------------------------------------
 
-// V5.7 screen chrome (?ui=1 or __duo.setScreenChrome): iOS-style status bar +
-// home indicator painted into the world canvas, so it folds with the screen
-// and lands in captures. Default UIs already carry their own chrome; this
-// applies to custom master worlds only.
+// V5.8 lock-screen chrome (?ui=1 or __duo.setScreenChrome): render-faithful Duo
+// lock screen painted into the RedBlack world canvas only (open state). Layout
+// follows the open-state reference: big light-weight 9:41 + date top-center,
+// small Wi-Fi top-right, flashlight/camera frosted circles stacked bottom-right,
+// home indicator bottom-center. Reality/cover world stays pure wallpaper.
 let screenChrome = QUERY.has('ui');
 const worldImages = { reality: null, redblack: null };
 
-function drawScreenChrome(canvas) {
+function drawLockChrome(canvas) {
   const ctx = canvas.getContext('2d');
   const w = canvas.width;
-  const barH = Math.round(canvas.height * 0.048);
-  const padX = Math.round(w * 0.022);
-  const midY = barH * 0.5;
+  const h = canvas.height;
+  const padX = Math.round(w * 0.024);
   ctx.save();
   ctx.fillStyle = '#ffffff';
   ctx.strokeStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.45)';
-  ctx.shadowBlur = barH * 0.08;
-  ctx.shadowOffsetY = barH * 0.02;
-  // Time (left)
-  ctx.font = `600 ${Math.round(barH * 0.46)}px -apple-system, "SF Pro Text", "Segoe UI", sans-serif`;
+  ctx.shadowBlur = h * 0.006;
+  ctx.shadowOffsetY = h * 0.002;
+  ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('9:41', padX, midY);
-  // Cellular bars (right cluster, leftmost)
-  let rx = w - padX;
-  const iconH = barH * 0.34;
-  // Battery: outline + cap + 75% level
-  const batW = barH * 0.72;
-  const batH = iconH * 0.82;
-  const batX = rx - batW;
-  const batY = midY - batH / 2;
-  ctx.lineWidth = Math.max(1.5, barH * 0.035);
-  ctx.beginPath();
-  ctx.roundRect(batX, batY, batW, batH, batH * 0.28);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.roundRect(batX + ctx.lineWidth * 1.2, batY + ctx.lineWidth * 1.2,
-    (batW - ctx.lineWidth * 2.4) * 0.75, batH - ctx.lineWidth * 2.4, batH * 0.16);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.roundRect(batX + batW + ctx.lineWidth, midY - batH * 0.18, barH * 0.06, batH * 0.36, barH * 0.03);
-  ctx.fill();
-  rx = batX - barH * 0.28;
-  // Wi-Fi: three arcs + dot
-  const wifiR = iconH * 0.62;
-  const wifiX = rx - wifiR;
-  const wifiY = midY + iconH * 0.28;
-  ctx.lineWidth = Math.max(1.8, barH * 0.05);
+  // Date + big time (top-center)
+  ctx.font = `400 ${Math.round(h * 0.030)}px "Segoe UI Variable Display", "Segoe UI", -apple-system, sans-serif`;
+  ctx.fillText('Wed Apr 1', w / 2, h * 0.068);
+  ctx.font = `200 ${Math.round(h * 0.115)}px "Segoe UI Variable Display", "Segoe UI Light", "Segoe UI", -apple-system, sans-serif`;
+  ctx.fillText('9:41', w / 2, h * 0.155);
+  // Small Wi-Fi (top-right corner)
+  const wifiX = w - padX;
+  const wifiY = h * 0.055;
+  ctx.lineWidth = Math.max(2, h * 0.004);
   ctx.lineCap = 'round';
-  for (let i = 3; i >= 1; i--) {
+  for (let k = 3; k >= 1; k--) {
     ctx.beginPath();
-    ctx.arc(wifiX, wifiY, wifiR * i / 3, Math.PI * 1.28, Math.PI * 1.72);
+    ctx.arc(wifiX, wifiY, h * 0.007 * k + h * 0.004, Math.PI * 1.3, Math.PI * 1.7);
     ctx.stroke();
   }
   ctx.beginPath();
-  ctx.arc(wifiX, wifiY - wifiR * 0.06, ctx.lineWidth * 0.62, 0, Math.PI * 2);
+  ctx.arc(wifiX, wifiY, ctx.lineWidth * 0.7, 0, Math.PI * 2);
   ctx.fill();
-  rx = wifiX - wifiR - barH * 0.26;
-  // Cellular: 4 ascending bars
-  const cellBarW = barH * 0.09;
-  const cellGap = cellBarW * 0.42;
-  for (let i = 0; i < 4; i++) {
-    const bh = iconH * (0.32 + i * 0.17);
+  // Flashlight + camera frosted circles (stacked, bottom-right)
+  const r = h * 0.037;
+  const bx = w - padX - r;
+  const byTorch = h * 0.78;
+  const byCam = byTorch + r * 2.55;
+  for (const cy of [byTorch, byCam]) {
+    ctx.save();
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = 'rgba(255,255,255,0.20)';
     ctx.beginPath();
-    ctx.roundRect(rx - cellBarW, midY + iconH * 0.5 - bh, cellBarW, bh, cellBarW * 0.3);
+    ctx.arc(bx, cy, r, 0, Math.PI * 2);
     ctx.fill();
-    rx -= cellBarW + cellGap;
+    ctx.restore();
   }
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#ffffff';
+  // Flashlight glyph
+  ctx.lineWidth = Math.max(2, r * 0.11);
+  ctx.beginPath();
+  ctx.roundRect(bx - r * 0.20, byTorch - r * 0.42, r * 0.40, r * 0.30, r * 0.08);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(bx - r * 0.13, byTorch - r * 0.10);
+  ctx.lineTo(bx - r * 0.08, byTorch + r * 0.40);
+  ctx.lineTo(bx + r * 0.08, byTorch + r * 0.40);
+  ctx.lineTo(bx + r * 0.13, byTorch - r * 0.10);
+  ctx.closePath();
+  ctx.fill();
+  // Camera glyph
+  ctx.beginPath();
+  ctx.roundRect(bx - r * 0.46, byCam - r * 0.28, r * 0.92, r * 0.62, r * 0.14);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.roundRect(bx - r * 0.18, byCam - r * 0.40, r * 0.36, r * 0.14, r * 0.05);
+  ctx.fill();
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath();
+  ctx.arc(bx, byCam + r * 0.03, r * 0.19, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
   // Home indicator (bottom center)
   const hiW = w * 0.088;
-  const hiH = Math.max(3, barH * 0.09);
-  ctx.globalAlpha = 0.85;
+  const hiH = Math.max(3, h * 0.0048);
+  ctx.globalAlpha = 0.9;
   ctx.beginPath();
-  ctx.roundRect((w - hiW) / 2, canvas.height - hiH * 2.4, hiW, hiH, hiH / 2);
+  ctx.roundRect((w - hiW) / 2, h - hiH * 2.6, hiW, hiH, hiH / 2);
   ctx.fill();
   ctx.restore();
 }
 
-function drawWorld(img, canvas, texture) {
+function drawWorld(img, canvas, texture, chrome = false) {
   const context = canvas.getContext('2d');
   context.fillStyle = '#101418';
   context.fillRect(0, 0, canvas.width, canvas.height);
@@ -465,7 +477,7 @@ function drawWorld(img, canvas, texture) {
   const width = img.width * scale;
   const height = img.height * scale;
   context.drawImage(img, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
-  if (screenChrome) drawScreenChrome(canvas);
+  if (chrome) drawLockChrome(canvas);
   texture.needsUpdate = true;
 }
 
@@ -622,7 +634,7 @@ redBlackInput.addEventListener('change', async () => {
   try {
     const img = await decodeFile(file);
     worldImages.redblack = img;
-    drawWorld(img, worldCanvases.redblack, worldTextures.redblack);
+    drawWorld(img, worldCanvases.redblack, worldTextures.redblack, screenChrome);
     sourceMeta.redblack = {
       name: file.name,
       width: img.naturalWidth || img.width,
@@ -1862,6 +1874,13 @@ function driveRecord(nowMs) {
   const easedFold = foldEase(rawFold);
   setAngle(easedFold * 180);
   applyRecordFraming(easedFold);
+  // V5.8: micro push-in across the open hold so the static plate stays alive
+  // (record path only; preview untouched).
+  if (t > foldEnd && foldMotion.openHold > 0) {
+    const holdK = THREE.MathUtils.clamp((t - foldEnd) / foldMotion.openHold, 0, 1);
+    camera.zoom *= 1 + 0.015 * holdK * holdK * (3 - 2 * holdK);
+    camera.updateProjectionMatrix();
+  }
 
   // Experimental staged reveal follows normalized fold progress rather than
   // fixed wall-clock seconds, so motion timing can be edited without desync.
@@ -1920,8 +1939,7 @@ window.__duo = {
   // V5.7: toggle iOS-style status-bar chrome on custom worlds (redraws canvases).
   setScreenChrome: flag => {
     screenChrome = !!flag;
-    if (worldImages.reality) drawWorld(worldImages.reality, worldCanvases.reality, worldTextures.reality);
-    if (worldImages.redblack) drawWorld(worldImages.redblack, worldCanvases.redblack, worldTextures.redblack);
+    if (worldImages.redblack) drawWorld(worldImages.redblack, worldCanvases.redblack, worldTextures.redblack, screenChrome);
     return screenChrome;
   },
   // V5.6 debug: force bezel sweep/pop for deterministic verification.
