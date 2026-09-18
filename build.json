@@ -1,47 +1,67 @@
 {
-  "build": "5.0.8",
-  "baseline": "5.0.7",
-  "milestone": "Export Acceptance",
-  "kept": [
-    "Reality + RedBlack two-source architecture",
-    "V5.0.4 clean crossfade",
-    "V5.0.5 hinge / endpoint stability",
-    "V5.0.6.2 Master Pair QA",
-    "V5.0.6.3 Fold Motion presets",
-    "V5.0.7 Recording / Editing Mode",
-    "Tower and Bird effects removed"
-  ],
-  "exportAcceptance": {
-    "targets": [
-      "16:9",
-      "1:1",
-      "9:16"
+  "build": "5.1",
+  "baseline": "5.0.8",
+  "milestone": "Production Fold Baseline",
+  "status": "FROZEN_PRODUCTION_BASELINE",
+  "productionBaselineId": "v5.1-production-fold",
+  "locked": {
+    "architecture": "Reality + RedBlack; one panorama coordinate system shared across physical screens",
+    "reveal": "V5.0.4 clean crossfade",
+    "geometry": [
+      "fixed right-panel anchor",
+      "no dynamic recenter or scale",
+      "hinge continuity lock",
+      "1.2° endpoint convergence",
+      "exact 0° / 180° endpoint snap",
+      "invalid panorama coordinate guard"
     ],
-    "localReview": "Load a locally exported MP4/WebM/QuickTime file directly in-browser for metadata and visual review.",
-    "automaticChecks": [
-      "Last deterministic capture exists for selected format",
-      "Capture frame clock within ±2 terminal frames",
-      "Capture ends at exact 180° Open endpoint",
-      "Master Pair geometry passed at capture",
-      "Export aspect ratio within 1.5% of target",
-      "Export duration within max(0.35s, 4/fps) of deterministic capture",
-      "Resolution warning when shortest side is below 720px"
+    "motion": [
+      "Fast Viral",
+      "Cinematic",
+      "Slow Demo",
+      "Custom manual timing",
+      "Off / Natural / Strong motion blur"
     ],
-    "manualChecks": [
-      "Motion Blur — no compression smear or double shell",
-      "Hinge — no flash, tear, or seam jump",
-      "Open Endpoint — final frame remains stable",
-      "Crop Safety — device and key content remain inside target",
-      "Compression — RedBlack contrast and fine edges remain readable"
-    ],
-    "reviewHelpers": [
-      "Review Hinge jumps exported video to mid-fold",
-      "Review End jumps to final Open hold"
-    ],
-    "acceptanceRule": "EXPORT PASS requires automatic QC pass plus 5/5 manual visual PASS.",
-    "formatIsolation": "16:9, 1:1 and 9:16 acceptance states are tracked independently.",
-    "automationDataset": "html[data-export-acceptance=pass|fail|pending]"
+    "qa": [
+      "Master Pair QA",
+      "0° / 45° / 90° / 135° / 180° visual acceptance",
+      "Recording / Editing Mode",
+      "16:9 / 1:1 / 9:16 safe frames",
+      "30 / 60 fps deterministic record clock",
+      "Export Acceptance automatic + 5-item manual QC"
+    ]
   },
-  "note": "Platform transcoding itself is not simulated; compression quality remains a manual acceptance item after reviewing the actual exported/transcoded clip.",
+  "productionDefaults": {
+    "reveal": "clean-crossfade",
+    "motion": "Fast Viral",
+    "format": "16:9",
+    "fps": 60,
+    "guide": true
+  },
+  "guards": {
+    "stagedReveal": "Blocked in normal production URLs; available only with explicit ?dev=1&reveal=staged",
+    "worldMixOverride": "Blocked unless ?dev=1",
+    "stageOverride": "Blocked unless ?dev=1",
+    "noFxGeometryTest": "?nofx=1 remains available for QA"
+  },
+  "excludedFromBaseline": [
+    "Hero Tower FX",
+    "Bird FX",
+    "displacement experiments",
+    "new reveal art",
+    "independent Tower asset",
+    "third visual source"
+  ],
+  "changePolicy": {
+    "productionBranch": "main remains V5.1 Fold-only baseline unless a reviewed baseline update is explicitly approved",
+    "experimentalWork": "Tower / Bird / new transition / displacement work must start from separate R&D branches",
+    "promotionRule": "Experimental features must pass independent visual validation before reintegration into a future production baseline"
+  },
+  "priorMilestones": [
+    "V5.0.6.2 Master Pair QA",
+    "V5.0.6.3 Fold Motion Tuning",
+    "V5.0.7 Recording / Editing Mode",
+    "V5.0.8 Export Acceptance"
+  ],
   "timestamp": "2026-09-18"
 }
