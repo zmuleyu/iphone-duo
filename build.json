@@ -1,14 +1,18 @@
 {
-  "build": "5.0.2a",
-  "baseline": "5.0.2",
-  "repair": "Visual Cleanup Hotfix",
-  "connectionArtifact": "remove B reveal and blur bleed outside valid panorama UV",
-  "towerHighlight": "replace broad ellipse glow with content-aware bright/warm tower mask",
-  "revealDirection": "hinge-to-left-moving-panel (preserved)",
-  "openEndpointRepair": "5.0.1 preserved",
-  "blurStrength": "unchanged inside valid screen area",
-  "timing": "unchanged",
-  "scope": "artifact cleanup only",
-  "cacheMode": "no-store-development",
+  "build": "5.0.3",
+  "baseline": "5.0",
+  "milestone": "Tower Layer Foundation + UI Simplification",
+  "sources": [
+    "Reality Background",
+    "RedBlack Background",
+    "Independent Tower image/video"
+  ],
+  "towerPlayback": "video holds frame 0 during fold and starts 180ms after full open",
+  "towerCompositing": "shared panorama coordinates; transparent alpha or dark-background key fallback",
+  "legacyFx": "impact/pulse disabled when independent Tower layer is active",
+  "connectionArtifactGuard": "V5.0.2a preserved",
+  "towerHighlightGuard": "V5.0.2a preserved; no broad background halo",
+  "productionUI": "background/reveal tuning controls removed from default interface",
+  "deployment": "GitHub main -> Vercel production integration",
   "timestamp": "2026-09-18"
 }
