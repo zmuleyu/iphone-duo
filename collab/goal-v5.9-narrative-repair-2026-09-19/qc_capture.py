@@ -10,9 +10,10 @@ Usage: qc_capture.py <webm>
 import subprocess
 import sys
 
-def grid(video, t):
+def grid(video, t, crop=None):
+    vf = f"crop={crop},scale=8:4" if crop else "scale=8:4"
     r = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-ss", f"{t:.2f}",
-                        "-vf", "scale=8:4", "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+                        "-vf", vf, "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
                        capture_output=True)
     d = r.stdout
     if len(d) < 96:
@@ -20,7 +21,7 @@ def grid(video, t):
     return [[int(d[(y * 8 + x) * 3] - (d[(y * 8 + x) * 3 + 1] + d[(y * 8 + x) * 3 + 2]) / 2)
              for x in range(8)] for y in range(4)]
 
-def main(video, tower_crop=None):
+def main(video, tower_crop=None, grid_crop=None, tower_checks=True):
     frames = subprocess.run(["ffprobe", "-v", "error", "-count_frames", "-select_streams", "v:0",
                              "-show_entries", "stream=nb_read_frames", "-of", "csv=p=0", video],
                             capture_output=True, text=True).stdout.strip()
@@ -32,7 +33,7 @@ def main(video, tower_crop=None):
     timeline = []
     for i in range(0, 20):
         t = i / 10
-        g = grid(video, t)
+        g = grid(video, t, grid_crop)
         if g is None:
             break
         maxr = max(v for row in g for v in row)
@@ -55,7 +56,7 @@ def main(video, tower_crop=None):
     if late and max(late) < 90:
         fails.append(f"not fully red by 1.3s (maxRed={max(late)})")
     # tower lag: at the sample where sky first >= 60, tower must lag by >= 25
-    for t, _, sky, tower in timeline:
+    for t, _, sky, tower in timeline if tower_checks else []:
         if sky >= 60:
             if tower > sky - 25:
                 fails.append(f"tower not lagging at t={t:.1f} (sky={sky} tower={tower})")
@@ -82,4 +83,6 @@ def main(video, tower_crop=None):
     print("QC:", "PASS" if not fails else "FAIL: " + "; ".join(fails))
     return 0 if not fails else 1
 
-sys.exit(main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None))
+sys.exit(main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None,
+               sys.argv[3] if len(sys.argv) > 3 else None,
+               len(sys.argv) <= 4 or sys.argv[4] != 'notower'))

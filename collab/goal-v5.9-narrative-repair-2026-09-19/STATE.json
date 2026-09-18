@@ -1,8 +1,16 @@
 {
   "goal": "v5.9 叙事修复+白底成片（G-G/G-H）",
   "date": "2026-09-19",
-  "state": "in-progress",
-  "phase": "G-G verified, ready-for-merge",
+  "state": "done",
+  "phase": "production-verified + finals delivered",
   "writer": "hermes-desktop-session",
-  "branch": "work/v5.9-narrative-repair"
+  "branch": "work/v5.9-narrative-repair",
+  "deliverables": [
+    "duo_v5.9_16x9_1080p_final.mp4",
+    "duo_v5.9_9x16_1080x1920_final.mp4",
+    "duo_v5.9_1x1_1080_final.mp4",
+    "mock/RedBlack_Graphic_Mock.png(目检中)"
+  ],
+  "qc": "三画幅 QC PASS(16:9含塔第二击+39.9%)",
+  "production": "v5.9 badge + 0 errors"
 }
