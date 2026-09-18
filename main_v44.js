@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.2a';
+const BUILD_VERSION = 'v5.0.3';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -32,6 +32,8 @@ const snapButtons = [...document.querySelectorAll('[data-snap]')];
 const realityInput = document.querySelector('#ui-upload');
 const redBlackInput = document.querySelector('#redblack-upload');
 const redBlackButton = document.querySelector('#redblack-button');
+const towerInput = document.querySelector('#tower-upload');
+const towerButton = document.querySelector('#tower-button');
 const revealSettingsButton = document.querySelector('#reveal-settings');
 const revealSettingsPopover = document.querySelector('#reveal-settings-popover');
 
@@ -95,8 +97,10 @@ const uLeak = { value: 0 };
 const uCollapse = { value: 0 };
 const uLock = { value: 0 };
 const uImpact = { value: 0 };      // 1-frame flash + RGB split @2.15s
-const uPulse = { value: 0 };       // Lv1 tower warm pulse @3.18s
+const uPulse = { value: 0 };       // legacy fallback pulse when no independent tower is loaded
 const uTransActive = { value: 0 }; // blur suppression window during transition
+const uTowerEnabled = { value: 0 };
+const uTowerKeyed = { value: 0 };
 
 let angle = 0;
 let playing = false;
@@ -108,73 +112,25 @@ let recording = false;
 let recordT0 = 0;
 const RECORD_AUTO = new URLSearchParams(location.search).has('record');
 const screens = {};
-const customReady = { reality: false, redblack: false };
+const customReady = { reality: false, redblack: false, tower: false };
 const movingShellMeshes = [];
+let towerVideo = null;
+let towerVideoTexture = null;
+let towerMediaUrl = null;
+let towerActivationStarted = false;
+let towerOpenSince = null;
 
 if (revealSettingsButton) revealSettingsButton.hidden = true;
 if (revealSettingsPopover) revealSettingsPopover.hidden = true;
 const subtitle = document.querySelector('.timeline-title-block span');
-if (subtitle) subtitle.textContent = 'One panorama · original screen shader';
+if (subtitle) subtitle.textContent = 'World first · tower second';
 
 // ---------------------------------------------------------------------------
-// Background controls
+// Stage background — deliberately fixed. The production UI no longer exposes
+// unrelated background/image-fit controls.
 // ---------------------------------------------------------------------------
 
-let backgroundMode = 'solid';
-let backgroundImageUrl = null;
-
-function applyBackground() {
-  const modeButtons = { solid: bgSolidButton, image: bgImageButton, transparent: bgTransparentButton };
-  for (const [mode, button] of Object.entries(modeButtons)) button?.setAttribute('aria-pressed', String(mode === backgroundMode));
-  stageBackground.style.filter = 'none';
-  stageBackground.style.transform = 'none';
-  bgFit.disabled = backgroundMode !== 'image' || !backgroundImageUrl;
-  bgColor.disabled = backgroundMode !== 'solid';
-  if (backgroundMode === 'transparent') {
-    stageBackground.style.background = 'transparent';
-    stageBackground.style.opacity = '0';
-    return;
-  }
-  stageBackground.style.opacity = '1';
-  if (backgroundMode === 'solid') {
-    stageBackground.style.backgroundImage = 'none';
-    stageBackground.style.backgroundColor = bgColor.value;
-    return;
-  }
-  if (!backgroundImageUrl) {
-    stageBackground.style.backgroundImage = 'none';
-    stageBackground.style.backgroundColor = bgColor.value;
-    return;
-  }
-  stageBackground.style.backgroundColor = '#111';
-  stageBackground.style.backgroundImage = `url("${backgroundImageUrl}")`;
-  stageBackground.style.backgroundPosition = 'center';
-  stageBackground.style.backgroundRepeat = 'no-repeat';
-  stageBackground.style.backgroundSize = bgFit.value === 'contain' ? 'contain' : 'cover';
-  if (bgFit.value === 'blur') {
-    stageBackground.style.filter = 'blur(14px)';
-    stageBackground.style.transform = 'scale(1.045)';
-  }
-}
-
-bgSolidButton?.addEventListener('click', () => { backgroundMode = 'solid'; applyBackground(); });
-bgTransparentButton?.addEventListener('click', () => { backgroundMode = 'transparent'; applyBackground(); });
-bgImageButton?.addEventListener('click', () => {
-  if (!backgroundImageUrl) { bgUpload.click(); return; }
-  backgroundMode = 'image'; applyBackground();
-});
-bgUpload?.addEventListener('change', () => {
-  const file = bgUpload.files[0];
-  if (!file) return;
-  if (backgroundImageUrl) URL.revokeObjectURL(backgroundImageUrl);
-  backgroundImageUrl = URL.createObjectURL(file);
-  backgroundMode = 'image';
-  applyBackground();
-  bgUpload.value = '';
-});
-bgFit?.addEventListener('change', applyBackground);
-bgColor?.addEventListener('input', applyBackground);
-applyBackground();
+if (stageBackground) stageBackground.style.background = '#f6f6f3';
 
 // ---------------------------------------------------------------------------
 // World textures — ONE canvas per world, shared by both physical screens.
@@ -209,6 +165,12 @@ const worldTextures = {
   reality: createCanvasTexture(worldCanvases.reality),
   redblack: createCanvasTexture(worldCanvases.redblack),
 };
+
+const towerCanvas = document.createElement('canvas');
+towerCanvas.width = WORLD_WIDTH;
+towerCanvas.height = WORLD_HEIGHT;
+const towerCanvasTexture = createCanvasTexture(towerCanvas);
+const towerLayer = { value: towerCanvasTexture };
 
 const uiReferenceEye = new THREE.Vector3(0, 0, 40);
 const innerUIFrame = new THREE.Vector4(-7.89935, .34562 - 5.8974, 15.7987, 11.1035);
@@ -246,6 +208,7 @@ function applyCustomWorld() {
 }
 
 function showDefaultUI() {
+  uTowerEnabled.value = 0;
   for (const [kind, screen] of Object.entries(screens)) {
     const texture = screen.defaultTextures[uiTheme];
     screen.material.map = texture;
@@ -291,8 +254,14 @@ async function decodeFile(file) {
 
 function updateSourceUI() {
   document.querySelectorAll('[data-ui-theme]').forEach(button => button.setAttribute('aria-selected', String(uiTheme === 'custom' && button.dataset.uiTheme === 'custom')));
-  redBlackButton.classList.toggle('is-loaded', customReady.redblack);
-  redBlackButton.textContent = customReady.redblack ? 'RedBlack ✓' : 'RedBlack';
+  redBlackButton?.classList.toggle('is-loaded', customReady.redblack);
+  if (redBlackButton) redBlackButton.textContent = customReady.redblack ? 'RedBlack ✓' : 'RedBlack';
+  towerButton?.classList.toggle('is-loaded', customReady.tower);
+  if (towerButton) {
+    const suffix = customReady.tower ? (towerVideo ? ' Video ✓' : ' Image ✓') : '';
+    towerButton.textContent = `Tower${suffix}`;
+  }
+  uTowerEnabled.value = uiTheme === 'custom' && customReady.reality && customReady.tower ? 1 : 0;
 }
 
 realityInput.addEventListener('change', async () => {
@@ -337,6 +306,116 @@ redBlackButton?.addEventListener('click', () => {
   redBlackInput.click();
 });
 
+function releaseTowerMedia() {
+  towerVideo?.pause();
+  if (towerVideoTexture) towerVideoTexture.dispose();
+  if (towerMediaUrl) URL.revokeObjectURL(towerMediaUrl);
+  towerVideo = null;
+  towerVideoTexture = null;
+  towerMediaUrl = null;
+  towerActivationStarted = false;
+  towerOpenSince = null;
+}
+
+function towerImageHasTransparency(context) {
+  const data = context.getImageData(0, 0, towerCanvas.width, towerCanvas.height).data;
+  const step = 4 * 64;
+  for (let i = 3; i < data.length; i += step) {
+    if (data[i] < 250) return true;
+  }
+  return false;
+}
+
+function drawTowerImage(img) {
+  const context = towerCanvas.getContext('2d');
+  context.clearRect(0, 0, towerCanvas.width, towerCanvas.height);
+  const scale = Math.min(towerCanvas.width / img.width, towerCanvas.height / img.height);
+  const width = img.width * scale;
+  const height = img.height * scale;
+  context.drawImage(img, (towerCanvas.width - width) / 2, (towerCanvas.height - height) / 2, width, height);
+  towerCanvasTexture.needsUpdate = true;
+  towerLayer.value = towerCanvasTexture;
+  uTowerKeyed.value = towerImageHasTransparency(context) ? 0 : 1;
+}
+
+async function loadTowerVideo(file) {
+  releaseTowerMedia();
+  towerMediaUrl = URL.createObjectURL(file);
+  const video = document.createElement('video');
+  video.src = towerMediaUrl;
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = 'auto';
+  video.loop = false;
+  await new Promise((resolve, reject) => {
+    video.addEventListener('loadeddata', resolve, { once: true });
+    video.addEventListener('error', () => reject(new Error('Unable to decode tower video.')), { once: true });
+  });
+  towerVideo = video;
+  towerVideoTexture = new THREE.VideoTexture(video);
+  towerVideoTexture.colorSpace = THREE.SRGBColorSpace;
+  towerVideoTexture.minFilter = THREE.LinearFilter;
+  towerVideoTexture.magFilter = THREE.LinearFilter;
+  towerVideoTexture.generateMipmaps = false;
+  towerLayer.value = towerVideoTexture;
+  uTowerKeyed.value = 1;
+  video.pause();
+  video.currentTime = 0;
+}
+
+towerInput?.addEventListener('change', async () => {
+  const file = towerInput.files[0];
+  if (!file) return;
+  if (!customReady.reality) {
+    alert('Upload the Reality image first.');
+    towerInput.value = '';
+    return;
+  }
+  try {
+    if (file.type.startsWith('video/')) {
+      await loadTowerVideo(file);
+    } else {
+      releaseTowerMedia();
+      const img = await decodeFile(file);
+      drawTowerImage(img);
+    }
+    customReady.tower = true;
+    uiTheme = 'custom';
+    applyCustomWorld();
+    updateSourceUI();
+    setPlaying(false);
+    setAngle(0);
+  } catch (error) {
+    console.error(error);
+    alert('Unable to read the Tower asset. Use a transparent PNG/WebP or a video with alpha/black background.');
+  } finally {
+    towerInput.value = '';
+  }
+});
+
+towerButton?.addEventListener('click', () => {
+  if (!customReady.reality) { alert('Upload the Reality image first.'); return; }
+  towerInput.click();
+});
+
+function updateTowerActivation(now) {
+  if (!towerVideo || !customReady.tower || uiTheme !== 'custom') return;
+  if (angle < 179.5) {
+    towerOpenSince = null;
+    if (towerActivationStarted || towerVideo.currentTime > 0.01) {
+      towerVideo.pause();
+      try { towerVideo.currentTime = 0; } catch {}
+      towerActivationStarted = false;
+    }
+    return;
+  }
+  if (towerOpenSince === null) towerOpenSince = now;
+  if (!towerActivationStarted && now - towerOpenSince >= 180) {
+    towerActivationStarted = true;
+    towerVideo.play().catch(error => console.warn('Tower video autoplay was blocked', error));
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Timing — simple geometry-driven world mix; debug override for acceptance.
 // ---------------------------------------------------------------------------
@@ -361,12 +440,11 @@ function worldMixFromGeometry(g) {
 
 function updateTimelineUI(progress, mix) {
   const progressPercent = Math.round(progress * 100);
-  const worldPercent = Math.round(mix * 100);
-  progressReadout.textContent = `Progress ${progressPercent}%`;
-  angleReadout.textContent = `Angle ${Math.round(angle)}°`;
-  revealReadout.textContent = `World ${worldPercent}%`;
-  revealSummaryValue.textContent = `${worldPercent}%`;
-  strategySummary.textContent = 'World';
+  if (progressReadout) progressReadout.textContent = `${progressPercent}%`;
+  if (angleReadout) angleReadout.textContent = `${Math.round(angle)}°`;
+  if (revealReadout) revealReadout.textContent = `World ${Math.round(mix * 100)}%`;
+  if (revealSummaryValue) revealSummaryValue.textContent = `${Math.round(mix * 100)}%`;
+  if (strategySummary) strategySummary.textContent = 'World';
   slider.style.setProperty('--progress', `${progressPercent}%`);
   snapButtons.forEach(button => button.classList.toggle('is-current', Math.abs(angle - Number(button.dataset.snap)) < .6));
 }
@@ -480,6 +558,9 @@ uniform float uLock;
 uniform float uImpact;
 uniform float uPulse;
 uniform float uTransActive;
+uniform sampler2D towerLayer;
+uniform float uTowerEnabled;
+uniform float uTowerKeyed;
 varying vec3 vUIPosition;
 
 // V5.0.2 Reveal Direction Fix.
@@ -603,7 +684,7 @@ vec3 screenColor() {
 
   // Impact @2.15s: one-frame white-red flash + visible RGB split (screen-space
   // only, geometry untouched).
-  if (uImpact > 0.001) {
+  if (uTowerEnabled < 0.5 && uImpact > 0.001) {
     float split = uImpact * 7.0 * uiPixel.x;
     vec2 uvR = clamp(sourceUV + vec2(split, 0.0), vec2(0.0), vec2(1.0));
     vec2 uvB = clamp(sourceUV - vec2(split, 0.0), vec2(0.0), vec2(1.0));
@@ -617,12 +698,28 @@ vec3 screenColor() {
     color = mix(color, vec3(1.0, 0.97, 0.94), uImpact * (0.38 + 0.10 * towerImpact));
   }
 
-  // Lv1 pulse @3.18s: tower-centered warm glow + ~25% response on warm windows.
-  if (uPulse > 0.001) {
+  // Legacy pulse remains available only when no independent Tower asset exists.
+  if (uTowerEnabled < 0.5 && uPulse > 0.001) {
     float tw = towerContentMask(sourceUV, colB);
     float lumC = dot(color, vec3(0.299, 0.587, 0.114));
     float warm = clamp((color.r - color.b) * 2.0, 0.0, 1.0) * smoothstep(0.12, 0.35, lumC);
     color += vec3(1.0, 0.62, 0.25) * uPulse * (tw * 0.22 + warm * 0.10);
+  }
+
+  // Independent Tower layer: same panorama coordinate, no world reveal,
+  // no fold blur, no background halo. Transparent media uses source alpha;
+  // opaque media falls back to a dark-background luminance/chroma key.
+  if (uTowerEnabled > 0.001) {
+    float validTowerUV = step(0.0, sourceUV.x) * step(sourceUV.x, 1.0)
+      * step(0.0, sourceUV.y) * step(sourceUV.y, 1.0);
+    vec4 towerSample = texture(towerLayer, clamp(sourceUV, vec2(0.0), vec2(1.0)));
+    float tLum = dot(towerSample.rgb, vec3(0.299, 0.587, 0.114));
+    float tMax = max(max(towerSample.r, towerSample.g), towerSample.b);
+    float tMin = min(min(towerSample.r, towerSample.g), towerSample.b);
+    float keyedAlpha = smoothstep(0.025, 0.16, max(tLum, (tMax - tMin) * 0.9));
+    float towerAlpha = mix(towerSample.a, towerSample.a * keyedAlpha, uTowerKeyed);
+    towerAlpha *= validTowerUV;
+    color = mix(color, towerSample.rgb, clamp(towerAlpha, 0.0, 1.0));
   }
 
   return color;
@@ -701,6 +798,9 @@ try {
           shader.uniforms.uImpact = uImpact;
           shader.uniforms.uPulse = uPulse;
           shader.uniforms.uTransActive = uTransActive;
+          shader.uniforms.towerLayer = towerLayer;
+          shader.uniforms.uTowerEnabled = uTowerEnabled;
+          shader.uniforms.uTowerKeyed = uTowerKeyed;
 
           shader.vertexShader = `varying vec3 vUIPosition;\n${shader.vertexShader}`;
           shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
@@ -743,6 +843,8 @@ try {
     revealDirection: 'hinge-to-left-moving-panel',
     connectionArtifactGuard: 'valid-panorama-only + no blur bleed',
     towerHighlightGuard: 'content-aware tower mask; no broad ellipse glow',
+    towerLayer: 'independent image/video panorama layer; activates after open hold',
+    productionUI: 'simplified assets + fold transport only',
   });
 
   updateSourceUI();
@@ -807,6 +909,7 @@ window.__duo = {
       angle, worldMix: worldMix.value, ready, recording,
       stages: { leak: uLeak.value, collapse: uCollapse.value, lock: uLock.value },
       customReady: { ...customReady },
+      tower: { enabled: uTowerEnabled.value, kind: towerVideo ? 'video' : customReady.tower ? 'image' : 'none', activationStarted: towerActivationStarted },
     };
   },
 };
@@ -833,6 +936,7 @@ renderer.setAnimationLoop(now => {
   }
 
   if (ready && recording) driveRecord(now);
+  if (ready) updateTowerActivation(now);
 
   renderer.render(scene, camera);
 });
