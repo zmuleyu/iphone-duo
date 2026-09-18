@@ -118,3 +118,35 @@ button:focus-visible,.github-link:focus-visible,input:focus-visible{outline:2px 
   .motion-row{grid-template-columns:1fr}
   .tower-future-grid{grid-template-columns:1fr}
 }
+
+
+/* V5.0.6.2 — Master Pair QA */
+.qa-panel{grid-column:1/-1}
+.qa-panel summary strong{color:#4b5563}
+.qa-panel summary small{padding:2px 6px;border-radius:999px;background:#f3f4f6;color:#68717d}
+.qa-body{display:grid;gap:10px}
+.qa-assets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.qa-asset-row{padding:8px 9px;border:1px solid #e6e8eb;border-radius:10px;background:#fafafa;min-width:0}
+.qa-asset-row span{display:block;font-size:7.4px;color:#8a9099;margin-bottom:3px}
+.qa-asset-row strong{display:block;font-size:8.3px;color:#505864;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qa-actions{display:flex;gap:6px;justify-content:flex-end}
+.qa-angle-list{display:grid;gap:5px}
+.qa-angle-row{display:grid;grid-template-columns:minmax(0,1fr) 54px 54px;gap:6px;align-items:center}
+.qa-view{display:flex;align-items:center;gap:8px;min-width:0;padding:7px 9px;border:1px solid #e5e7eb;border-radius:9px;background:#fff;color:#59616c;text-align:left}
+.qa-view b{font-size:8.5px;min-width:28px;color:#39414c}
+.qa-view span{font-size:7.7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qa-angle-row.is-current .qa-view{border-color:#b8c0cb;background:#f7f8fa}
+.qa-angle-row.is-pass .qa-view{border-color:#cfd9d0;background:#f7faf7}
+.qa-angle-row.is-fail .qa-view{border-color:#e2cccc;background:#fcf7f7}
+.qa-verdict{padding:7px 4px;border:1px solid #e2e5e9;border-radius:8px;background:#fafbfc;color:#69717d;font-size:7.4px}
+.qa-verdict.is-active[data-qa-pass]{border-color:#b7c8b9;background:#eef5ef;color:#506955}
+.qa-verdict.is-active[data-qa-fail]{border-color:#d8bcbc;background:#f8eeee;color:#7a5555}
+.qa-note{margin:0;font-size:7.5px;line-height:1.45;color:#8a9099}
+.qa-panel.is-ready summary small{background:#eef5ef;color:#506955}
+.qa-panel.is-failed summary small{background:#f8eeee;color:#7a5555}
+.qa-panel.is-locked summary small{box-shadow:inset 0 0 0 1px #d5dbe2}
+
+@media(max-width:760px){
+  .qa-assets{grid-template-columns:1fr}
+  .qa-angle-row{grid-template-columns:minmax(0,1fr) 48px 48px}
+}
