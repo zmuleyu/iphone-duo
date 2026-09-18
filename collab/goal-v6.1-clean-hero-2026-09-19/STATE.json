@@ -1,0 +1,15 @@
+{
+  "goal": "V6.1 Clean Hero + Export Cleanup",
+  "date": "2026-09-19",
+  "state": "done",
+  "phase": "production-verified + finals delivered",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v6.1-clean-hero",
+  "deliverables": [
+    "duo_v6.1_16x9_1080p_final.mp4",
+    "duo_v6.1_9x16_1080x1920_final.mp4",
+    "duo_v6.1_1x1_1080_final.mp4"
+  ],
+  "master": "RedBlack_Graphic v2 (lattice-only protection, halo crushed)",
+  "production": "6.1 PRODUCTION verified via build.json"
+}
