@@ -1,13 +1,35 @@
 {
-  "build": "5.0.5",
-  "baseline": "5.0.4",
-  "repair": "Hinge / Endpoint Stability",
+  "build": "5.0.6",
+  "baseline": "5.0.5",
+  "milestone": "Fold Motion Polish + Editing Controls",
   "reveal": "V5.0.4 clean crossfade preserved; staged reveal remains experimental only",
-  "hingeContinuity": "narrow authored panorama-X lock around physical hinge",
-  "endpointUV": "projected UV eases to authored UV over final ~1.2 degrees",
-  "endpointAngle": "near-0 and near-180 values snap to exact endpoint states",
-  "invalidUV": "base samples and blur taps cannot replicate clamped edge texels outside valid panorama",
-  "geometry": "fixed right-panel anchor preserved; no new displacement/framing work",
-  "ui": "unchanged compact Reality + RedBlack UI",
+  "hingeEndpoint": "V5.0.5 stability preserved",
+  "foldMotionControls": {
+    "collapsible": true,
+    "closedHold": "0.00–1.50s",
+    "unfoldDuration": "0.80–4.00s",
+    "openHold": "0.00–2.50s",
+    "easing": [
+      "Smooth",
+      "Cinematic",
+      "Linear"
+    ],
+    "motionBlur": [
+      "Off",
+      "Natural",
+      "Strong"
+    ],
+    "totalDuration": "live readout",
+    "reset": true
+  },
+  "recording": "uses the same editable fold timing; no hidden tower event in production",
+  "towerFx": {
+    "panel": "separate collapsed placeholder",
+    "active": false,
+    "targetVersion": "5.0.7",
+    "activationRule": "Open state only, after Open Hold begins",
+    "legacyExperiment": "?towerfx=legacy"
+  },
+  "displacement": "deferred",
   "timestamp": "2026-09-18"
 }
