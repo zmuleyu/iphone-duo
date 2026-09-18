@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.7';
+const BUILD_VERSION = 'v5.0.7.2';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -53,6 +53,23 @@ const towerIntensityValue = document.querySelector('#tower-intensity-value');
 const towerSequenceReadout = document.querySelector('#tower-sequence-readout');
 const towerPreviewButton = document.querySelector('#tower-preview');
 const towerResetButton = document.querySelector('#tower-reset');
+const birdDelayInput = document.querySelector('#bird-delay');
+const birdDurationInput = document.querySelector('#bird-duration');
+const birdCountInput = document.querySelector('#bird-count');
+const birdSizeInput = document.querySelector('#bird-size');
+const birdOpacityInput = document.querySelector('#bird-opacity');
+const birdColorInput = document.querySelector('#bird-color');
+const birdDirectionSelect = document.querySelector('#bird-direction');
+const birdEnabledSelect = document.querySelector('#bird-enabled');
+const birdDelayValue = document.querySelector('#bird-delay-value');
+const birdDurationValue = document.querySelector('#bird-duration-value');
+const birdCountValue = document.querySelector('#bird-count-value');
+const birdSizeValue = document.querySelector('#bird-size-value');
+const birdOpacityValue = document.querySelector('#bird-opacity-value');
+const birdColorValue = document.querySelector('#bird-color-value');
+const birdSequenceReadout = document.querySelector('#bird-sequence-readout');
+const birdPreviewButton = document.querySelector('#bird-preview');
+const birdResetButton = document.querySelector('#bird-reset');
 
 const stageBackground = document.querySelector('#stage-background');
 const bgSolidButton = document.querySelector('#bg-solid');
@@ -126,6 +143,13 @@ const uUseStagedReveal = { value: STAGED_REVEAL ? 1 : 0 };
 const uTowerActivation = { value: 0 };
 const uTowerIntensity = { value: 1 };
 const uTowerPulseFx = { value: 0 };
+const uBirdProgress = { value: 0 };
+const uBirdActive = { value: 0 };
+const uBirdOpacity = { value: 0.90 };
+const uBirdCount = { value: 5 };
+const uBirdSize = { value: 1.00 };
+const uBirdDirection = { value: -1 };
+const uBirdColor = { value: new THREE.Color('#ffffff') };
 
 let angle = 0;
 let playing = false;
@@ -158,6 +182,20 @@ const DEFAULT_TOWER_FX = Object.freeze({
 const towerFx = { ...DEFAULT_TOWER_FX };
 let towerPreviewing = false;
 let towerPreviewT0 = 0;
+
+const DEFAULT_BIRD_FX = Object.freeze({
+  enabled: true,
+  startDelay: 0.45,
+  duration: 1.00,
+  count: 5,
+  size: 1.00,
+  opacity: 0.90,
+  color: '#ffffff',
+  direction: 'rtl',
+});
+const birdFx = { ...DEFAULT_BIRD_FX };
+let birdPreviewing = false;
+let birdPreviewT0 = 0;
 
 if (revealSettingsButton) revealSettingsButton.hidden = true;
 if (revealSettingsPopover) revealSettingsPopover.hidden = true;
@@ -435,10 +473,19 @@ function towerCoreDuration() {
   return towerFx.openDelay + towerFx.activationDuration + towerPulseDuration();
 }
 
+function birdCoreDuration() {
+  if (NO_FX || !birdFx.enabled) return 0;
+  return birdFx.startDelay + birdFx.duration;
+}
+
+function openFxDuration() {
+  return Math.max(towerCoreDuration(), birdCoreDuration());
+}
+
 function fullSequenceDuration() {
   return foldMotion.closedHold
     + foldMotion.unfoldDuration
-    + towerCoreDuration()
+    + openFxDuration()
     + foldMotion.openHold;
 }
 
@@ -452,8 +499,9 @@ function refreshTowerFxUI() {
       ? 'Disabled by No-FX'
       : LEGACY_TOWER_FX
         ? 'Legacy experiment'
-        : `Open +${fxTime.toFixed(2)}s · Full ${fullSequenceDuration().toFixed(2)}s`;
+        : `Tower +${fxTime.toFixed(2)}s · Full ${fullSequenceDuration().toFixed(2)}s`;
   }
+  refreshBirdFxUI();
 }
 
 function setTowerFx(partial = {}) {
@@ -480,6 +528,91 @@ function setTowerFx(partial = {}) {
 function resetTowerFxVisual() {
   uTowerActivation.value = 0;
   uTowerPulseFx.value = 0;
+}
+
+function resetBirdFxVisual() {
+  uBirdProgress.value = 0;
+  uBirdActive.value = 0;
+}
+
+function refreshBirdFxUI() {
+  if (birdDelayValue) birdDelayValue.textContent = `${birdFx.startDelay.toFixed(2)}s`;
+  if (birdDurationValue) birdDurationValue.textContent = `${birdFx.duration.toFixed(2)}s`;
+  if (birdCountValue) birdCountValue.textContent = String(birdFx.count);
+  if (birdSizeValue) birdSizeValue.textContent = `${Math.round(birdFx.size * 100)}%`;
+  if (birdOpacityValue) birdOpacityValue.textContent = `${Math.round(birdFx.opacity * 100)}%`;
+  if (birdColorValue) birdColorValue.textContent = birdFx.color.toUpperCase();
+  if (birdSequenceReadout) {
+    birdSequenceReadout.textContent = NO_FX
+      ? 'Disabled by No-FX'
+      : birdFx.enabled
+        ? `${birdFx.color.toUpperCase()} · +${birdCoreDuration().toFixed(2)}s`
+        : 'Off';
+  }
+}
+
+function setBirdFx(partial = {}) {
+  if (typeof partial.enabled === 'boolean') {
+    birdFx.enabled = partial.enabled;
+    if (birdEnabledSelect) birdEnabledSelect.value = birdFx.enabled ? 'on' : 'off';
+  }
+  if (Number.isFinite(partial.startDelay)) {
+    birdFx.startDelay = THREE.MathUtils.clamp(Number(partial.startDelay), 0, 1.5);
+    if (birdDelayInput) birdDelayInput.value = String(birdFx.startDelay);
+  }
+  if (Number.isFinite(partial.duration)) {
+    birdFx.duration = THREE.MathUtils.clamp(Number(partial.duration), 0.4, 2.5);
+    if (birdDurationInput) birdDurationInput.value = String(birdFx.duration);
+  }
+  if (Number.isFinite(partial.count)) {
+    birdFx.count = Math.round(THREE.MathUtils.clamp(Number(partial.count), 1, 8));
+    if (birdCountInput) birdCountInput.value = String(birdFx.count);
+  }
+  if (Number.isFinite(partial.size)) {
+    birdFx.size = THREE.MathUtils.clamp(Number(partial.size), 0.5, 1.8);
+    if (birdSizeInput) birdSizeInput.value = String(birdFx.size);
+  }
+  if (Number.isFinite(partial.opacity)) {
+    birdFx.opacity = THREE.MathUtils.clamp(Number(partial.opacity), 0.2, 1);
+    if (birdOpacityInput) birdOpacityInput.value = String(birdFx.opacity);
+  }
+  if (typeof partial.color === 'string' && /^#[0-9a-f]{6}$/i.test(partial.color)) {
+    birdFx.color = partial.color.toLowerCase();
+    if (birdColorInput) birdColorInput.value = birdFx.color;
+  }
+  if (['rtl', 'ltr'].includes(partial.direction)) {
+    birdFx.direction = partial.direction;
+    if (birdDirectionSelect) birdDirectionSelect.value = birdFx.direction;
+  }
+
+  uBirdOpacity.value = birdFx.opacity;
+  uBirdCount.value = birdFx.count;
+  uBirdSize.value = birdFx.size;
+  uBirdDirection.value = birdFx.direction === 'rtl' ? -1 : 1;
+  uBirdColor.value.set(birdFx.color);
+  refreshBirdFxUI();
+  refreshTowerFxUI();
+}
+
+function driveBirdFxElapsed(elapsed) {
+  if (NO_FX || !birdFx.enabled || !customReady.redblack) {
+    resetBirdFxVisual();
+    return;
+  }
+
+  const local = elapsed - birdFx.startDelay;
+  if (local < 0 || local > birdFx.duration) {
+    resetBirdFxVisual();
+    return;
+  }
+
+  uBirdProgress.value = THREE.MathUtils.clamp(local / Math.max(birdFx.duration, 1e-6), 0, 1);
+  uBirdActive.value = 1;
+  uBirdOpacity.value = birdFx.opacity;
+  uBirdCount.value = birdFx.count;
+  uBirdSize.value = birdFx.size;
+  uBirdDirection.value = birdFx.direction === 'rtl' ? -1 : 1;
+  uBirdColor.value.set(birdFx.color);
 }
 
 function driveTowerFxElapsed(elapsed) {
@@ -514,11 +647,34 @@ function previewTowerFx() {
   }
   setPlaying(false);
   recording = false;
+  setBirdPreviewing(false);
+  resetBirdFxVisual();
   playbackTime = 0;
   setAngle(180);
   resetTowerFxVisual();
   towerPreviewT0 = performance.now();
   setTowerPreviewing(true);
+}
+
+function setBirdPreviewing(value) {
+  birdPreviewing = value;
+  if (birdPreviewButton) birdPreviewButton.textContent = value ? 'Previewing…' : 'Preview';
+}
+
+function previewBirdFx() {
+  if (!customReady.redblack) {
+    alert('Upload Reality and RedBlack images first.');
+    return;
+  }
+  setPlaying(false);
+  recording = false;
+  setTowerPreviewing(false);
+  resetTowerFxVisual();
+  playbackTime = 0;
+  setAngle(180);
+  resetBirdFxVisual();
+  birdPreviewT0 = performance.now();
+  setBirdPreviewing(true);
 }
 
 towerDelayInput?.addEventListener('input', () => setTowerFx({ openDelay: Number(towerDelayInput.value) }));
@@ -531,7 +687,24 @@ towerResetButton?.addEventListener('click', () => {
   setTowerFx(DEFAULT_TOWER_FX);
   resetTowerFxVisual();
 });
+
+birdDelayInput?.addEventListener('input', () => setBirdFx({ startDelay: Number(birdDelayInput.value) }));
+birdDurationInput?.addEventListener('input', () => setBirdFx({ duration: Number(birdDurationInput.value) }));
+birdCountInput?.addEventListener('input', () => setBirdFx({ count: Number(birdCountInput.value) }));
+birdSizeInput?.addEventListener('input', () => setBirdFx({ size: Number(birdSizeInput.value) }));
+birdOpacityInput?.addEventListener('input', () => setBirdFx({ opacity: Number(birdOpacityInput.value) }));
+birdColorInput?.addEventListener('input', () => setBirdFx({ color: birdColorInput.value }));
+birdDirectionSelect?.addEventListener('change', () => setBirdFx({ direction: birdDirectionSelect.value }));
+birdEnabledSelect?.addEventListener('change', () => setBirdFx({ enabled: birdEnabledSelect.value === 'on' }));
+birdPreviewButton?.addEventListener('click', previewBirdFx);
+birdResetButton?.addEventListener('click', () => {
+  setBirdPreviewing(false);
+  setBirdFx(DEFAULT_BIRD_FX);
+  resetBirdFxVisual();
+});
+
 setTowerFx(DEFAULT_TOWER_FX);
+setBirdFx(DEFAULT_BIRD_FX);
 refreshFoldMotionUI();
 
 function setPlaying(value) {
@@ -570,22 +743,28 @@ function setAngle(value) {
 play.addEventListener('click', () => {
   if (playing) { setPlaying(false); return; }
   setTowerPreviewing(false);
+  setBirdPreviewing(false);
   resetTowerFxVisual();
+  resetBirdFxVisual();
   if (angle > .1) setAngle(0);
   playbackTime = 0;
   setPlaying(true);
 });
 closedButton.addEventListener('click', () => {
-  setPlaying(false); setTowerPreviewing(false); resetTowerFxVisual(); playbackTime = 0; setAngle(0);
+  setPlaying(false); setTowerPreviewing(false); setBirdPreviewing(false);
+  resetTowerFxVisual(); resetBirdFxVisual(); playbackTime = 0; setAngle(0);
 });
 openButton.addEventListener('click', () => {
-  setPlaying(false); setTowerPreviewing(false); resetTowerFxVisual(); playbackTime = 0; setAngle(180);
+  setPlaying(false); setTowerPreviewing(false); setBirdPreviewing(false);
+  resetTowerFxVisual(); resetBirdFxVisual(); playbackTime = 0; setAngle(180);
 });
 snapButtons.forEach(button => button.addEventListener('click', () => {
-  setPlaying(false); setTowerPreviewing(false); resetTowerFxVisual(); playbackTime = 0; setAngle(Number(button.dataset.snap));
+  setPlaying(false); setTowerPreviewing(false); setBirdPreviewing(false);
+  resetTowerFxVisual(); resetBirdFxVisual(); playbackTime = 0; setAngle(Number(button.dataset.snap));
 }));
 slider.addEventListener('input', () => {
-  setPlaying(false); setTowerPreviewing(false); resetTowerFxVisual(); playbackTime = 0; setAngle(Number(slider.value));
+  setPlaying(false); setTowerPreviewing(false); setBirdPreviewing(false);
+  resetTowerFxVisual(); resetBirdFxVisual(); playbackTime = 0; setAngle(Number(slider.value));
 });
 
 function resize() {
@@ -648,6 +827,13 @@ uniform float uUseStagedReveal;
 uniform float uTowerActivation;
 uniform float uTowerIntensity;
 uniform float uTowerPulseFx;
+uniform float uBirdProgress;
+uniform float uBirdActive;
+uniform float uBirdOpacity;
+uniform float uBirdCount;
+uniform float uBirdSize;
+uniform float uBirdDirection;
+uniform vec3 uBirdColor;
 varying vec3 vUIPosition;
 
 // V5.0.2 Reveal Direction Fix.
@@ -683,15 +869,57 @@ float towerContentMask(vec2 uv, vec3 bCol) {
 }
 
 float towerFxMask(vec2 uv, vec3 bCol) {
-  // Tighter than the old broad tower ellipse: only warm, bright pixels inside
-  // the real tower corridor may receive activation energy.
+  // The new RedBlack master already contains its intended tower palette.
+  // Detect structure broadly enough to include warm-white reality highlights,
+  // but keep the mask tightly inside the tower corridor.
   vec2 d = (uv - vec2(0.730, 0.430)) / vec2(0.070, 0.300);
   float region = 1.0 - smoothstep(0.76, 1.0, length(d));
   float lum = dot(bCol, vec3(0.299, 0.587, 0.114));
-  float orangeA = smoothstep(0.07, 0.30, bCol.r - bCol.b);
-  float orangeB = smoothstep(-0.03, 0.16, bCol.r - bCol.g);
-  float bright = smoothstep(0.14, 0.52, lum);
-  return region * orangeA * orangeB * bright;
+  float warmWhite = smoothstep(0.08, 0.36, max(bCol.r, bCol.g) - bCol.b * 0.65);
+  float bright = smoothstep(0.12, 0.50, lum);
+  return region * warmWhite * bright;
+}
+
+float segmentDistance(vec2 p, vec2 a, vec2 b) {
+  vec2 pa = p - a;
+  vec2 ba = b - a;
+  float h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
+  return length(pa - ba * h);
+}
+
+float birdGlyph(vec2 p, float flap, float scale) {
+  float span = 0.016 * scale;
+  float lift = (0.004 + 0.006 * flap) * scale;
+  float thickness = 0.0018 * scale;
+  float dl = segmentDistance(p, vec2(-span, lift), vec2(0.0));
+  float dr = segmentDistance(p, vec2(0.0), vec2(span, lift));
+  float d = min(dl, dr);
+  return 1.0 - smoothstep(thickness, thickness * 2.4, d);
+}
+
+float birdField(vec2 uv) {
+  float field = 0.0;
+  for (int i = 0; i < 8; i++) {
+    float fi = float(i);
+    float enabled = 1.0 - step(uBirdCount - 0.5, fi);
+    float h1 = fract(sin((fi + 2.1) * 37.17) * 43758.5453);
+    float h2 = fract(sin((fi + 5.3) * 19.73) * 12741.371);
+    float stagger = fi * 0.042 + h1 * 0.035;
+    float t = clamp((uBirdProgress - stagger) / max(1.0 - stagger, 0.1), 0.0, 1.0);
+
+    float x0 = uBirdDirection < 0.0 ? 0.64 : 0.06;
+    float x1 = uBirdDirection < 0.0 ? 0.07 : 0.63;
+    float x = mix(x0, x1, t);
+    float y = 0.18 + h1 * 0.13 + sin(t * 5.5 + h2 * 6.28318) * 0.008;
+    float localScale = uBirdSize * (0.72 + h2 * 0.48);
+    float flap = 0.5 + 0.5 * sin(t * 30.0 + fi * 1.9);
+
+    float glyph = birdGlyph(uv - vec2(x, y), flap, localScale);
+    float fadeIn = smoothstep(0.0, 0.07, t);
+    float fadeOut = 1.0 - smoothstep(0.88, 1.0, t);
+    field = max(field, glyph * enabled * fadeIn * fadeOut);
+  }
+  return field * uBirdActive;
 }
 
 // Staged reveal of world B: hinge leak first, city collapse next, tower locks last.
@@ -820,30 +1048,42 @@ vec3 screenColor() {
     color += vec3(1.0, 0.62, 0.25) * uPulse * (tw * 0.22 + warm * 0.10);
   }
 
-  // V5.0.7 Open Tower Activation.
-  // Only actual warm tower pixels move; the red sky, black city and window
-  // field remain unchanged. Activation travels bottom -> top and finishes in
-  // a restrained amber hero state, with an optional single pulse.
+  // V5.0.7.2 Tower Activation Tuning.
+  // The latest RedBlack master already defines the tower palette. We therefore
+  // enhance structure first, introduce only a late restrained gold bias, and
+  // treat pulse as exposure — not another orange paint layer.
   if (uNoFx < 0.5 && (uTowerActivation > 0.001 || uTowerPulseFx > 0.001)) {
     float tw = towerFxMask(sourceUV, colB);
     float towerY = clamp((sourceUV.y - 0.11) / 0.64, 0.0, 1.0);
     float rise = smoothstep(towerY - 0.055, towerY + 0.025, max(0.0, uTowerActivation - 0.01));
     rise *= smoothstep(0.0, 0.035, uTowerActivation);
 
-    // Observation-deck snap: short local beat, not a background glow.
     float deckBand = 1.0 - smoothstep(0.014, 0.038, abs(sourceUV.y - 0.455));
     float deckBeat = smoothstep(0.54, 0.62, uTowerActivation)
       * (1.0 - smoothstep(0.70, 0.80, uTowerActivation));
 
-    // Final spire rush is weighted only to the upper structure.
     float spire = smoothstep(0.62, 0.94, towerY) * smoothstep(0.78, 1.0, uTowerActivation);
+    float structure = rise * 0.13 + deckBand * deckBeat * 0.09 + spire * 0.055;
 
-    float energy = rise * 0.16
-      + deckBand * deckBeat * 0.10
-      + spire * 0.07
-      + uTowerPulseFx * 0.16;
+    // Neutral structural lift preserves the authored white/orange balance.
+    color += vec3(0.16, 0.145, 0.11) * tw * structure * uTowerIntensity;
 
-    color += vec3(1.0, 0.50, 0.12) * tw * energy * uTowerIntensity;
+    // Warmth arrives late and very subtly, only after the structure is readable.
+    float lateWarm = smoothstep(0.58, 1.0, uTowerActivation) * tw * uTowerIntensity;
+    vec3 heroGold = vec3(1.0, 0.80, 0.46);
+    vec3 goldDelta = max(heroGold - color, vec3(0.0));
+    color += goldDelta * lateWarm * 0.055;
+
+    // Single pulse is a brief exposure lift, not a hue change.
+    color *= 1.0 + tw * uTowerPulseFx * 0.105 * uTowerIntensity;
+  }
+
+  // V5.0.7.2 Bird FX: small editable silhouettes confined to the red sky.
+  // White is the production default, but uBirdColor is fully user-controlled.
+  if (uNoFx < 0.5 && uBirdActive > 0.001) {
+    float birds = birdField(sourceUV);
+    float alpha = clamp(birds * uBirdOpacity, 0.0, 1.0);
+    color = mix(color, uBirdColor, alpha);
   }
 
   return color;
@@ -927,6 +1167,13 @@ try {
           shader.uniforms.uTowerActivation = uTowerActivation;
           shader.uniforms.uTowerIntensity = uTowerIntensity;
           shader.uniforms.uTowerPulseFx = uTowerPulseFx;
+          shader.uniforms.uBirdProgress = uBirdProgress;
+          shader.uniforms.uBirdActive = uBirdActive;
+          shader.uniforms.uBirdOpacity = uBirdOpacity;
+          shader.uniforms.uBirdCount = uBirdCount;
+          shader.uniforms.uBirdSize = uBirdSize;
+          shader.uniforms.uBirdDirection = uBirdDirection;
+          shader.uniforms.uBirdColor = uBirdColor;
 
           shader.vertexShader = `varying vec3 vUIPosition;\n${shader.vertexShader}`;
           shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
@@ -974,9 +1221,12 @@ try {
     noFxGeometryTest: '?nofx=1',
     foldMotionControls: 'closedHold + unfoldDuration + openHold + easing + motionBlur',
     towerFxControls: 'openDelay + activationDuration + intensity + pulse + preview + reset',
-    towerFxIsolation: 'content-aware warm tower pixels only; no sky/city glow',
+    towerFxTuning: 'structure lift -> late subtle gold -> exposure pulse; no orange repaint',
+    birdFxControls: 'enabled + delay + duration + count + size + opacity + color + direction + preview + reset',
+    birdDefault: 'white #FFFFFF silhouettes over red sky',
+    towerFxIsolation: 'content-aware tower pixels only; no sky/city glow',
     legacyTowerFx: LEGACY_TOWER_FX ? 'experimental ?towerfx=legacy' : 'off',
-    recordTimeline: 'fold + tower FX share editable timing',
+    recordTimeline: 'fold + overlapping tower/bird FX share editable timing',
   });
 
   updateSourceUI();
@@ -1002,7 +1252,9 @@ function startRecord() {
   recording = true;
   setPlaying(false);
   setTowerPreviewing(false);
+  setBirdPreviewing(false);
   resetTowerFxVisual();
+  resetBirdFxVisual();
   setAngle(0);
   delete document.documentElement.dataset.recordDone;
   delete document.documentElement.dataset.recordT;
@@ -1015,7 +1267,7 @@ function driveRecord(nowMs) {
   const t = (nowMs - recordT0) / 1000;
   const foldStart = foldMotion.closedHold;
   const foldEnd = foldStart + foldMotion.unfoldDuration;
-  const sequenceEnd = foldEnd + towerCoreDuration() + foldMotion.openHold;
+  const sequenceEnd = foldEnd + openFxDuration() + foldMotion.openHold;
 
   const rawFold = THREE.MathUtils.clamp(
     (t - foldStart) / Math.max(foldMotion.unfoldDuration, 1e-6),
@@ -1037,8 +1289,9 @@ function driveRecord(nowMs) {
       * (1 - THREE.MathUtils.smoothstep(t, foldEnd, foldEnd + 0.12))
     : 0;
 
-  // New production Tower FX begins only after the fold reaches 180°.
+  // Open-only FX begin after the fold reaches 180° and may overlap.
   driveTowerFxElapsed(t - foldEnd);
+  driveBirdFxElapsed(t - foldEnd);
 
   // Old impact/pulse remain available only behind the legacy experiment flag.
   const impactStart = foldEnd;
@@ -1061,6 +1314,7 @@ function driveRecord(nowMs) {
     uImpact.value = 0;
     uPulse.value = 0;
     uTowerPulseFx.value = 0;
+    resetBirdFxVisual();
     uTransActive.value = 0;
     rim.intensity = 2;
     rim.color.setHex(0xe8edf5);
@@ -1077,6 +1331,8 @@ window.__duo = {
   setFoldMotion,
   setTowerFx,
   previewTowerFx,
+  setBirdFx,
+  previewBirdFx,
   play: () => {
     if (angle > .1) setAngle(0);
     playbackTime = 0;
@@ -1102,6 +1358,12 @@ window.__duo = {
         pulseValue: uTowerPulseFx.value,
         previewing: towerPreviewing,
       },
+      birdFx: {
+        ...birdFx,
+        progress: uBirdProgress.value,
+        active: uBirdActive.value,
+        previewing: birdPreviewing,
+      },
       legacyTowerFx: LEGACY_TOWER_FX,
       customReady: { ...customReady },
     };
@@ -1117,21 +1379,25 @@ renderer.setAnimationLoop(now => {
     playbackTime += delta;
     const foldStart = foldMotion.closedHold;
     const foldEnd = foldStart + foldMotion.unfoldDuration;
-    const sequenceEnd = foldEnd + towerCoreDuration() + foldMotion.openHold;
+    const sequenceEnd = foldEnd + openFxDuration() + foldMotion.openHold;
 
     if (playbackTime < foldStart) {
       resetTowerFxVisual();
+      resetBirdFxVisual();
       setAngle(0);
     } else if (playbackTime < foldEnd) {
       resetTowerFxVisual();
+      resetBirdFxVisual();
       const p = (playbackTime - foldStart) / Math.max(foldMotion.unfoldDuration, 1e-6);
       setAngle(THREE.MathUtils.lerp(0, 180, foldEase(p)));
     } else if (playbackTime < sequenceEnd) {
       setAngle(180);
       driveTowerFxElapsed(playbackTime - foldEnd);
+      driveBirdFxElapsed(playbackTime - foldEnd);
     } else {
       setAngle(180);
-      driveTowerFxElapsed(towerCoreDuration());
+      driveTowerFxElapsed(openFxDuration());
+      driveBirdFxElapsed(openFxDuration());
       setPlaying(false);
     }
   }
@@ -1144,6 +1410,15 @@ renderer.setAnimationLoop(now => {
     if (elapsed > towerCoreDuration() + 0.45) {
       driveTowerFxElapsed(towerCoreDuration());
       setTowerPreviewing(false);
+    }
+  }
+
+  if (ready && birdPreviewing) {
+    const elapsed = (now - birdPreviewT0) / 1000;
+    driveBirdFxElapsed(elapsed);
+    if (elapsed > birdCoreDuration() + 0.20) {
+      resetBirdFxVisual();
+      setBirdPreviewing(false);
     }
   }
 
