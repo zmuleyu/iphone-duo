@@ -12,4 +12,4 @@
 
 - **V5.1 — Production Fold Baseline**（2026-09-18 冻结）：`v5.1-production-fold`，交接边界见根目录 `PRODUCTION_BASELINE_V5.1.md`。
 - Tower / Bird / displacement / 新转场一律独立 R&D 分支起步，晋升须独立视觉验证 + 用户拍板。
-| T3 母带捕获管线（v5.4） | 2026-09-18 | in_progress | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |
+| T3 母带捕获管线（v5.4） | 2026-09-18 | done→production（三画幅草稿已交付） | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |
