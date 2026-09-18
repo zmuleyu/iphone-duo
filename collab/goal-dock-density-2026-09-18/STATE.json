@@ -1,16 +1,16 @@
 {
   "goal": "操作区密度与遮挡治理（Dock Density & Occlusion）",
   "date": "2026-09-18",
-  "state": "verified",
-  "phase": "ready-to-merge",
+  "state": "merged",
+  "phase": "production",
   "writer": "hermes-desktop-session",
   "branch": "work/v5.3-dock-density",
-  "implementation_head": "pending-commit",
+  "implementation_head": "ea9e7b9",
   "verification": "CDP 2 viewport suites PASS + vision 4-frame PASS + 0 console errors",
   "fixes_during": [
     "removed v5.2 stage-panel[open] grid-column span (broke floating rail)",
     "re-applied export verdict icons lost in aborted batch (caught by vision re-screen)"
   ],
-  "next_action": "default closeout chain: rebrand 5.3, merge, push, deploy verify, production CDP",
+  "next_action": "production verify: build.json 5.3 + CDP density suite on prod",
   "production": "pending closeout"
 }
