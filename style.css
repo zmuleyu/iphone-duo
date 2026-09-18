@@ -133,6 +133,7 @@ button:focus-visible,.github-link:focus-visible,input:focus-visible{outline:2px 
 
 
 /* V5.0.7.2 — Bird FX */
+.bird-fx-panel{grid-column:1/-1}
 .bird-fx-panel summary strong{color:#4d5560}
 .bird-fx-panel summary small{padding:2px 5px;border-radius:999px;background:#f4f6f8;color:#68717d}
 .bird-preview p{margin:0 0 8px;font-size:7.8px;line-height:1.45;color:#7d8490}
