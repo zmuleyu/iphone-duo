@@ -100,6 +100,7 @@ const NO_FX = QUERY.has('nofx');
 // The previous staged leak/collapse/lock reveal remains available only for
 // explicit experiments via ?reveal=staged (or ?staged=1).
 const STAGED_REVEAL = !NO_FX && (QUERY.get('reveal') === 'staged' || QUERY.has('staged'));
+const LEGACY_TOWER_FX = !NO_FX && QUERY.get('towerfx') === 'legacy';
 
 const bend = { value: Math.PI };
 const worldMix = { value: 0 };
@@ -787,6 +788,8 @@ try {
     noFxGeometryTest: '?nofx=1',
     foldMotionControls: 'closedHold + unfoldDuration + openHold + easing + motionBlur',
     towerFxControls: 'separate collapsed V5.0.7 placeholder; inactive in V5.0.6',
+    legacyTowerFx: LEGACY_TOWER_FX ? 'experimental ?towerfx=legacy' : 'off',
+    recordTimeline: 'uses editable Fold Motion timing',
   });
 
   updateSourceUI();
@@ -817,25 +820,51 @@ function startRecord() {
 // uniforms drive the world hand-off on their own synced schedule.
 function driveRecord(nowMs) {
   const t = (nowMs - recordT0) / 1000;
-  const ap = THREE.MathUtils.smoothstep(t, 1.20, 2.15);
-  setAngle(ap * 180);
-  uLeak.value = STAGED_REVEAL ? recordStage(t, 1.65, 1.90) : 0;
-  uCollapse.value = STAGED_REVEAL ? recordStage(t, 1.90, 2.10) : 0;
-  uLock.value = STAGED_REVEAL ? recordStage(t, 2.10, 2.15) : 0;
-  // Blur suppression and red rim belong to the staged experiment, not the
-  // clean production crossfade.
+  const foldStart = foldMotion.closedHold;
+  const foldEnd = foldStart + foldMotion.unfoldDuration;
+  const sequenceEnd = foldEnd + foldMotion.openHold;
+
+  const rawFold = THREE.MathUtils.clamp(
+    (t - foldStart) / Math.max(foldMotion.unfoldDuration, 1e-6),
+    0,
+    1,
+  );
+  setAngle(foldEase(rawFold) * 180);
+
+  // Experimental staged reveal follows normalized fold progress rather than
+  // fixed wall-clock seconds, so motion timing can be edited without desync.
+  const leakStart = foldStart + foldMotion.unfoldDuration * 0.55;
+  const leakEnd = foldStart + foldMotion.unfoldDuration * 0.72;
+  const collapseEnd = foldStart + foldMotion.unfoldDuration * 0.90;
+  uLeak.value = STAGED_REVEAL ? recordStage(t, leakStart, leakEnd) : 0;
+  uCollapse.value = STAGED_REVEAL ? recordStage(t, leakEnd, collapseEnd) : 0;
+  uLock.value = STAGED_REVEAL ? recordStage(t, collapseEnd, foldEnd) : 0;
   uTransActive.value = STAGED_REVEAL
-    ? THREE.MathUtils.smoothstep(t, 1.55, 1.70) * (1 - THREE.MathUtils.smoothstep(t, 2.30, 2.45))
+    ? THREE.MathUtils.smoothstep(t, leakStart - 0.08, leakStart)
+      * (1 - THREE.MathUtils.smoothstep(t, foldEnd, foldEnd + 0.12))
     : 0;
-  uImpact.value = NO_FX ? 0 : (t >= 2.15 && t < 2.23 ? 1 - (t - 2.15) / 0.08 : 0);
-  uPulse.value = NO_FX ? 0 : (t >= 3.18 && t <= 3.98 ? Math.sin(((t - 3.18) / 0.80) * Math.PI) : 0);
+
+  // V5.0.6 production recording deliberately has no tower event. The old
+  // impact/pulse can still be inspected with ?towerfx=legacy.
+  const impactStart = foldEnd;
+  const pulseStart = foldEnd + 1.03;
+  uImpact.value = LEGACY_TOWER_FX && t >= impactStart && t < impactStart + 0.08
+    ? 1 - (t - impactStart) / 0.08
+    : 0;
+  uPulse.value = LEGACY_TOWER_FX && t >= pulseStart && t <= pulseStart + 0.80
+    ? Math.sin(((t - pulseStart) / 0.80) * Math.PI)
+    : 0;
+
   const rw = STAGED_REVEAL ? uTransActive.value : 0;
   rim.intensity = 2 + 3.2 * rw;
   rim.color.setRGB(0.91 + 0.09 * rw, 0.93 - 0.62 * rw, 0.96 - 0.68 * rw);
   document.documentElement.dataset.recordT = t.toFixed(2);
-  if (t > 5.6) {
+  document.documentElement.dataset.recordDuration = sequenceEnd.toFixed(2);
+
+  if (t > sequenceEnd + 0.05) {
     recording = false;
     uImpact.value = 0;
+    uPulse.value = 0;
     uTransActive.value = 0;
     rim.intensity = 2;
     rim.color.setHex(0xe8edf5);
@@ -869,6 +898,7 @@ window.__duo = {
       },
       revealMode: STAGED_REVEAL ? 'staged' : 'clean-crossfade',
       foldMotion: { ...foldMotion },
+      legacyTowerFx: LEGACY_TOWER_FX,
       customReady: { ...customReady },
     };
   },
