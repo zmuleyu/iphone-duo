@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.5';
+const BUILD_VERSION = 'v5.0.6';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -34,6 +34,15 @@ const redBlackInput = document.querySelector('#redblack-upload');
 const redBlackButton = document.querySelector('#redblack-button');
 const revealSettingsButton = document.querySelector('#reveal-settings');
 const revealSettingsPopover = document.querySelector('#reveal-settings-popover');
+const closedHoldInput = document.querySelector('#closed-hold');
+const unfoldDurationInput = document.querySelector('#unfold-duration');
+const openHoldInput = document.querySelector('#open-hold');
+const foldEasingSelect = document.querySelector('#fold-easing');
+const closedHoldValue = document.querySelector('#closed-hold-value');
+const unfoldDurationValue = document.querySelector('#unfold-duration-value');
+const openHoldValue = document.querySelector('#open-hold-value');
+const foldTotalReadout = document.querySelector('#fold-total-readout');
+const foldMotionReset = document.querySelector('#fold-motion-reset');
 
 const stageBackground = document.querySelector('#stage-background');
 const bgSolidButton = document.querySelector('#bg-solid');
@@ -116,6 +125,14 @@ const RECORD_AUTO = QUERY.has('record');
 const screens = {};
 const customReady = { reality: false, redblack: false };
 const movingShellMeshes = [];
+
+const DEFAULT_FOLD_MOTION = Object.freeze({
+  closedHold: 0.45,
+  unfoldDuration: 1.80,
+  openHold: 0.85,
+  easing: 'smooth',
+});
+const foldMotion = { ...DEFAULT_FOLD_MOTION };
 
 if (revealSettingsButton) revealSettingsButton.hidden = true;
 if (revealSettingsPopover) revealSettingsPopover.hidden = true;
@@ -333,6 +350,56 @@ function updateFraming() {
   phone.position.x = FIXED_PANEL_ANCHOR_X;
   phone.scale.setScalar(1);
 }
+
+function foldEase(progress) {
+  const p = THREE.MathUtils.clamp(progress, 0, 1);
+  if (foldMotion.easing === 'linear') return p;
+  if (foldMotion.easing === 'cinematic') {
+    // Smootherstep: slower settle at both ends, useful for editorial cuts.
+    return p * p * p * (p * (p * 6 - 15) + 10);
+  }
+  return p * p * (3 - 2 * p);
+}
+
+function refreshFoldMotionUI() {
+  if (closedHoldValue) closedHoldValue.textContent = `${foldMotion.closedHold.toFixed(2)}s`;
+  if (unfoldDurationValue) unfoldDurationValue.textContent = `${foldMotion.unfoldDuration.toFixed(2)}s`;
+  if (openHoldValue) openHoldValue.textContent = `${foldMotion.openHold.toFixed(2)}s`;
+  if (foldTotalReadout) {
+    const total = foldMotion.closedHold + foldMotion.unfoldDuration + foldMotion.openHold;
+    foldTotalReadout.textContent = `Total ${total.toFixed(2)}s`;
+  }
+}
+
+function setFoldMotion(partial = {}) {
+  if (Number.isFinite(partial.closedHold)) {
+    foldMotion.closedHold = THREE.MathUtils.clamp(Number(partial.closedHold), 0, 1.5);
+    if (closedHoldInput) closedHoldInput.value = String(foldMotion.closedHold);
+  }
+  if (Number.isFinite(partial.unfoldDuration)) {
+    foldMotion.unfoldDuration = THREE.MathUtils.clamp(Number(partial.unfoldDuration), 0.8, 4);
+    if (unfoldDurationInput) unfoldDurationInput.value = String(foldMotion.unfoldDuration);
+  }
+  if (Number.isFinite(partial.openHold)) {
+    foldMotion.openHold = THREE.MathUtils.clamp(Number(partial.openHold), 0, 2.5);
+    if (openHoldInput) openHoldInput.value = String(foldMotion.openHold);
+  }
+  if (['smooth', 'cinematic', 'linear'].includes(partial.easing)) {
+    foldMotion.easing = partial.easing;
+    if (foldEasingSelect) foldEasingSelect.value = foldMotion.easing;
+  }
+  refreshFoldMotionUI();
+}
+
+closedHoldInput?.addEventListener('input', () => setFoldMotion({ closedHold: Number(closedHoldInput.value) }));
+unfoldDurationInput?.addEventListener('input', () => setFoldMotion({ unfoldDuration: Number(unfoldDurationInput.value) }));
+openHoldInput?.addEventListener('input', () => setFoldMotion({ openHold: Number(openHoldInput.value) }));
+foldEasingSelect?.addEventListener('change', () => setFoldMotion({ easing: foldEasingSelect.value }));
+foldMotionReset?.addEventListener('click', () => {
+  setFoldMotion(DEFAULT_FOLD_MOTION);
+  document.querySelector('[data-motion-blur="natural"]')?.click();
+});
+refreshFoldMotionUI();
 
 function setPlaying(value) {
   playing = value;
@@ -718,11 +785,13 @@ try {
     connectionArtifactGuard: 'valid-panorama-only + no blur bleed',
     towerHighlightGuard: 'content-aware tower mask; no broad ellipse glow',
     noFxGeometryTest: '?nofx=1',
+    foldMotionControls: 'closedHold + unfoldDuration + openHold + easing + motionBlur',
+    towerFxControls: 'separate collapsed V5.0.7 placeholder; inactive in V5.0.6',
   });
 
   updateSourceUI();
-  document.querySelectorAll('.control-dock button, .control-dock input').forEach(element => {
-    if (element !== revealSettingsButton) element.disabled = false;
+  document.querySelectorAll('.control-dock button, .control-dock input, .control-dock select').forEach(element => {
+    if (element !== revealSettingsButton && !element.hasAttribute('data-future')) element.disabled = false;
   });
   ready = true;
   setPlaying(false);
@@ -780,6 +849,12 @@ window.__duo = {
   setStages: (leak, collapse, lock) => { uLeak.value = Number(leak); uCollapse.value = Number(collapse); uLock.value = Number(lock); },
   setImpact: value => { uImpact.value = Number(value); },
   setPulse: value => { uPulse.value = Number(value); },
+  setFoldMotion,
+  play: () => {
+    if (angle > .1) setAngle(0);
+    playbackTime = 0;
+    setPlaying(true);
+  },
   startRecord,
   get state() {
     return {
@@ -793,6 +868,7 @@ window.__duo = {
         endpointSnap: true,
       },
       revealMode: STAGED_REVEAL ? 'staged' : 'clean-crossfade',
+      foldMotion: { ...foldMotion },
       customReady: { ...customReady },
     };
   },
@@ -805,13 +881,16 @@ renderer.setAnimationLoop(now => {
 
   if (ready && playing) {
     playbackTime += delta;
-    if (playbackTime < .45) {
+    const foldStart = foldMotion.closedHold;
+    const foldEnd = foldStart + foldMotion.unfoldDuration;
+    const sequenceEnd = foldEnd + foldMotion.openHold;
+
+    if (playbackTime < foldStart) {
       setAngle(0);
-    } else if (playbackTime < 2.25) {
-      const p = (playbackTime - .45) / 1.8;
-      const ease = p * p * (3 - 2 * p);
-      setAngle(THREE.MathUtils.lerp(0, 180, ease));
-    } else if (playbackTime < 3.10) {
+    } else if (playbackTime < foldEnd) {
+      const p = (playbackTime - foldStart) / Math.max(foldMotion.unfoldDuration, 1e-6);
+      setAngle(THREE.MathUtils.lerp(0, 180, foldEase(p)));
+    } else if (playbackTime < sequenceEnd) {
       setAngle(180);
     } else {
       setAngle(180);
