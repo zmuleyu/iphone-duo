@@ -1,52 +1,59 @@
 {
-  "build": "5.0.6.3",
-  "baseline": "5.0.6.2",
-  "milestone": "Fold Motion Tuning",
+  "build": "5.0.7",
+  "baseline": "5.0.6.3",
+  "milestone": "Recording / Editing Mode",
   "kept": [
     "Reality + RedBlack two-source architecture",
     "V5.0.4 clean crossfade",
     "V5.0.5 hinge / endpoint stability",
     "V5.0.6.2 Master Pair QA",
+    "V5.0.6.3 Fold Motion presets",
     "Tower and Bird effects removed"
   ],
-  "foldMotion": {
-    "defaultPreset": "Fast Viral",
-    "presets": {
-      "fast": {
-        "label": "Fast Viral",
-        "closedHold": 0.18,
-        "unfoldDuration": 1.15,
-        "openHold": 0.52,
-        "total": 1.85,
-        "easing": "smooth",
-        "motionBlur": "natural",
-        "purpose": "short-form / X social preview"
-      },
-      "cinematic": {
-        "label": "Cinematic",
-        "closedHold": 0.4,
-        "unfoldDuration": 1.85,
-        "openHold": 0.85,
-        "total": 3.1,
-        "easing": "cinematic",
-        "motionBlur": "natural",
-        "purpose": "hero pacing / polished presentation"
-      },
-      "demo": {
-        "label": "Slow Demo",
-        "closedHold": 0.65,
-        "unfoldDuration": 2.8,
-        "openHold": 1.2,
-        "total": 4.65,
-        "easing": "smooth",
-        "motionBlur": "off",
-        "purpose": "geometry / seam inspection"
-      }
-    },
-    "manualEditing": "Any timing, easing, or motion-blur edit switches the preset label to Custom.",
-    "urlOverride": "?motion=fast | ?motion=cinematic | ?motion=demo",
-    "recording": "Preview and ?record=1 share the exact active Fold Motion timings."
+  "recordingEditingMode": {
+    "cleanMode": "Entering Recording Mode hides development controls, GitHub link and build badge.",
+    "safeFrames": [
+      "16:9",
+      "1:1",
+      "9:16"
+    ],
+    "safeFrameBehavior": "Guide is visible while composing and automatically hidden during active recording.",
+    "frameRates": [
+      30,
+      60
+    ],
+    "deterministicClock": "Record timeline is quantized to the selected 30/60 fps frame clock.",
+    "controls": [
+      "Start",
+      "Replay",
+      "Reset",
+      "Exit"
+    ],
+    "prerequisites": "Manual entry requires loaded Reality + RedBlack masters and automatic Master Pair geometry PASS.",
+    "foldMotion": "Uses the exact active Fast Viral / Cinematic / Slow Demo / Custom timing.",
+    "urlControls": [
+      "?studio=1",
+      "?record=1",
+      "?format=16x9|1x1|9x16",
+      "?fps=30|60",
+      "?guide=off",
+      "?motion=fast|cinematic|demo"
+    ],
+    "automationDatasets": [
+      "data-record-t",
+      "data-record-frame",
+      "data-record-duration",
+      "data-record-fps",
+      "data-record-format",
+      "data-record-done"
+    ]
   },
-  "note": "No visual reveal, master asset, Tower, Bird, or displacement changes in this release.",
+  "default": {
+    "motion": "Fast Viral",
+    "format": "16:9",
+    "fps": 60,
+    "guide": true
+  },
+  "note": "This release adds capture/editing workflow only. No reveal art, source master, Tower, Bird, or displacement changes.",
   "timestamp": "2026-09-18"
 }
