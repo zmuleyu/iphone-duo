@@ -26,6 +26,9 @@ const closedButton = document.querySelector('#closed-button');
 const openButton = document.querySelector('#open-button');
 const progressReadout = document.querySelector('#progress-readout');
 const angleReadout = document.querySelector('#angle-readout');
+const angleBubble = document.querySelector('#angle-bubble');
+const sequenceStrip = document.querySelector('#sequence-strip');
+const sequencePlayhead = document.querySelector('#sequence-playhead');
 const revealReadout = document.querySelector('#reveal-readout');
 const revealSummaryValue = document.querySelector('#reveal-summary-value');
 const strategySummary = document.querySelector('#strategy-summary');
@@ -74,6 +77,12 @@ const recordReplayButton = document.querySelector('#record-replay');
 const recordResetButton = document.querySelector('#record-reset');
 const recordExitButton = document.querySelector('#record-exit');
 const exportPanel = document.querySelector('#export-acceptance-panel');
+const stagePanels = {
+  setup: document.querySelector('#setup-panel'),
+  quality: document.querySelector('#master-pair-qa-panel'),
+  capture: document.querySelector('#recording-editing-panel'),
+  accept: document.querySelector('#export-acceptance-panel'),
+};
 const exportSummary = document.querySelector('#export-acceptance-summary');
 const exportFormatButtons = [...document.querySelectorAll('[data-export-format]')];
 const exportLoadButton = document.querySelector('#export-load');
@@ -478,6 +487,8 @@ function updateQaUI() {
     else if (qaState.locked) qaSummary.textContent = `Locked · ${passCount}/5 PASS`;
     else qaSummary.textContent = `${passCount}/5 PASS`;
   }
+
+  updateStageStates();
 }
 
 function updateSourceUI() {
@@ -616,6 +627,10 @@ function updateTimelineUI(progress, mix) {
   if (revealSummaryValue) revealSummaryValue.textContent = `${worldPercent}%`;
   if (strategySummary) strategySummary.textContent = NO_FX ? 'No FX' : 'World';
   slider.style.setProperty('--progress', `${progressPercent}%`);
+  if (angleBubble) {
+    angleBubble.textContent = `${Math.round(angle)}\u00b0`;
+    angleBubble.style.left = `${THREE.MathUtils.clamp(progress, 0, 1) * 100}%`;
+  }
   snapButtons.forEach(button => button.classList.toggle('is-current', Math.abs(angle - Number(button.dataset.snap)) < .6));
 }
 
@@ -640,6 +655,59 @@ function foldSequenceDuration() {
   return foldMotion.closedHold + foldMotion.unfoldDuration + foldMotion.openHold;
 }
 
+function updateSequenceScale() {
+  if (!sequenceStrip) return;
+  const total = Math.max(foldSequenceDuration(), 1e-6);
+  sequenceStrip.style.setProperty('--seq-a', `${(foldMotion.closedHold / total) * 100}%`);
+  sequenceStrip.style.setProperty('--seq-b', `${(foldMotion.unfoldDuration / total) * 100}%`);
+}
+
+function sequenceTimeFromAngle(angleDeg) {
+  if (angleDeg <= 0) return 0;
+  const foldStart = foldMotion.closedHold;
+  const foldEnd = foldStart + foldMotion.unfoldDuration;
+  if (angleDeg >= 180) return foldEnd;
+  const target = angleDeg / 180;
+  let best = 0;
+  let bestDiff = Infinity;
+  for (let i = 0; i <= 64; i += 1) {
+    const p = i / 64;
+    const diff = Math.abs(foldEase(p) - target);
+    if (diff < bestDiff) { bestDiff = diff; best = p; }
+  }
+  return foldStart + best * foldMotion.unfoldDuration;
+}
+
+function updateSequencePlayhead() {
+  if (!sequencePlayhead) return;
+  const total = Math.max(foldSequenceDuration(), 1e-6);
+  const t = recording
+    ? Number(document.documentElement.dataset.recordT || 0)
+    : playing
+      ? playbackTime
+      : sequenceTimeFromAngle(angle);
+  const pct = `${(THREE.MathUtils.clamp(t / total, 0, 1) * 100).toFixed(2)}%`;
+  if (pct !== updateSequencePlayhead.last) {
+    updateSequencePlayhead.last = pct;
+    sequencePlayhead.style.left = pct;
+  }
+}
+
+function updateStageStates() {
+  if (!stagePanels.setup) return;
+  const mastersReady = customReady.reality && customReady.redblack;
+  stagePanels.setup.classList.toggle('is-done', mastersReady);
+  stagePanels.setup.classList.toggle('is-active', !mastersReady);
+  const qaPass = document.querySelectorAll('.qa-angle-row.is-pass').length;
+  stagePanels.quality.classList.toggle('is-done', qaPass >= QA_ANGLES.length);
+  stagePanels.quality.classList.toggle('is-active', mastersReady && qaPass > 0 && qaPass < QA_ANGLES.length);
+  stagePanels.capture.classList.toggle('is-done', recordHasRun);
+  stagePanels.capture.classList.toggle('is-active', recording || recordingMode);
+  const exportPass = document.querySelectorAll('.export-check-row.is-pass').length;
+  stagePanels.accept.classList.toggle('is-done', exportPass >= 5);
+  stagePanels.accept.classList.toggle('is-active', exportPass > 0 && exportPass < 5);
+}
+
 function refreshFoldMotionUI() {
   if (closedHoldValue) closedHoldValue.textContent = `${foldMotion.closedHold.toFixed(2)}s`;
   if (unfoldDurationValue) unfoldDurationValue.textContent = `${foldMotion.unfoldDuration.toFixed(2)}s`;
@@ -652,6 +720,7 @@ function refreshFoldMotionUI() {
   foldPresetButtons.forEach(button => {
     button.setAttribute('aria-pressed', String(button.dataset.foldPreset === activeFoldPreset));
   });
+  updateSequenceScale();
   updateRecordingUI();
 }
 
@@ -765,6 +834,7 @@ function updateRecordingUI() {
     foldSequenceDuration(),
   );
   updateExportAcceptanceUI();
+  updateStageStates();
 }
 
 function setRecordFormat(value) {
@@ -994,6 +1064,7 @@ function updateExportAcceptanceUI() {
       : 'pending';
 
   updateExportReviewSource();
+  updateStageStates();
 }
 
 function resetExportVerdicts(format = recordFormat) {
@@ -1092,6 +1163,9 @@ recordReplayButton?.addEventListener('click', () => startRecord());
 recordResetButton?.addEventListener('click', resetRecordingSession);
 recordExitButton?.addEventListener('click', () => setRecordingMode(false));
 updateRecordingUI();
+updateSequenceScale();
+updateStageStates();
+updateSequencePlayhead();
 
 function setPlaying(value) {
   playing = value;
@@ -1736,5 +1810,6 @@ renderer.setAnimationLoop(now => {
 
   if (ready && recording) driveRecord(now);
 
+  updateSequencePlayhead();
   renderer.render(scene, camera);
 });
