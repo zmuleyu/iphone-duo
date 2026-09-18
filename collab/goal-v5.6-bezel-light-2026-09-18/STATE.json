@@ -1,0 +1,8 @@
+{
+  "goal": "v5.6 边框光亮过渡（G-B）",
+  "date": "2026-09-18",
+  "state": "done",
+  "phase": "ready-for-merge",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v5.6-bezel-light"
+}

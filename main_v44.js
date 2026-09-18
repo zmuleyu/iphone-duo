@@ -171,6 +171,12 @@ const uLeak = { value: 0 };
 const uCollapse = { value: 0 };
 const uLock = { value: 0 };
 const uImpact = { value: 0 };      // 1-frame flash + RGB split @2.15s
+// V5.6 bezel light transition: red crease leak -> titanium sweep -> open pop.
+const uBezel = { value: 0 };
+const uBezelPop = { value: 0 };
+let uBezelPopHold = false;
+const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const BEZEL_DEBUG = QUERY.has('bezeldebug');
 const uPulse = { value: 0 };       // Lv1 tower warm pulse @3.18s
 const uTransActive = { value: 0 }; // staged-only blur/rim treatment
 const uNoFx = { value: NO_FX ? 1 : 0 };
@@ -1192,6 +1198,9 @@ function setAngle(value) {
   slider.value = angle;
   bend.value = (180 - angle) / 180 * Math.PI;
   const progress = angle / 180;
+  const bezelPrev = uBezel.value;
+  uBezel.value = progress;
+  if (!REDUCED_MOTION && angle >= 179.9 && bezelPrev * 180 < 179.9) { uBezelPopHold = false; uBezelPop.value = 1; }
   const active = uiTheme === 'custom' && customReady.reality && customReady.redblack;
   const mix = worldMixOverride ?? (active ? worldMixFromGeometry(geometrySignal(angle)) : 0);
   worldMix.value = mix;
@@ -1552,6 +1561,38 @@ try {
       material.customProgramCacheKey = () => `v44-${flexible ? 'flexible' : moving ? 'cover' : 'fixed'}-${kind || 'body'}`;
     }
 
+    if (!kind) {
+      // V5.6 bezel light: patched onto every body/hinge/shell material.
+      const prevCompile = material.onBeforeCompile;
+      material.onBeforeCompile = shader => {
+        prevCompile?.(shader);
+        if (BEZEL_DEBUG) (shader.defines = shader.defines || {}).BEZEL_DEBUG = 1;
+        shader.uniforms.uBezel = uBezel;
+        shader.uniforms.uBezelPop = uBezelPop;
+        shader.vertexShader = `varying float vBezelX;\n${shader.vertexShader}`
+          .replace('#include <project_vertex>', `vBezelX = position.x;\n#include <project_vertex>`);
+        shader.fragmentShader = `varying float vBezelX;\nuniform float uBezel;\nuniform float uBezelPop;\n${shader.fragmentShader}`
+          .replace('#include <opaque_fragment>', `#include <opaque_fragment>
+{
+  float bd = clamp(abs(vBezelX) / 7.89935, 0.0, 1.0);
+  // Titanium sweep travels hinge -> outer edge across the middle of the fold.
+  // (Red leak lives in the screen shader's uLeak stage; the physical bezel
+  // stays a pure titanium story.)
+  float sp = clamp((uBezel - 0.35) / 0.6, 0.0, 1.0);
+  float band = exp(-pow((bd - sp) * 4.0, 2.0)) * step(0.0005, sp);
+  vec3 bezelGlow = vec3(0.92, 0.96, 1.0) * band * 1.6;
+  bezelGlow += vec3(0.9, 0.95, 1.0) * uBezelPop * 3.0 * (0.5 + 0.5 * (1.0 - bd));
+  #ifdef BEZEL_DEBUG
+  gl_FragColor.rgb = vec3(bd, 0.0, 1.0 - bd);
+  #else
+  gl_FragColor.rgb += bezelGlow;
+  #endif
+}`);
+      };
+      material.customProgramCacheKey = () => `v56e-bezel-${moving ? 'mov' : flexible ? 'flx' : 'fix'}`;
+      material.userData.bezelPatched = true;
+    }
+
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = object.name;
     mesh.frustumCulled = false;
@@ -1794,6 +1835,18 @@ function driveRecord(nowMs) {
 
 window.__duo = {
   setAngle: value => { setPlaying(false); playbackTime = 0; recording = false; setAngle(Number(value)); },
+  _renderer: renderer,
+  // V5.6 debug: force bezel sweep/pop for deterministic verification.
+  setBezel: (sweep, pop) => { uBezel.value = Number(sweep); uBezelPop.value = Number(pop); uBezelPopHold = Number(pop) > 0; },
+  bezelDebug: () => ({
+    uniforms: { sweep: uBezel.value, pop: uBezelPop.value },
+    meshes: phone.children.map(m => ({
+      name: m.name,
+      mat: m.material?.type,
+      patched: !!m.material?.userData?.bezelPatched,
+      hasOBC: Object.prototype.hasOwnProperty.call(m.material ?? {}, 'onBeforeCompile'),
+    })),
+  }),
   setWorldMix: value => {
     if (!DEV_EXPERIMENTS) return false;
     worldMixOverride = value === null || value === undefined ? null : Number(value);
@@ -1906,5 +1959,6 @@ renderer.setAnimationLoop(now => {
   if (ready && recording) driveRecord(now);
 
   updateSequencePlayhead();
+  if (!uBezelPopHold) uBezelPop.value = uBezelPop.value > 0.002 ? uBezelPop.value * 0.95 : 0;
   renderer.render(scene, camera);
 });
