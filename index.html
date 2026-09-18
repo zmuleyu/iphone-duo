@@ -148,6 +148,66 @@
               </div>
             </div>
           </details>
+
+          <details id="bird-fx-panel" class="edit-panel bird-fx-panel">
+            <summary>
+              <span><strong>Bird FX</strong><small id="bird-sequence-readout">White · Open only</small></span>
+              <i aria-hidden="true">⌄</i>
+            </summary>
+            <div class="edit-panel-body bird-preview">
+              <p>Minimal bird silhouettes over the red sky. Default is white; color and timing stay independently editable.</p>
+
+              <div class="bird-fx-grid">
+                <label>
+                  <span>Start Delay <output id="bird-delay-value">0.45s</output></span>
+                  <input id="bird-delay" type="range" min="0" max="1.5" value="0.45" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Duration <output id="bird-duration-value">1.00s</output></span>
+                  <input id="bird-duration" type="range" min="0.4" max="2.5" value="1.00" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Count <output id="bird-count-value">5</output></span>
+                  <input id="bird-count" type="range" min="1" max="8" value="5" step="1" disabled>
+                </label>
+                <label>
+                  <span>Size <output id="bird-size-value">100%</output></span>
+                  <input id="bird-size" type="range" min="0.5" max="1.8" value="1.00" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Opacity <output id="bird-opacity-value">90%</output></span>
+                  <input id="bird-opacity" type="range" min="0.2" max="1" value="0.90" step="0.05" disabled>
+                </label>
+                <label class="color-field">
+                  <span>Color <output id="bird-color-value">#FFFFFF</output></span>
+                  <input id="bird-color" type="color" value="#ffffff" disabled aria-label="Bird color">
+                </label>
+              </div>
+
+              <div class="bird-fx-row">
+                <label class="select-field">
+                  <span>Direction</span>
+                  <select id="bird-direction" disabled>
+                    <option value="rtl">Right → Left</option>
+                    <option value="ltr">Left → Right</option>
+                  </select>
+                </label>
+
+                <label class="select-field">
+                  <span>Enabled</span>
+                  <select id="bird-enabled" disabled>
+                    <option value="on">On</option>
+                    <option value="off">Off</option>
+                  </select>
+                </label>
+
+                <div class="bird-actions">
+                  <button id="bird-preview" class="quiet-button bird-preview-button" type="button" disabled>Preview</button>
+                  <button id="bird-reset" class="quiet-button" type="button" disabled>Reset</button>
+                </div>
+              </div>
+            </div>
+          </details>
         </div>
       </section>
     </div>
