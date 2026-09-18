@@ -814,6 +814,10 @@ function startRecord() {
   recordT0 = performance.now();
   recording = true;
   setPlaying(false);
+  setAngle(0);
+  delete document.documentElement.dataset.recordDone;
+  delete document.documentElement.dataset.recordT;
+  delete document.documentElement.dataset.recordDuration;
 }
 
 // Lv3 record timeline (case-study §6): real fold drives geometry, three stage
