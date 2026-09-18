@@ -1,13 +1,13 @@
 {
-  "build": "6.0.1",
-  "baseline": "5.9",
-  "milestone": "9:16 horizontal centering",
+  "build": "6.1",
+  "baseline": "6.0.1",
+  "milestone": "Clean Hero (graphic master v2, single tower glow)",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "tower Reality-pocket hold + 0.3s post-open activation (geometric mask)",
-    "graphic RedBlack master (flat red sky, black city, halved lights)",
-    "record hinge softening; 16:9 horizontal centering"
+    "master B v2: halo/smoke crushed, sky pure gradient, city lights -70%, lattice-only protection",
+    "tower boost 0.55->0.35 (single steady glow)",
+    "finals vignette PI/6->PI/10"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",

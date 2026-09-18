@@ -1558,7 +1558,7 @@ vec3 screenColor() {
   // V5.9 tower activation: warm hero glow on the tower's lit lattice, ramped by
   // uTowerBoost at open-complete (record path only; preview stays 0).
   if (uNoFx < 0.5 && uTowerBoost > 0.001) {
-    color += vec3(1.0, 0.62, 0.25) * uTowerBoost * towerContentMask(sourceUV, colB) * 0.55;
+    color += vec3(1.0, 0.62, 0.25) * uTowerBoost * towerContentMask(sourceUV, colB) * 0.35;
   }
 
   // Impact @2.15s: one-frame white-red flash + visible RGB split (screen-space
