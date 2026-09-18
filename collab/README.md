@@ -5,7 +5,7 @@
 | v4.4 Original Screen Shader Rebuild | 2026-09-18 | done（用户目检通过，架构冻结） | [goal-v44-screen-shader-rebuild-2026-09-18](./goal-v44-screen-shader-rebuild-2026-09-18/GOAL.md) |
 | lv3-transition 三阶段空间转场 | 2026-09-18 | superseded by V5.1（staged 转入 dev-only；T2 剪辑 spec 已交付） | [goal-lv3-transition-2026-09-18](./goal-lv3-transition-2026-09-18/GOAL.md) |
 | R&D 评审 v5.0.7.3 Hero Tower + Spire Birds | 2026-09-18 | awaiting_user_visual（证据就绪：鸟锚点 FAIL、塔相位叙事弱） | [goal-rd-hero-tower-birds-2026-09-18](./goal-rd-hero-tower-birds-2026-09-18/REVIEW.md) |
-| 操作区信息架构重组（v5.2-rc1） | 2026-09-18 | awaiting_user_visual（CDP+vision 全过；分支 work/v5.2-control-dock-ia，合并须拍板） | [goal-control-dock-ia-2026-09-18](./goal-control-dock-ia-2026-09-18/REVIEW.md) |
+| 操作区信息架构重组（v5.2） | 2026-09-18 | merged→production（用户拍板合并 2026-09-18） | [goal-control-dock-ia-2026-09-18](./goal-control-dock-ia-2026-09-18/REVIEW.md) |
 
 ## 生产基线
 
