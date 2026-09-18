@@ -111,11 +111,11 @@
 
           <details id="tower-fx-panel" class="edit-panel tower-fx-panel">
             <summary>
-              <span><strong>Tower FX</strong><small id="tower-sequence-readout">Open only · +1.50s</small></span>
+              <span><strong>Hero Tower</strong><small id="tower-sequence-readout">Open only · staged activation</small></span>
               <i aria-hidden="true">⌄</i>
             </summary>
             <div class="edit-panel-body tower-preview">
-              <p>Runs only after the fold reaches 180°. Background and skyline stay locked; only warm tower pixels are enhanced.</p>
+              <p>Base ignition → lattice propagation → deck SNAP → spire rush → exposure pulse → hero hold. Background remains locked.</p>
 
               <div class="tower-fx-grid">
                 <label>
@@ -123,12 +123,27 @@
                   <input id="tower-delay" type="range" min="0" max="1" value="0.20" step="0.05" disabled>
                 </label>
                 <label>
-                  <span>Activation <output id="tower-duration-value">0.90s</output></span>
-                  <input id="tower-duration" type="range" min="0.35" max="2" value="0.90" step="0.05" disabled>
+                  <span>Activation <output id="tower-duration-value">1.25s</output></span>
+                  <input id="tower-duration" type="range" min="0.7" max="2.2" value="1.25" step="0.05" disabled>
                 </label>
                 <label>
-                  <span>Intensity <output id="tower-intensity-value">100%</output></span>
-                  <input id="tower-intensity" type="range" min="0" max="1.5" value="1" step="0.05" disabled>
+                  <span>Intensity <output id="tower-intensity-value">115%</output></span>
+                  <input id="tower-intensity" type="range" min="0.5" max="1.8" value="1.15" step="0.05" disabled>
+                </label>
+              </div>
+
+              <div class="tower-advanced-grid">
+                <label>
+                  <span>Deck SNAP <output id="tower-snap-value">130%</output></span>
+                  <input id="tower-snap" type="range" min="0" max="2" value="1.30" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Hero Warmth <output id="tower-warmth-value">65%</output></span>
+                  <input id="tower-warmth" type="range" min="0" max="1.5" value="0.65" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Pulse Exposure <output id="tower-pulse-strength-value">18%</output></span>
+                  <input id="tower-pulse-strength" type="range" min="0" max="0.35" value="0.18" step="0.01" disabled>
                 </label>
               </div>
 
@@ -151,28 +166,40 @@
 
           <details id="bird-fx-panel" class="edit-panel bird-fx-panel">
             <summary>
-              <span><strong>Bird FX</strong><small id="bird-sequence-readout">White · Open only</small></span>
+              <span><strong>Spire Birds</strong><small id="bird-sequence-readout">#FFFFFF · Orbit</small></span>
               <i aria-hidden="true">⌄</i>
             </summary>
             <div class="edit-panel-body bird-preview">
-              <p>Minimal bird silhouettes over the red sky. Default is white; color and timing stay independently editable.</p>
+              <p>White birds orbit locally around the tower spire during the climax. Burst is retained as an alternate mode.</p>
 
               <div class="bird-fx-grid">
                 <label>
-                  <span>Start Delay <output id="bird-delay-value">0.45s</output></span>
-                  <input id="bird-delay" type="range" min="0" max="1.5" value="0.45" step="0.05" disabled>
+                  <span>Start Delay <output id="bird-delay-value">0.82s</output></span>
+                  <input id="bird-delay" type="range" min="0" max="1.8" value="0.82" step="0.02" disabled>
                 </label>
                 <label>
-                  <span>Duration <output id="bird-duration-value">1.00s</output></span>
-                  <input id="bird-duration" type="range" min="0.4" max="2.5" value="1.00" step="0.05" disabled>
+                  <span>Duration <output id="bird-duration-value">0.80s</output></span>
+                  <input id="bird-duration" type="range" min="0.35" max="2.5" value="0.80" step="0.05" disabled>
                 </label>
                 <label>
                   <span>Count <output id="bird-count-value">5</output></span>
                   <input id="bird-count" type="range" min="1" max="8" value="5" step="1" disabled>
                 </label>
                 <label>
-                  <span>Size <output id="bird-size-value">100%</output></span>
-                  <input id="bird-size" type="range" min="0.5" max="1.8" value="1.00" step="0.05" disabled>
+                  <span>Orbit Radius <output id="bird-radius-value">100%</output></span>
+                  <input id="bird-radius" type="range" min="0.55" max="1.8" value="1.00" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Speed <output id="bird-speed-value">100%</output></span>
+                  <input id="bird-speed" type="range" min="0.5" max="2" value="1.00" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Spread <output id="bird-spread-value">35%</output></span>
+                  <input id="bird-spread" type="range" min="0" max="1" value="0.35" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Size <output id="bird-size-value">90%</output></span>
+                  <input id="bird-size" type="range" min="0.45" max="1.6" value="0.90" step="0.05" disabled>
                 </label>
                 <label>
                   <span>Opacity <output id="bird-opacity-value">90%</output></span>
@@ -186,10 +213,19 @@
 
               <div class="bird-fx-row">
                 <label class="select-field">
+                  <span>Mode</span>
+                  <select id="bird-mode" disabled>
+                    <option value="orbit">Orbit</option>
+                    <option value="burst">Burst</option>
+                  </select>
+                </label>
+
+                <label class="select-field">
                   <span>Direction</span>
                   <select id="bird-direction" disabled>
-                    <option value="rtl">Right → Left</option>
-                    <option value="ltr">Left → Right</option>
+                    <option value="mixed">Mixed</option>
+                    <option value="cw">Clockwise</option>
+                    <option value="ccw">Counterclockwise</option>
                   </select>
                 </label>
 
