@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.6';
+const BUILD_VERSION = 'v5.0.6.1';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -100,7 +100,7 @@ const NO_FX = QUERY.has('nofx');
 // The previous staged leak/collapse/lock reveal remains available only for
 // explicit experiments via ?reveal=staged (or ?staged=1).
 const STAGED_REVEAL = !NO_FX && (QUERY.get('reveal') === 'staged' || QUERY.has('staged'));
-const LEGACY_TOWER_FX = !NO_FX && QUERY.get('towerfx') === 'legacy';
+const LEGACY_TOWER_FX = false; // tower effects removed from the fold-only production baseline
 
 const bend = { value: Math.PI };
 const worldMix = { value: 0 };
@@ -787,9 +787,8 @@ try {
     towerHighlightGuard: 'content-aware tower mask; no broad ellipse glow',
     noFxGeometryTest: '?nofx=1',
     foldMotionControls: 'closedHold + unfoldDuration + openHold + easing + motionBlur',
-    towerFxControls: 'separate collapsed V5.0.7 placeholder; inactive in V5.0.6',
-    legacyTowerFx: LEGACY_TOWER_FX ? 'experimental ?towerfx=legacy' : 'off',
-    recordTimeline: 'uses editable Fold Motion timing',
+    towerFxControls: 'removed from production; deferred for separate discussion',
+    recordTimeline: 'uses editable Fold Motion timing only',
   });
 
   updateSourceUI();
@@ -848,16 +847,9 @@ function driveRecord(nowMs) {
       * (1 - THREE.MathUtils.smoothstep(t, foldEnd, foldEnd + 0.12))
     : 0;
 
-  // V5.0.6 production recording deliberately has no tower event. The old
-  // impact/pulse can still be inspected with ?towerfx=legacy.
-  const impactStart = foldEnd;
-  const pulseStart = foldEnd + 1.03;
-  uImpact.value = LEGACY_TOWER_FX && t >= impactStart && t < impactStart + 0.08
-    ? 1 - (t - impactStart) / 0.08
-    : 0;
-  uPulse.value = LEGACY_TOWER_FX && t >= pulseStart && t <= pulseStart + 0.80
-    ? Math.sin(((t - pulseStart) / 0.80) * Math.PI)
-    : 0;
+  // Fold-only production baseline: no Tower FX or Bird FX event.
+  uImpact.value = 0;
+  uPulse.value = 0;
 
   const rw = STAGED_REVEAL ? uTransActive.value : 0;
   rim.intensity = 2 + 3.2 * rw;
@@ -880,8 +872,6 @@ window.__duo = {
   setAngle: value => { setPlaying(false); playbackTime = 0; recording = false; setAngle(Number(value)); },
   setWorldMix: value => { worldMixOverride = value === null || value === undefined ? null : Number(value); setAngle(angle); },
   setStages: (leak, collapse, lock) => { uLeak.value = Number(leak); uCollapse.value = Number(collapse); uLock.value = Number(lock); },
-  setImpact: value => { uImpact.value = Number(value); },
-  setPulse: value => { uPulse.value = Number(value); },
   setFoldMotion,
   play: () => {
     if (angle > .1) setAngle(0);
@@ -902,7 +892,6 @@ window.__duo = {
       },
       revealMode: STAGED_REVEAL ? 'staged' : 'clean-crossfade',
       foldMotion: { ...foldMotion },
-      legacyTowerFx: LEGACY_TOWER_FX,
       customReady: { ...customReady },
     };
   },
