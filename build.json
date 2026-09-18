@@ -1,12 +1,13 @@
 {
-  "build": "5.0.1",
-  "baseline": "5.0",
-  "baselineCommit": "5a2391b2f4357e332aa221f21dc96544ec916524",
-  "transition": "lv3-staged-reveal (unchanged)",
-  "leftPanelBlur": "original-inner-gradient (unchanged)",
-  "timing": "record-timeline+geometry-driven-manual (unchanged)",
-  "repair": "open-endpoint-authored-uv-lock + edge-coverage-lock",
-  "scope": "Open Endpoint Repair only",
+  "build": "5.0.2",
+  "baseline": "5.0.1",
+  "frozenBaselineBranch": "freeze/v5.0.1-open-endpoint",
+  "transition": "lv3-staged-reveal (timing unchanged)",
+  "revealDirection": "hinge-to-left-moving-panel",
+  "openEndpointRepair": "preserved from 5.0.1",
+  "leftPanelBlur": "unchanged",
+  "timing": "unchanged",
+  "scope": "Reveal Direction Fix only",
   "cacheMode": "no-store-development",
   "timestamp": "2026-09-18"
 }
