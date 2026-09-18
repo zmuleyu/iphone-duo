@@ -679,7 +679,11 @@ function driveBirdFxElapsed(elapsed) {
   uBirdOpacity.value = birdFx.opacity;
   uBirdCount.value = birdFx.count;
   uBirdSize.value = birdFx.size;
-  uBirdDirection.value = birdFx.direction === 'rtl' ? -1 : 1;
+  uBirdRadius.value = birdFx.radius;
+  uBirdSpeed.value = birdFx.speed;
+  uBirdSpread.value = birdFx.spread;
+  uBirdMode.value = birdFx.mode === 'burst' ? 1 : 0;
+  uBirdDirection.value = birdFx.direction === 'cw' ? 1 : birdFx.direction === 'ccw' ? -1 : 0;
   uBirdColor.value.set(birdFx.color);
 }
 
@@ -902,11 +906,18 @@ uniform float uUseStagedReveal;
 uniform float uTowerActivation;
 uniform float uTowerIntensity;
 uniform float uTowerPulseFx;
+uniform float uTowerSnapStrength;
+uniform float uTowerWarmth;
+uniform float uTowerPulseStrength;
 uniform float uBirdProgress;
 uniform float uBirdActive;
 uniform float uBirdOpacity;
 uniform float uBirdCount;
 uniform float uBirdSize;
+uniform float uBirdRadius;
+uniform float uBirdSpeed;
+uniform float uBirdSpread;
+uniform float uBirdMode;
 uniform float uBirdDirection;
 uniform vec3 uBirdColor;
 varying vec3 vUIPosition;
@@ -974,26 +985,58 @@ float birdGlyph(vec2 p, float flap, float scale) {
 
 float birdField(vec2 uv) {
   float field = 0.0;
+  const vec2 SPIRE_CENTER = vec2(0.730, 0.145);
+
   for (int i = 0; i < 8; i++) {
     float fi = float(i);
     float enabled = 1.0 - step(uBirdCount - 0.5, fi);
     float h1 = fract(sin((fi + 2.1) * 37.17) * 43758.5453);
     float h2 = fract(sin((fi + 5.3) * 19.73) * 12741.371);
-    float stagger = fi * 0.042 + h1 * 0.035;
+
+    float stagger = fi * 0.018 + h1 * 0.025;
     float t = clamp((uBirdProgress - stagger) / max(1.0 - stagger, 0.1), 0.0, 1.0);
 
-    float x0 = uBirdDirection < 0.0 ? 0.64 : 0.06;
-    float x1 = uBirdDirection < 0.0 ? 0.07 : 0.63;
-    float x = mix(x0, x1, t);
-    float y = 0.18 + h1 * 0.13 + sin(t * 5.5 + h2 * 6.28318) * 0.008;
-    float localScale = uBirdSize * (0.72 + h2 * 0.48);
-    float flap = 0.5 + 0.5 * sin(t * 30.0 + fi * 1.9);
+    float direction = uBirdDirection;
+    if (abs(direction) < 0.5) {
+      direction = mod(fi, 2.0) < 1.0 ? 1.0 : -1.0;
+    }
 
-    float glyph = birdGlyph(uv - vec2(x, y), flap, localScale);
-    float fadeIn = smoothstep(0.0, 0.07, t);
-    float fadeOut = 1.0 - smoothstep(0.88, 1.0, t);
-    field = max(field, glyph * enabled * fadeIn * fadeOut);
+    float turns = 0.72 + uBirdSpeed * 0.72;
+    float phase = direction * t * 6.2831853 * turns
+      + fi * 2.3999632
+      + h1 * 0.72;
+
+    float radiusX = 0.045 * uBirdRadius * (0.86 + h2 * 0.28);
+    float radiusY = 0.025 * uBirdRadius * (0.82 + h1 * 0.30);
+
+    // Orbit is the production default. Burst begins at the same spire-local
+    // orbit and expands only during the final part of the motion.
+    float burstScale = uBirdMode > 0.5
+      ? mix(0.72, 2.05, smoothstep(0.18, 1.0, t))
+      : 1.0;
+
+    vec2 localCenter = SPIRE_CENTER + vec2(
+      (h1 - 0.5) * 0.020 * uBirdSpread,
+      (h2 - 0.5) * 0.030 * uBirdSpread
+    );
+
+    vec2 birdPos = localCenter + vec2(
+      cos(phase) * radiusX,
+      sin(phase) * radiusY
+    ) * burstScale;
+
+    // Simulate front/back depth while orbiting around the spire.
+    float depth = 0.68 + 0.32 * (0.5 + 0.5 * sin(phase));
+    float localScale = uBirdSize * (0.72 + h2 * 0.34) * mix(0.88, 1.08, depth);
+    float flap = 0.5 + 0.5 * sin(t * (28.0 + uBirdSpeed * 12.0) + fi * 1.9);
+
+    float glyph = birdGlyph(uv - birdPos, flap, localScale);
+    float fadeIn = smoothstep(0.0, 0.09, t);
+    float fadeOut = 1.0 - smoothstep(uBirdMode > 0.5 ? 0.76 : 0.88, 1.0, t);
+
+    field = max(field, glyph * enabled * fadeIn * fadeOut * depth);
   }
+
   return field * uBirdActive;
 }
 
@@ -1123,38 +1166,83 @@ vec3 screenColor() {
     color += vec3(1.0, 0.62, 0.25) * uPulse * (tw * 0.22 + warm * 0.10);
   }
 
-  // V5.0.7.2 Tower Activation Tuning.
-  // The latest RedBlack master already defines the tower palette. We therefore
-  // enhance structure first, introduce only a late restrained gold bias, and
-  // treat pulse as exposure — not another orange paint layer.
+  // V5.0.7.3 Hero Tower Rebuild.
+  // The tower becomes a sequence of structural events rather than a single
+  // color lift: base ignition -> lattice propagation -> deck SNAP ->
+  // spire rush -> restrained hero warmth -> one exposure pulse.
   if (uNoFx < 0.5 && (uTowerActivation > 0.001 || uTowerPulseFx > 0.001)) {
     float tw = towerFxMask(sourceUV, colB);
+    float a = clamp(uTowerActivation, 0.0, 1.0);
     float towerY = clamp((sourceUV.y - 0.11) / 0.64, 0.0, 1.0);
-    float rise = smoothstep(towerY - 0.055, towerY + 0.025, max(0.0, uTowerActivation - 0.01));
-    rise *= smoothstep(0.0, 0.035, uTowerActivation);
 
-    float deckBand = 1.0 - smoothstep(0.014, 0.038, abs(sourceUV.y - 0.455));
-    float deckBeat = smoothstep(0.54, 0.62, uTowerActivation)
-      * (1.0 - smoothstep(0.70, 0.80, uTowerActivation));
+    // Base ignition: compact lower-leg event, clearly distinct from the
+    // subsequent lattice propagation.
+    float baseBand = 1.0 - smoothstep(0.12, 0.29, towerY);
+    float basePhase = smoothstep(0.015, 0.16, a);
+    float baseEvent = tw * baseBand * basePhase;
 
-    float spire = smoothstep(0.62, 0.94, towerY) * smoothstep(0.78, 1.0, uTowerActivation);
-    float structure = rise * 0.13 + deckBand * deckBeat * 0.09 + spire * 0.055;
+    // Lattice propagation: bottom -> top structural front.
+    float latticePhase = smoothstep(0.10, 0.68, a);
+    float latticeFront = smoothstep(
+      towerY - 0.055,
+      towerY + 0.030,
+      latticePhase
+    );
+    float latticeEvent = tw * latticeFront;
 
-    // Neutral structural lift preserves the authored white/orange balance.
-    color += vec3(0.16, 0.145, 0.11) * tw * structure * uTowerIntensity;
+    // Observation Deck SNAP: a short, strong horizontal lock beat.
+    float deckBand = 1.0 - smoothstep(0.012, 0.032, abs(sourceUV.y - 0.455));
+    float deckSnap = smoothstep(0.56, 0.605, a)
+      * (1.0 - smoothstep(0.655, 0.715, a));
+    float deckEvent = tw * deckBand * deckSnap * uTowerSnapStrength;
 
-    // Warmth arrives late and very subtly, only after the structure is readable.
-    float lateWarm = smoothstep(0.58, 1.0, uTowerActivation) * tw * uTowerIntensity;
-    vec3 heroGold = vec3(1.0, 0.80, 0.46);
+    // Spire Rush: intentionally faster than the main body.
+    float spireBand = tw * smoothstep(0.63, 0.96, towerY);
+    float spirePhase = smoothstep(0.70, 0.93, a);
+    float spireEvent = spireBand * spirePhase;
+
+    // Hero Hold keeps the finished structure visibly above the baseline.
+    float heroPhase = smoothstep(0.86, 1.0, a);
+    float structuralEnergy = clamp(
+      baseEvent * 0.36
+      + latticeEvent * 0.34
+      + deckEvent * 0.48
+      + spireEvent * 0.42
+      + tw * heroPhase * 0.24,
+      0.0,
+      0.92
+    ) * uTowerIntensity;
+
+    // Stronger neutral/golden-white target makes the Hero state unmistakable
+    // without washing the surrounding red sky or city.
+    vec3 structureTarget = min(
+      color * 1.52 + vec3(0.18, 0.145, 0.085),
+      vec3(1.0)
+    );
+    color = mix(color, structureTarget, structuralEnergy);
+
+    // Deck SNAP gets a local, short highlight instead of a broad halo.
+    color += vec3(0.62, 0.48, 0.23)
+      * deckEvent
+      * 0.24
+      * uTowerIntensity;
+
+    // Warmth arrives only during the latter part of activation.
+    float lateWarm = tw * smoothstep(0.64, 1.0, a) * uTowerWarmth;
+    vec3 heroGold = vec3(1.0, 0.76, 0.32);
     vec3 goldDelta = max(heroGold - color, vec3(0.0));
-    color += goldDelta * lateWarm * 0.055;
+    color += goldDelta * lateWarm * 0.20;
 
-    // Single pulse is a brief exposure lift, not a hue change.
-    color *= 1.0 + tw * uTowerPulseFx * 0.105 * uTowerIntensity;
+    // Pulse is a controlled exposure beat, never a hue wash.
+    color *= 1.0
+      + tw
+      * uTowerPulseFx
+      * uTowerPulseStrength
+      * uTowerIntensity;
   }
 
-  // V5.0.7.2 Bird FX: small editable silhouettes confined to the red sky.
-  // White is the production default, but uBirdColor is fully user-controlled.
+  // V5.0.7.3 Spire Bird Redesign: birds remain local to the tower tip.
+  // White is the production default, while color remains user-controlled.
   if (uNoFx < 0.5 && uBirdActive > 0.001) {
     float birds = birdField(sourceUV);
     float alpha = clamp(birds * uBirdOpacity, 0.0, 1.0);
@@ -1242,11 +1330,18 @@ try {
           shader.uniforms.uTowerActivation = uTowerActivation;
           shader.uniforms.uTowerIntensity = uTowerIntensity;
           shader.uniforms.uTowerPulseFx = uTowerPulseFx;
+          shader.uniforms.uTowerSnapStrength = uTowerSnapStrength;
+          shader.uniforms.uTowerWarmth = uTowerWarmth;
+          shader.uniforms.uTowerPulseStrength = uTowerPulseStrength;
           shader.uniforms.uBirdProgress = uBirdProgress;
           shader.uniforms.uBirdActive = uBirdActive;
           shader.uniforms.uBirdOpacity = uBirdOpacity;
           shader.uniforms.uBirdCount = uBirdCount;
           shader.uniforms.uBirdSize = uBirdSize;
+          shader.uniforms.uBirdRadius = uBirdRadius;
+          shader.uniforms.uBirdSpeed = uBirdSpeed;
+          shader.uniforms.uBirdSpread = uBirdSpread;
+          shader.uniforms.uBirdMode = uBirdMode;
           shader.uniforms.uBirdDirection = uBirdDirection;
           shader.uniforms.uBirdColor = uBirdColor;
 
@@ -1296,9 +1391,9 @@ try {
     noFxGeometryTest: '?nofx=1',
     foldMotionControls: 'closedHold + unfoldDuration + openHold + easing + motionBlur',
     towerFxControls: 'openDelay + activationDuration + intensity + pulse + preview + reset',
-    towerFxTuning: 'structure lift -> late subtle gold -> exposure pulse; no orange repaint',
-    birdFxControls: 'enabled + delay + duration + count + size + opacity + color + direction + preview + reset',
-    birdDefault: 'white #FFFFFF silhouettes over red sky',
+    towerFxTuning: 'base ignition -> lattice -> deck SNAP -> spire rush -> hero hold -> exposure pulse',
+    birdFxControls: 'mode + delay + duration + count + radius + speed + spread + size + opacity + color + direction + preview + reset',
+    birdDefault: 'white #FFFFFF spire-local Orbit; Burst optional',
     towerFxIsolation: 'content-aware tower pixels only; no sky/city glow',
     legacyTowerFx: LEGACY_TOWER_FX ? 'experimental ?towerfx=legacy' : 'off',
     recordTimeline: 'fold + overlapping tower/bird FX share editable timing',
