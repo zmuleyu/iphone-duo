@@ -1,43 +1,20 @@
 {
-  "build": "5.0.6",
-  "baseline": "5.0.5",
-  "milestone": "Fold Motion Polish + Editing Controls",
-  "reveal": "V5.0.4 clean crossfade preserved; staged reveal remains experimental only",
-  "hingeEndpoint": "V5.0.5 stability preserved",
-  "foldMotionControls": {
-    "collapsible": true,
-    "closedHold": "0.00–1.50s",
-    "unfoldDuration": "0.80–4.00s",
-    "openHold": "0.00–2.50s",
-    "easing": [
-      "Smooth",
-      "Cinematic",
-      "Linear"
-    ],
-    "motionBlur": [
-      "Off",
-      "Natural",
-      "Strong"
-    ],
-    "totalDuration": "live readout",
-    "reset": true
-  },
-  "recording": "uses the same editable fold timing and motion blur mode; no hidden tower event in production",
-  "towerFx": {
-    "panel": "separate collapsed placeholder",
-    "active": false,
-    "targetVersion": "5.0.7",
-    "activationRule": "Open state only, after Open Hold begins",
-    "legacyExperiment": "?towerfx=legacy",
-    "startGate": "begin V5.0.7 only after V5.0.6 fold playback + 0/45/90/135/180 visual acceptance",
-    "plannedControls": [
-      "Open delay",
-      "Activation duration",
-      "Intensity",
-      "Pulse",
-      "Preview/Reset"
-    ]
-  },
-  "displacement": "deferred",
+  "build": "5.0.6.1",
+  "baseline": "5.0.6",
+  "milestone": "Fold-only cleanup baseline",
+  "kept": [
+    "Reality + RedBlack two-source architecture",
+    "V5.0.4 clean crossfade",
+    "V5.0.5 hinge / endpoint stability",
+    "V5.0.6 Fold Motion controls"
+  ],
+  "removed": [
+    "Hero Tower production effect",
+    "Bird FX production effect",
+    "Tower FX control area",
+    "Bird FX control area",
+    "legacy towerfx query/debug activation"
+  ],
+  "note": "Tower and bird concepts deferred for separate discussion before any reintroduction.",
   "timestamp": "2026-09-18"
 }
