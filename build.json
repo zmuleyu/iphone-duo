@@ -1,20 +1,44 @@
 {
-  "build": "5.0.6.1",
-  "baseline": "5.0.6",
-  "milestone": "Fold-only cleanup baseline",
+  "build": "5.0.6.2",
+  "baseline": "5.0.6.1",
+  "milestone": "Master Pair QA",
   "kept": [
     "Reality + RedBlack two-source architecture",
     "V5.0.4 clean crossfade",
     "V5.0.5 hinge / endpoint stability",
-    "V5.0.6 Fold Motion controls"
+    "V5.0.6 Fold Motion controls",
+    "Tower and Bird effects removed"
   ],
-  "removed": [
-    "Hero Tower production effect",
-    "Bird FX production effect",
-    "Tower FX control area",
-    "Bird FX control area",
-    "legacy towerfx query/debug activation"
-  ],
-  "note": "Tower and bird concepts deferred for separate discussion before any reintroduction.",
+  "masterPairQA": {
+    "automatic": [
+      "Reality source dimensions",
+      "RedBlack source dimensions",
+      "identical master dimensions",
+      "pair aspect-ratio compatibility",
+      "compatibility with panorama canvas ratio"
+    ],
+    "visualAngles": [
+      0,
+      45,
+      90,
+      135,
+      180
+    ],
+    "visualChecks": [
+      "Closed composition",
+      "Reveal / edge continuity",
+      "Hinge continuity",
+      "Edge / panorama continuity",
+      "Open endpoint / framing"
+    ],
+    "controls": [
+      "View angle",
+      "Pass / Fail per angle",
+      "Lock / Unlock Pair",
+      "Reset QA"
+    ],
+    "acceptance": "QA PASS requires automatic pair geometry pass + 5/5 visual PASS. Pair lock prevents accidental source replacement during acceptance."
+  },
+  "note": "No reveal art changes, Tower FX, Bird FX, or displacement changes in this release.",
   "timestamp": "2026-09-18"
 }
