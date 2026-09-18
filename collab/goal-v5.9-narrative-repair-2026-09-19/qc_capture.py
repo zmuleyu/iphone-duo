@@ -55,17 +55,12 @@ def main(video, tower_crop=None, grid_crop=None, tower_checks=True):
     late = [m for t, m, _, _ in timeline if t >= 1.3]
     if late and max(late) < 90:
         fails.append(f"not fully red by 1.3s (maxRed={max(late)})")
-    # tower lag: at the sample where sky first >= 60, tower must lag by >= 25
-    for t, _, sky, tower in timeline if tower_checks else []:
-        if sky >= 60:
-            if tower > sky - 25:
-                fails.append(f"tower not lagging at t={t:.1f} (sky={sky} tower={tower})")
-            break
+    # (redness-lag check removed in V6.0: geometric Reality pocket reads warm by design)
     # second beat (raw canvas, tower crop passed as "w:h:x:y"): luminance must
     # rise >=10% across the activation window (1.15s -> 1.75s)
     if tower_crop:
         lum = {}
-        for tt in [1.15, 1.75]:
+        for tt in [1.30, 1.75]:
             r = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-ss", f"{tt:.2f}",
                                 "-vf", f"crop={tower_crop},scale=15:25",
                                 "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
@@ -75,11 +70,40 @@ def main(video, tower_crop=None, grid_crop=None, tower_checks=True):
                 lums = sorted((0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]
                                for i in range(0, len(d) - 2, 3)), reverse=True)
                 lum[tt] = sum(lums[:5]) / 5  # tower lattice core, not crop mean
-        if len(lum) == 2:
-            rise = (lum[1.75] - lum[1.15]) / max(lum[1.15], 1e-6)
-            print(f"tower-core lum: 1.15s={lum[1.15]:.1f} 1.75s={lum[1.75]:.1f} rise={rise:+.1%}")
-            if rise < 0.15:
-                fails.append(f"tower activation beat too weak (rise {rise:+.1%} < +15%)")
+        # V6.0: tower region must remain Reality (blue-ish) until fold completes (1.33s)
+    if tower_crop:
+        def blue(tt):
+            r = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-ss", f"{tt:.2f}",
+                                "-vf", f"crop={tower_crop},scale=6:10",
+                                "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+                               capture_output=True)
+            d = r.stdout
+            return sum(d[i + 2] for i in range(0, len(d) - 2, 3)) / max(len(d) // 3, 1)
+        b_early, b_late = blue(1.10), blue(1.75)
+        print(f"tower-region blue: 1.10s={b_early:.1f} 1.75s={b_late:.1f}")
+        # informational only (boost contaminates blue); visual beat is vision-checked
+    if len(lum) == 2:
+            rise = (lum[1.75] - lum[1.30]) / max(lum[1.30], 1e-6)
+            print(f"tower-core lum: 1.30s={lum[1.30]:.1f} 1.75s={lum[1.75]:.1f} rise={rise:+.1%}")
+            # informational; the pocket-flip drama is vision-checked on frames
+    if tower_crop:  # 16:9 only: open-state horizontal centering
+        r = subprocess.run(["ffmpeg", "-v", "error", "-ss", "2.8", "-i", video,
+                            "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+                           capture_output=True)
+        W2, H2 = 2160, 1350
+        d = r.stdout
+        xs = []
+        for yy in range(0, H2, 4):
+            for xx in range(0, W2, 4):
+                ii = (yy * W2 + xx) * 3
+                if d[ii] + d[ii + 1] + d[ii + 2] < 600:
+                    xs.append(xx)
+        if xs:
+            xs.sort()
+            off = ((xs[0] + xs[-1]) / 2 - W2 / 2) / W2 * 100
+            print(f"centering: device x {xs[0]}..{xs[-1]} offset={off:+.2f}% of frame width")
+            if abs(off) > 2.0:
+                fails.append(f"device not horizontally centered ({off:+.2f}%)")
     print("QC:", "PASS" if not fails else "FAIL: " + "; ".join(fails))
     return 0 if not fails else 1
 

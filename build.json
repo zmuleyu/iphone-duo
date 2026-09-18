@@ -1,13 +1,13 @@
 {
-  "build": "5.9",
-  "baseline": "5.8",
-  "milestone": "Narrative Repair + White Capture",
+  "build": "6.0",
+  "baseline": "5.9",
+  "milestone": "World Transition -> Tower Activation",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "record worldMix 25-150deg + tower time-based activation + hero boost",
-    "capture 1.5x (frozen-frame fix) + white bg",
-    "record fold blur x0.35; 16:9 zoom 1.25"
+    "tower Reality-pocket hold + 0.3s post-open activation (geometric mask)",
+    "graphic RedBlack master (flat red sky, black city, halved lights)",
+    "record hinge softening; 16:9 horizontal centering"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",

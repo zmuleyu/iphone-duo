@@ -1469,7 +1469,7 @@ float activeReveal(vec2 uv, vec3 bCol) {
 // to the background phase. Identity when uTowerMix == worldMix (preview).
 float finalReveal(vec2 uv, vec3 bCol) {
   float r = activeReveal(uv, bCol);
-  if (uUseStagedReveal < 0.5) r = mix(r, uTowerMix, towerContentMask(uv, bCol));
+  if (uUseStagedReveal < 0.5) r = mix(r, uTowerMix, towerMask(uv));  // V6.0: whole tower region holds Reality
   return r;
 }
 
@@ -1863,7 +1863,7 @@ function startRecord() {
 // dollies out / pans left as the fold progresses. Preview (non-record) is
 // never touched.
 const RECORD_FRAMING = {
-  '16x9': { zoom: 1.25, panX: 0 }, // V5.9: device +25% for social first-impact
+  '16x9': { zoom: 1.25, panX: -167 }, // V6.0: +25% size, panned to horizontal center
   '1x1': { zoom: 1.0, panX: -132 },
   '9x16': { zoom: 0.62, panX: -103 },
 };
@@ -1908,13 +1908,14 @@ function driveRecord(nowMs) {
   // V5.9 narrative repair (record path only): the world follows the physical
   // opening (25->150deg) instead of saturating at 67deg, and the tower
   // activates late (110->165deg) as the second beat.
+  // V6.0: activation window entirely after open-complete (0.3s snap).
   const recAngle = easedFold * 180;
+  const foldActive = rawFold > 0 && rawFold < 1;
   worldMix.value = smoothRange(recAngle, 25, 150);
-  // Tower activation is time-based: starts at open-complete (foldEnd) and
-  // lands 0.35s into the hold, stacked on the bezel pop — the second beat.
-  uTowerMix.value = smoothRange(t, foldEnd - 0.05, foldEnd + 0.35);
+  uTowerMix.value = smoothRange(t, foldEnd + 0.05, foldEnd + 0.35);
   uTowerBoost.value = smoothRange(t, foldEnd - 0.05, foldEnd + 0.35);
   uFoldBlurScale.value = 0.35;
+  if (foldActive) uBezel.value *= 0.35;  // V6.0: soften hinge strip mid-fold (pop untouched)
   // V5.8: micro push-in across the open hold so the static plate stays alive
   // (record path only; preview untouched).
   if (t > foldEnd && foldMotion.openHold > 0) {

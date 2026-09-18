@@ -19,7 +19,7 @@ GOAL = Path(r"D:\projects\creative_group\iphone-duo\collab\goal-ai-plate-2026-09
 EVIDENCE = GOAL / "evidence"
 DELIVERY = Path(r"C:\Users\Admin\Downloads\duo\交付")
 A_IMG = r"C:\Users\Admin\Downloads\duo\1-1 Tokyo_Tower_Closed_Silhouette_DRAFT_2670x1878.png"
-B_IMG = r"C:\Users\Admin\Downloads\duo\1-1 Tokyo_Tower_RedBlack_Final_2670x1878.png"
+B_IMG = sys.argv[3] if len(sys.argv) > 3 else r"C:\Users\Admin\Downloads\duo\1-1 Tokyo_Tower_RedBlack_Final_2670x1878.png"
 URL = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8766/?cap=1"
 FORMATS = sys.argv[2].split(",") if len(sys.argv) > 2 else ["9x16", "16x9"]
 

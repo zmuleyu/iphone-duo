@@ -1,0 +1,8 @@
+{
+  "goal": "V6.0 World Transition -> Tower Activation",
+  "date": "2026-09-19",
+  "state": "in-progress",
+  "phase": "verified, ready-for-merge",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v6.0-tower-activation"
+}
