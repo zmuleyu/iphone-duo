@@ -756,6 +756,7 @@ function updateRecordingUI() {
     Number(document.documentElement.dataset.recordT || 0),
     foldSequenceDuration(),
   );
+  updateExportAcceptanceUI();
 }
 
 function setRecordFormat(value) {
@@ -818,6 +819,261 @@ function resetRecordingSession() {
   setAngle(0);
   updateRecordingUI();
 }
+
+function currentExportState() {
+  return exportAcceptance[recordFormat];
+}
+
+function exportTargetRatio(format = recordFormat) {
+  if (format === '1x1') return 1;
+  if (format === '9x16') return 9 / 16;
+  return 16 / 9;
+}
+
+function exportAutoCheck(format = recordFormat) {
+  const state = exportAcceptance[format];
+  const capture = captureHistory[format];
+  const video = state.videoMeta;
+  const targetRatio = exportTargetRatio(format);
+
+  const capturePass = Boolean(
+    capture?.done
+    && capture.masterPairPass
+    && capture.endpointAngle === 180
+    && capture.clockPass
+  );
+
+  const aspectDelta = video
+    ? Math.abs((video.width / Math.max(video.height, 1)) - targetRatio) / targetRatio
+    : null;
+  const aspectPass = video ? aspectDelta <= 0.015 : false;
+
+  const expectedDuration = capture?.duration ?? null;
+  const durationDelta = video && expectedDuration !== null
+    ? Math.abs(video.duration - expectedDuration)
+    : null;
+  const durationTolerance = capture
+    ? Math.max(0.35, 4 / Math.max(capture.fps, 1))
+    : 0.35;
+  const durationPass = durationDelta !== null
+    ? durationDelta <= durationTolerance
+    : false;
+
+  const resolutionGood = video
+    ? Math.min(video.width, video.height) >= 720
+    : false;
+
+  const pass = capturePass && aspectPass && durationPass;
+  let text = 'Waiting for capture + export';
+  if (!capture?.done) text = 'Capture required';
+  else if (!video) text = 'Load exported video';
+  else if (!capturePass) text = 'Capture clock / endpoint fail';
+  else if (!aspectPass) text = 'Aspect ratio mismatch';
+  else if (!durationPass) text = `Duration mismatch · Δ${durationDelta.toFixed(2)}s`;
+  else if (!resolutionGood) text = 'PASS · resolution warning';
+  else text = `PASS · Δ${durationDelta.toFixed(2)}s`;
+
+  return {
+    pass,
+    capturePass,
+    aspectPass,
+    durationPass,
+    resolutionGood,
+    aspectDelta,
+    durationDelta,
+    durationTolerance,
+    capture,
+    video,
+    text,
+  };
+}
+
+function exportVerdictCounts(format = recordFormat) {
+  const verdicts = exportAcceptance[format].verdicts;
+  const pass = EXPORT_CRITERIA.filter(key => verdicts[key] === 'pass').length;
+  const fail = EXPORT_CRITERIA.filter(key => verdicts[key] === 'fail').length;
+  return { pass, fail };
+}
+
+function updateExportReviewSource() {
+  if (!exportReviewVideo || !exportReviewWrap) return;
+  const state = currentExportState();
+  const url = state.objectUrl;
+
+  if (url && exportReviewVideo.dataset.objectUrl !== url) {
+    exportReviewVideo.src = url;
+    exportReviewVideo.dataset.objectUrl = url;
+    exportReviewVideo.load();
+  } else if (!url && exportReviewVideo.dataset.objectUrl) {
+    exportReviewVideo.removeAttribute('src');
+    delete exportReviewVideo.dataset.objectUrl;
+    exportReviewVideo.load();
+  }
+  exportReviewWrap.hidden = !url;
+}
+
+function updateExportAcceptanceUI() {
+  const state = currentExportState();
+  const auto = exportAutoCheck();
+  const counts = exportVerdictCounts();
+
+  exportFormatButtons.forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.exportFormat === recordFormat));
+    button.disabled = !ready || recording;
+  });
+
+  exportRows.forEach(row => {
+    const key = row.dataset.exportRow;
+    const verdict = state.verdicts[key];
+    row.classList.toggle('is-pass', verdict === 'pass');
+    row.classList.toggle('is-fail', verdict === 'fail');
+  });
+  exportPassButtons.forEach(button => {
+    const key = button.dataset.exportPass;
+    button.classList.toggle('is-active', state.verdicts[key] === 'pass');
+    button.disabled = !state.videoMeta || recording;
+  });
+  exportFailButtons.forEach(button => {
+    const key = button.dataset.exportFail;
+    button.classList.toggle('is-active', state.verdicts[key] === 'fail');
+    button.disabled = !state.videoMeta || recording;
+  });
+
+  if (exportLoadButton) exportLoadButton.disabled = !ready || recording;
+  if (exportReviewInput) exportReviewInput.disabled = !ready || recording;
+  if (exportResetButton) exportResetButton.disabled = !ready || recording;
+  if (exportReviewHingeButton) exportReviewHingeButton.disabled = !state.videoMeta || recording;
+  if (exportReviewEndButton) exportReviewEndButton.disabled = !state.videoMeta || recording;
+
+  if (exportFileMeta) {
+    exportFileMeta.textContent = state.file
+      ? `${state.file.name} · ${(state.file.size / 1024 / 1024).toFixed(1)} MB`
+      : 'Not loaded';
+  }
+
+  if (exportResolutionMeta) {
+    exportResolutionMeta.textContent = state.videoMeta
+      ? `${state.videoMeta.width}×${state.videoMeta.height} · ${state.videoMeta.duration.toFixed(2)}s`
+      : 'Waiting';
+  }
+
+  if (exportAutoMeta) exportAutoMeta.textContent = auto.text;
+
+  const autoCard = exportAutoMeta?.closest('.export-auto-card');
+  autoCard?.classList.toggle('is-pass', auto.pass && auto.resolutionGood);
+  autoCard?.classList.toggle('is-warn', auto.pass && !auto.resolutionGood);
+  autoCard?.classList.toggle('is-fail', Boolean(auto.video && auto.capture && !auto.pass));
+
+  const finalPass = auto.pass && counts.pass === EXPORT_CRITERIA.length && counts.fail === 0;
+  const finalFail = counts.fail > 0 || (Boolean(auto.video && auto.capture) && !auto.pass);
+
+  exportPanel?.classList.toggle('is-pass', finalPass);
+  exportPanel?.classList.toggle('is-fail', finalFail);
+
+  if (exportSummary) {
+    if (finalPass) exportSummary.textContent = `${RECORD_FORMATS[recordFormat]} · EXPORT PASS`;
+    else if (finalFail) exportSummary.textContent = `${RECORD_FORMATS[recordFormat]} · FAIL`;
+    else if (!auto.capture?.done) exportSummary.textContent = `${RECORD_FORMATS[recordFormat]} · capture first`;
+    else if (!auto.video) exportSummary.textContent = `${RECORD_FORMATS[recordFormat]} · load export`;
+    else exportSummary.textContent = `${RECORD_FORMATS[recordFormat]} · ${counts.pass}/5 manual`;
+  }
+
+  document.documentElement.dataset.exportFormat = recordFormat;
+  document.documentElement.dataset.exportAcceptance = finalPass
+    ? 'pass'
+    : finalFail
+      ? 'fail'
+      : 'pending';
+
+  updateExportReviewSource();
+}
+
+function resetExportVerdicts(format = recordFormat) {
+  EXPORT_CRITERIA.forEach(key => { exportAcceptance[format].verdicts[key] = null; });
+}
+
+function clearExportFile(format = recordFormat) {
+  const state = exportAcceptance[format];
+  if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
+  state.file = null;
+  state.objectUrl = null;
+  state.videoMeta = null;
+}
+
+function resetExportAcceptanceAll({ clearFiles = false } = {}) {
+  Object.keys(exportAcceptance).forEach(format => {
+    resetExportVerdicts(format);
+    captureHistory[format] = null;
+    if (clearFiles) clearExportFile(format);
+  });
+  updateExportAcceptanceUI();
+}
+
+function seekExportReview(kind) {
+  const state = currentExportState();
+  if (!exportReviewVideo || !state.videoMeta) return;
+
+  const expected = state.videoMeta.duration;
+  const capture = captureHistory[recordFormat];
+  const sourceDuration = capture?.duration || foldSequenceDuration();
+  const scale = expected / Math.max(sourceDuration, 1e-6);
+
+  exportReviewVideo.pause();
+  if (kind === 'hinge') {
+    const hingeT = foldMotion.closedHold + foldMotion.unfoldDuration * 0.5;
+    exportReviewVideo.currentTime = THREE.MathUtils.clamp(hingeT * scale, 0, Math.max(0, expected - 0.01));
+  } else {
+    exportReviewVideo.currentTime = Math.max(0, expected - Math.min(0.12, expected * 0.04));
+  }
+}
+
+exportFormatButtons.forEach(button => button.addEventListener('click', () => {
+  setRecordFormat(button.dataset.exportFormat);
+}));
+exportLoadButton?.addEventListener('click', () => exportReviewInput?.click());
+exportResetButton?.addEventListener('click', () => {
+  resetExportVerdicts();
+  updateExportAcceptanceUI();
+});
+exportPassButtons.forEach(button => button.addEventListener('click', () => {
+  const key = button.dataset.exportPass;
+  const state = currentExportState();
+  state.verdicts[key] = state.verdicts[key] === 'pass' ? null : 'pass';
+  updateExportAcceptanceUI();
+}));
+exportFailButtons.forEach(button => button.addEventListener('click', () => {
+  const key = button.dataset.exportFail;
+  const state = currentExportState();
+  state.verdicts[key] = state.verdicts[key] === 'fail' ? null : 'fail';
+  updateExportAcceptanceUI();
+}));
+exportReviewHingeButton?.addEventListener('click', () => seekExportReview('hinge'));
+exportReviewEndButton?.addEventListener('click', () => seekExportReview('end'));
+exportReviewInput?.addEventListener('change', () => {
+  const file = exportReviewInput.files?.[0];
+  exportReviewInput.value = '';
+  if (!file) return;
+
+  const state = currentExportState();
+  clearExportFile(recordFormat);
+  state.file = { name: file.name, size: file.size, type: file.type };
+  state.objectUrl = URL.createObjectURL(file);
+  resetExportVerdicts(recordFormat);
+  updateExportReviewSource();
+
+  const handleMetadata = () => {
+    state.videoMeta = {
+      width: exportReviewVideo.videoWidth,
+      height: exportReviewVideo.videoHeight,
+      duration: Number.isFinite(exportReviewVideo.duration) ? exportReviewVideo.duration : 0,
+    };
+    updateExportAcceptanceUI();
+  };
+
+  if (exportReviewVideo.readyState >= 1) handleMetadata();
+  else exportReviewVideo.addEventListener('loadedmetadata', handleMetadata, { once: true });
+  updateExportAcceptanceUI();
+});
 
 recordFormatButtons.forEach(button => button.addEventListener('click', () => setRecordFormat(button.dataset.recordFormat)));
 recordFpsButtons.forEach(button => button.addEventListener('click', () => setRecordFps(button.dataset.recordFps)));
