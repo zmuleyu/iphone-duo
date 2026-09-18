@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.6';
+const BUILD_VERSION = 'v5.0.7';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -43,6 +43,16 @@ const unfoldDurationValue = document.querySelector('#unfold-duration-value');
 const openHoldValue = document.querySelector('#open-hold-value');
 const foldTotalReadout = document.querySelector('#fold-total-readout');
 const foldMotionReset = document.querySelector('#fold-motion-reset');
+const towerDelayInput = document.querySelector('#tower-delay');
+const towerDurationInput = document.querySelector('#tower-duration');
+const towerIntensityInput = document.querySelector('#tower-intensity');
+const towerPulseSelect = document.querySelector('#tower-pulse');
+const towerDelayValue = document.querySelector('#tower-delay-value');
+const towerDurationValue = document.querySelector('#tower-duration-value');
+const towerIntensityValue = document.querySelector('#tower-intensity-value');
+const towerSequenceReadout = document.querySelector('#tower-sequence-readout');
+const towerPreviewButton = document.querySelector('#tower-preview');
+const towerResetButton = document.querySelector('#tower-reset');
 
 const stageBackground = document.querySelector('#stage-background');
 const bgSolidButton = document.querySelector('#bg-solid');
@@ -113,6 +123,9 @@ const uPulse = { value: 0 };       // Lv1 tower warm pulse @3.18s
 const uTransActive = { value: 0 }; // staged-only blur/rim treatment
 const uNoFx = { value: NO_FX ? 1 : 0 };
 const uUseStagedReveal = { value: STAGED_REVEAL ? 1 : 0 };
+const uTowerActivation = { value: 0 };
+const uTowerIntensity = { value: 1 };
+const uTowerPulseFx = { value: 0 };
 
 let angle = 0;
 let playing = false;
@@ -134,6 +147,17 @@ const DEFAULT_FOLD_MOTION = Object.freeze({
   easing: 'smooth',
 });
 const foldMotion = { ...DEFAULT_FOLD_MOTION };
+
+const TOWER_PULSE_DURATION = 0.35;
+const DEFAULT_TOWER_FX = Object.freeze({
+  openDelay: 0.20,
+  activationDuration: 0.90,
+  intensity: 1.00,
+  pulse: 'single',
+});
+const towerFx = { ...DEFAULT_TOWER_FX };
+let towerPreviewing = false;
+let towerPreviewT0 = 0;
 
 if (revealSettingsButton) revealSettingsButton.hidden = true;
 if (revealSettingsPopover) revealSettingsPopover.hidden = true;
@@ -368,8 +392,9 @@ function refreshFoldMotionUI() {
   if (openHoldValue) openHoldValue.textContent = `${foldMotion.openHold.toFixed(2)}s`;
   if (foldTotalReadout) {
     const total = foldMotion.closedHold + foldMotion.unfoldDuration + foldMotion.openHold;
-    foldTotalReadout.textContent = `Total ${total.toFixed(2)}s`;
+    foldTotalReadout.textContent = `Fold ${total.toFixed(2)}s`;
   }
+  refreshTowerFxUI();
 }
 
 function setFoldMotion(partial = {}) {
@@ -400,6 +425,113 @@ foldMotionReset?.addEventListener('click', () => {
   setFoldMotion(DEFAULT_FOLD_MOTION);
   document.querySelector('[data-motion-blur="natural"]')?.click();
 });
+
+function towerPulseDuration() {
+  return towerFx.pulse === 'single' ? TOWER_PULSE_DURATION : 0;
+}
+
+function towerCoreDuration() {
+  if (NO_FX || LEGACY_TOWER_FX) return 0;
+  return towerFx.openDelay + towerFx.activationDuration + towerPulseDuration();
+}
+
+function fullSequenceDuration() {
+  return foldMotion.closedHold
+    + foldMotion.unfoldDuration
+    + towerCoreDuration()
+    + foldMotion.openHold;
+}
+
+function refreshTowerFxUI() {
+  if (towerDelayValue) towerDelayValue.textContent = `${towerFx.openDelay.toFixed(2)}s`;
+  if (towerDurationValue) towerDurationValue.textContent = `${towerFx.activationDuration.toFixed(2)}s`;
+  if (towerIntensityValue) towerIntensityValue.textContent = `${Math.round(towerFx.intensity * 100)}%`;
+  if (towerSequenceReadout) {
+    const fxTime = towerCoreDuration();
+    towerSequenceReadout.textContent = NO_FX
+      ? 'Disabled by No-FX'
+      : LEGACY_TOWER_FX
+        ? 'Legacy experiment'
+        : `Open +${fxTime.toFixed(2)}s · Full ${fullSequenceDuration().toFixed(2)}s`;
+  }
+}
+
+function setTowerFx(partial = {}) {
+  if (Number.isFinite(partial.openDelay)) {
+    towerFx.openDelay = THREE.MathUtils.clamp(Number(partial.openDelay), 0, 1);
+    if (towerDelayInput) towerDelayInput.value = String(towerFx.openDelay);
+  }
+  if (Number.isFinite(partial.activationDuration)) {
+    towerFx.activationDuration = THREE.MathUtils.clamp(Number(partial.activationDuration), 0.35, 2);
+    if (towerDurationInput) towerDurationInput.value = String(towerFx.activationDuration);
+  }
+  if (Number.isFinite(partial.intensity)) {
+    towerFx.intensity = THREE.MathUtils.clamp(Number(partial.intensity), 0, 1.5);
+    if (towerIntensityInput) towerIntensityInput.value = String(towerFx.intensity);
+  }
+  if (['single', 'off'].includes(partial.pulse)) {
+    towerFx.pulse = partial.pulse;
+    if (towerPulseSelect) towerPulseSelect.value = towerFx.pulse;
+  }
+  uTowerIntensity.value = towerFx.intensity;
+  refreshTowerFxUI();
+}
+
+function resetTowerFxVisual() {
+  uTowerActivation.value = 0;
+  uTowerPulseFx.value = 0;
+}
+
+function driveTowerFxElapsed(elapsed) {
+  if (NO_FX || LEGACY_TOWER_FX || !customReady.redblack) {
+    resetTowerFxVisual();
+    return;
+  }
+  const local = Math.max(0, elapsed - towerFx.openDelay);
+  const rawActivation = THREE.MathUtils.clamp(
+    local / Math.max(towerFx.activationDuration, 1e-6),
+    0,
+    1,
+  );
+  uTowerActivation.value = smooth01(rawActivation);
+  uTowerIntensity.value = towerFx.intensity;
+
+  const pulseT = local - towerFx.activationDuration;
+  uTowerPulseFx.value = towerFx.pulse === 'single' && pulseT >= 0 && pulseT <= TOWER_PULSE_DURATION
+    ? Math.sin((pulseT / TOWER_PULSE_DURATION) * Math.PI)
+    : 0;
+}
+
+function setTowerPreviewing(value) {
+  towerPreviewing = value;
+  if (towerPreviewButton) towerPreviewButton.textContent = value ? 'Previewing…' : 'Preview';
+}
+
+function previewTowerFx() {
+  if (!customReady.redblack) {
+    alert('Upload Reality and RedBlack images first.');
+    return;
+  }
+  setPlaying(false);
+  recording = false;
+  playbackTime = 0;
+  setAngle(180);
+  resetTowerFxVisual();
+  towerPreviewT0 = performance.now();
+  setTowerPreviewing(true);
+}
+
+towerDelayInput?.addEventListener('input', () => setTowerFx({ openDelay: Number(towerDelayInput.value) }));
+towerDurationInput?.addEventListener('input', () => setTowerFx({ activationDuration: Number(towerDurationInput.value) }));
+towerIntensityInput?.addEventListener('input', () => setTowerFx({ intensity: Number(towerIntensityInput.value) }));
+towerPulseSelect?.addEventListener('change', () => setTowerFx({ pulse: towerPulseSelect.value }));
+towerPreviewButton?.addEventListener('click', previewTowerFx);
+towerResetButton?.addEventListener('click', () => {
+  setTowerPreviewing(false);
+  setTowerFx(DEFAULT_TOWER_FX);
+  resetTowerFxVisual();
+});
+setTowerFx(DEFAULT_TOWER_FX);
 refreshFoldMotionUI();
 
 function setPlaying(value) {
@@ -437,14 +569,24 @@ function setAngle(value) {
 
 play.addEventListener('click', () => {
   if (playing) { setPlaying(false); return; }
+  setTowerPreviewing(false);
+  resetTowerFxVisual();
   if (angle > .1) setAngle(0);
   playbackTime = 0;
   setPlaying(true);
 });
-closedButton.addEventListener('click', () => { setPlaying(false); playbackTime = 0; setAngle(0); });
-openButton.addEventListener('click', () => { setPlaying(false); playbackTime = 0; setAngle(180); });
-snapButtons.forEach(button => button.addEventListener('click', () => { setPlaying(false); playbackTime = 0; setAngle(Number(button.dataset.snap)); }));
-slider.addEventListener('input', () => { setPlaying(false); playbackTime = 0; setAngle(Number(slider.value)); });
+closedButton.addEventListener('click', () => {
+  setPlaying(false); setTowerPreviewing(false); resetTowerFxVisual(); playbackTime = 0; setAngle(0);
+});
+openButton.addEventListener('click', () => {
+  setPlaying(false); setTowerPreviewing(false); resetTowerFxVisual(); playbackTime = 0; setAngle(180);
+});
+snapButtons.forEach(button => button.addEventListener('click', () => {
+  setPlaying(false); setTowerPreviewing(false); resetTowerFxVisual(); playbackTime = 0; setAngle(Number(button.dataset.snap));
+}));
+slider.addEventListener('input', () => {
+  setPlaying(false); setTowerPreviewing(false); resetTowerFxVisual(); playbackTime = 0; setAngle(Number(slider.value));
+});
 
 function resize() {
   const { width, height } = viewport.getBoundingClientRect();
@@ -503,6 +645,9 @@ uniform float uPulse;
 uniform float uTransActive;
 uniform float uNoFx;
 uniform float uUseStagedReveal;
+uniform float uTowerActivation;
+uniform float uTowerIntensity;
+uniform float uTowerPulseFx;
 varying vec3 vUIPosition;
 
 // V5.0.2 Reveal Direction Fix.
@@ -535,6 +680,18 @@ float towerContentMask(vec2 uv, vec3 bCol) {
   float warm = clamp((bCol.r - bCol.b) * 2.4 + (bCol.r - bCol.g) * 0.8, 0.0, 1.0);
   float bright = smoothstep(0.22, 0.58, lum);
   return region * warm * bright;
+}
+
+float towerFxMask(vec2 uv, vec3 bCol) {
+  // Tighter than the old broad tower ellipse: only warm, bright pixels inside
+  // the real tower corridor may receive activation energy.
+  vec2 d = (uv - vec2(0.730, 0.430)) / vec2(0.070, 0.300);
+  float region = 1.0 - smoothstep(0.76, 1.0, length(d));
+  float lum = dot(bCol, vec3(0.299, 0.587, 0.114));
+  float orangeA = smoothstep(0.07, 0.30, bCol.r - bCol.b);
+  float orangeB = smoothstep(-0.03, 0.16, bCol.r - bCol.g);
+  float bright = smoothstep(0.14, 0.52, lum);
+  return region * orangeA * orangeB * bright;
 }
 
 // Staged reveal of world B: hinge leak first, city collapse next, tower locks last.
@@ -655,12 +812,38 @@ vec3 screenColor() {
     color = mix(color, vec3(1.0, 0.97, 0.94), uImpact * (0.38 + 0.10 * towerImpact));
   }
 
-  // Lv1 pulse @3.18s: tower-centered warm glow + ~25% response on warm windows.
+  // Legacy pulse remains available only for the explicit legacy experiment.
   if (uNoFx < 0.5 && uPulse > 0.001) {
     float tw = towerContentMask(sourceUV, colB);
     float lumC = dot(color, vec3(0.299, 0.587, 0.114));
     float warm = clamp((color.r - color.b) * 2.0, 0.0, 1.0) * smoothstep(0.12, 0.35, lumC);
     color += vec3(1.0, 0.62, 0.25) * uPulse * (tw * 0.22 + warm * 0.10);
+  }
+
+  // V5.0.7 Open Tower Activation.
+  // Only actual warm tower pixels move; the red sky, black city and window
+  // field remain unchanged. Activation travels bottom -> top and finishes in
+  // a restrained amber hero state, with an optional single pulse.
+  if (uNoFx < 0.5 && (uTowerActivation > 0.001 || uTowerPulseFx > 0.001)) {
+    float tw = towerFxMask(sourceUV, colB);
+    float towerY = clamp((sourceUV.y - 0.11) / 0.64, 0.0, 1.0);
+    float rise = smoothstep(towerY - 0.055, towerY + 0.025, max(0.0, uTowerActivation - 0.01));
+    rise *= smoothstep(0.0, 0.035, uTowerActivation);
+
+    // Observation-deck snap: short local beat, not a background glow.
+    float deckBand = 1.0 - smoothstep(0.014, 0.038, abs(sourceUV.y - 0.455));
+    float deckBeat = smoothstep(0.54, 0.62, uTowerActivation)
+      * (1.0 - smoothstep(0.70, 0.80, uTowerActivation));
+
+    // Final spire rush is weighted only to the upper structure.
+    float spire = smoothstep(0.62, 0.94, towerY) * smoothstep(0.78, 1.0, uTowerActivation);
+
+    float energy = rise * 0.16
+      + deckBand * deckBeat * 0.10
+      + spire * 0.07
+      + uTowerPulseFx * 0.16;
+
+    color += vec3(1.0, 0.50, 0.12) * tw * energy * uTowerIntensity;
   }
 
   return color;
@@ -741,6 +924,9 @@ try {
           shader.uniforms.uTransActive = uTransActive;
           shader.uniforms.uNoFx = uNoFx;
           shader.uniforms.uUseStagedReveal = uUseStagedReveal;
+          shader.uniforms.uTowerActivation = uTowerActivation;
+          shader.uniforms.uTowerIntensity = uTowerIntensity;
+          shader.uniforms.uTowerPulseFx = uTowerPulseFx;
 
           shader.vertexShader = `varying vec3 vUIPosition;\n${shader.vertexShader}`;
           shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
@@ -787,14 +973,15 @@ try {
     towerHighlightGuard: 'content-aware tower mask; no broad ellipse glow',
     noFxGeometryTest: '?nofx=1',
     foldMotionControls: 'closedHold + unfoldDuration + openHold + easing + motionBlur',
-    towerFxControls: 'separate collapsed V5.0.7 placeholder; inactive in V5.0.6',
+    towerFxControls: 'openDelay + activationDuration + intensity + pulse + preview + reset',
+    towerFxIsolation: 'content-aware warm tower pixels only; no sky/city glow',
     legacyTowerFx: LEGACY_TOWER_FX ? 'experimental ?towerfx=legacy' : 'off',
-    recordTimeline: 'uses editable Fold Motion timing',
+    recordTimeline: 'fold + tower FX share editable timing',
   });
 
   updateSourceUI();
   document.querySelectorAll('.control-dock button, .control-dock input, .control-dock select').forEach(element => {
-    if (element !== revealSettingsButton && !element.hasAttribute('data-future')) element.disabled = false;
+    if (element !== revealSettingsButton) element.disabled = false;
   });
   ready = true;
   setPlaying(false);
@@ -814,6 +1001,8 @@ function startRecord() {
   recordT0 = performance.now();
   recording = true;
   setPlaying(false);
+  setTowerPreviewing(false);
+  resetTowerFxVisual();
   setAngle(0);
   delete document.documentElement.dataset.recordDone;
   delete document.documentElement.dataset.recordT;
@@ -826,7 +1015,7 @@ function driveRecord(nowMs) {
   const t = (nowMs - recordT0) / 1000;
   const foldStart = foldMotion.closedHold;
   const foldEnd = foldStart + foldMotion.unfoldDuration;
-  const sequenceEnd = foldEnd + foldMotion.openHold;
+  const sequenceEnd = foldEnd + towerCoreDuration() + foldMotion.openHold;
 
   const rawFold = THREE.MathUtils.clamp(
     (t - foldStart) / Math.max(foldMotion.unfoldDuration, 1e-6),
@@ -848,8 +1037,10 @@ function driveRecord(nowMs) {
       * (1 - THREE.MathUtils.smoothstep(t, foldEnd, foldEnd + 0.12))
     : 0;
 
-  // V5.0.6 production recording deliberately has no tower event. The old
-  // impact/pulse can still be inspected with ?towerfx=legacy.
+  // New production Tower FX begins only after the fold reaches 180°.
+  driveTowerFxElapsed(t - foldEnd);
+
+  // Old impact/pulse remain available only behind the legacy experiment flag.
   const impactStart = foldEnd;
   const pulseStart = foldEnd + 1.03;
   uImpact.value = LEGACY_TOWER_FX && t >= impactStart && t < impactStart + 0.08
@@ -869,6 +1060,7 @@ function driveRecord(nowMs) {
     recording = false;
     uImpact.value = 0;
     uPulse.value = 0;
+    uTowerPulseFx.value = 0;
     uTransActive.value = 0;
     rim.intensity = 2;
     rim.color.setHex(0xe8edf5);
@@ -883,6 +1075,8 @@ window.__duo = {
   setImpact: value => { uImpact.value = Number(value); },
   setPulse: value => { uPulse.value = Number(value); },
   setFoldMotion,
+  setTowerFx,
+  previewTowerFx,
   play: () => {
     if (angle > .1) setAngle(0);
     playbackTime = 0;
@@ -902,6 +1096,12 @@ window.__duo = {
       },
       revealMode: STAGED_REVEAL ? 'staged' : 'clean-crossfade',
       foldMotion: { ...foldMotion },
+      towerFx: {
+        ...towerFx,
+        activation: uTowerActivation.value,
+        pulseValue: uTowerPulseFx.value,
+        previewing: towerPreviewing,
+      },
       legacyTowerFx: LEGACY_TOWER_FX,
       customReady: { ...customReady },
     };
@@ -917,22 +1117,35 @@ renderer.setAnimationLoop(now => {
     playbackTime += delta;
     const foldStart = foldMotion.closedHold;
     const foldEnd = foldStart + foldMotion.unfoldDuration;
-    const sequenceEnd = foldEnd + foldMotion.openHold;
+    const sequenceEnd = foldEnd + towerCoreDuration() + foldMotion.openHold;
 
     if (playbackTime < foldStart) {
+      resetTowerFxVisual();
       setAngle(0);
     } else if (playbackTime < foldEnd) {
+      resetTowerFxVisual();
       const p = (playbackTime - foldStart) / Math.max(foldMotion.unfoldDuration, 1e-6);
       setAngle(THREE.MathUtils.lerp(0, 180, foldEase(p)));
     } else if (playbackTime < sequenceEnd) {
       setAngle(180);
+      driveTowerFxElapsed(playbackTime - foldEnd);
     } else {
       setAngle(180);
+      driveTowerFxElapsed(towerCoreDuration());
       setPlaying(false);
     }
   }
 
   if (ready && recording) driveRecord(now);
+
+  if (ready && towerPreviewing) {
+    const elapsed = (now - towerPreviewT0) / 1000;
+    driveTowerFxElapsed(elapsed);
+    if (elapsed > towerCoreDuration() + 0.45) {
+      driveTowerFxElapsed(towerCoreDuration());
+      setTowerPreviewing(false);
+    }
+  }
 
   renderer.render(scene, camera);
 });
