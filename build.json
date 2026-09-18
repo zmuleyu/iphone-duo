@@ -1,8 +1,8 @@
 {
-  "build": "5.2-rc1",
+  "build": "5.2",
   "baseline": "5.1",
   "milestone": "Control Dock IA Rework",
-  "status": "RD_CANDIDATE",
+  "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
     "G1: transport row rework — endpoint chips, angle degree ticks (data-snap), thumb angle bubble, sequence strip with phase bands + fold anchors + playhead",
@@ -11,5 +11,6 @@
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
-  "timestamp": "2026-09-18"
+  "timestamp": "2026-09-18",
+  "promotedFrom": "RD_CANDIDATE (user visual pass 2026-09-18)"
 }

@@ -1,4 +1,4 @@
-const BUILD_ID = '5.2-rc1';
+const BUILD_ID = '5.2';
 
 globalThis.__IPHONE_DUO_BUILD__ = BUILD_ID;
 document.documentElement.dataset.build = BUILD_ID;
@@ -6,7 +6,7 @@ document.documentElement.dataset.build = BUILD_ID;
 function installVersionBadge() {
   const badge = document.createElement('div');
   badge.id = 'build-version-badge';
-  badge.textContent = `v${BUILD_ID} · CANDIDATE`;
+  badge.textContent = `v${BUILD_ID} · BASELINE`;
   Object.assign(badge.style, {
     position: 'fixed',
     top: '14px',
@@ -24,7 +24,7 @@ function installVersionBadge() {
     pointerEvents: 'none',
   });
   document.body.appendChild(badge);
-  document.title = `iPhone Duo · v${BUILD_ID} · Control Dock IA Candidate`;
+  document.title = `iPhone Duo · v${BUILD_ID} · Control Dock IA`;
   return badge;
 }
 
@@ -40,7 +40,7 @@ try {
   // v4.4: single screen-shader authority. No wrappers, no renderer monkey-patches.
   await import(`./motionblur381.js?build=${BUILD_ID}`);
   await import(`./main_v44.js?build=${BUILD_ID}`);
-  badge.textContent = `v${BUILD_ID} · CANDIDATE`;
+  badge.textContent = `v${BUILD_ID} · BASELINE`;
 } catch (error) {
   console.error('iPhone Duo build failed', error);
   badge.textContent = `v${BUILD_ID} · ERROR`;
