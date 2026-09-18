@@ -882,6 +882,7 @@ function setRecordingMode(value) {
     setPlaying(false);
     playbackTime = 0;
     setAngle(0);
+    resetRecordFraming();
   }
   updateRecordingUI();
 }
@@ -890,6 +891,7 @@ function resetRecordingSession() {
   recording = false;
   recordHasRun = false;
   recordFrameIndex = 0;
+  resetRecordFraming();
   document.documentElement.removeAttribute('data-recording-active');
   delete document.documentElement.dataset.recordT;
   delete document.documentElement.dataset.recordFrame;
@@ -1614,6 +1616,46 @@ function recordStage(t, a, b) {
   return THREE.MathUtils.clamp((t - a) / (b - a), 0, 1);
 }
 
+// ---------------------------------------------------------------------------
+// T3 in-page deterministic capture (?cap=1): records the WebGL canvas through
+// the deterministic record clock; auto-downloads a webm master at recordDone.
+const CAPTURE = QUERY.has('cap');
+let capRecorder = null;
+let capChunks = [];
+
+function startCapture() {
+  if (!CAPTURE || capRecorder || !renderer) return;
+  const stream = renderer.domElement.captureStream(recordFps);
+  const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9'
+    : 'video/webm';
+  capRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 20_000_000 });
+  capChunks = [];
+  capRecorder.ondataavailable = e => { if (e.data && e.data.size) capChunks.push(e.data); };
+  capRecorder.onstop = finalizeCapture;
+  capRecorder.start(500);
+  document.documentElement.dataset.capturing = '1';
+}
+
+function finalizeCapture() {
+  const blob = new Blob(capChunks, { type: 'video/webm' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `duo_v${'5.4'}_${recordFormat}_${recordFps}fps_${activeFoldPreset || 'custom'}.webm`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+  capRecorder = null;
+  capChunks = [];
+  delete document.documentElement.dataset.capturing;
+  document.documentElement.dataset.captureDone = '1';
+}
+
+function stopCapture() {
+  if (capRecorder && capRecorder.state !== 'inactive') capRecorder.stop();
+}
+
 function startRecord() {
   recordT0 = performance.now();
   recordFrameIndex = 0;
@@ -1621,6 +1663,7 @@ function startRecord() {
   recording = true;
   setPlaying(false);
   setAngle(0);
+  startCapture();
 
   const duration = foldSequenceDuration();
   captureHistory[recordFormat] = {
@@ -1649,6 +1692,35 @@ function startRecord() {
   updateRecordingUI();
 }
 
+// Recording-mode cinematic framing (T3): portrait targets cannot contain the
+// landscape-opened device at the preview camera, so during record the camera
+// dollies out / pans left as the fold progresses. Preview (non-record) is
+// never touched.
+const RECORD_FRAMING = {
+  '16x9': { zoom: 1.0, panX: 0 },
+  '1x1': { zoom: 1.0, panX: -132 },
+  '9x16': { zoom: 0.62, panX: -103 },
+};
+
+function applyRecordFraming(easedProgress) {
+  const f = RECORD_FRAMING[recordFormat] || RECORD_FRAMING['16x9'];
+  const zoom = 1 + (f.zoom - 1) * easedProgress;
+  const pan = f.panX * easedProgress;
+  camera.zoom = zoom;
+  if (Math.abs(pan) > 0.01) {
+    camera.setViewOffset(innerWidth, innerHeight, pan, 0, innerWidth, innerHeight);
+  } else {
+    camera.clearViewOffset();
+  }
+  camera.updateProjectionMatrix();
+}
+
+function resetRecordFraming() {
+  camera.zoom = 1;
+  camera.clearViewOffset();
+  camera.updateProjectionMatrix();
+}
+
 // Lv3 record timeline (case-study §6): real fold drives geometry, three stage
 // uniforms drive the world hand-off on their own synced schedule.
 function driveRecord(nowMs) {
@@ -1664,7 +1736,9 @@ function driveRecord(nowMs) {
     0,
     1,
   );
-  setAngle(foldEase(rawFold) * 180);
+  const easedFold = foldEase(rawFold);
+  setAngle(easedFold * 180);
+  applyRecordFraming(easedFold);
 
   // Experimental staged reveal follows normalized fold progress rather than
   // fixed wall-clock seconds, so motion timing can be edited without desync.
@@ -1702,6 +1776,7 @@ function driveRecord(nowMs) {
     document.documentElement.dataset.recordDone = '1';
     document.documentElement.removeAttribute('data-recording-active');
     setAngle(180);
+    setTimeout(stopCapture, 500); // keep a few static tail frames for editing handles
 
     const capture = captureHistory[recordFormat];
     if (capture) {

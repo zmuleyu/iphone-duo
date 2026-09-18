@@ -1,13 +1,13 @@
 {
-  "build": "5.3",
-  "baseline": "5.2",
-  "milestone": "Dock Density & Occlusion",
+  "build": "5.4",
+  "baseline": "5.3",
+  "milestone": "T3 Capture Pipeline + Record Framing",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "exclusive stage panels with floating sheet bodies (dock height constant; outside click / Esc closes)",
-    "iconified presets/verdicts/resets; note paragraphs moved to info-dot tooltips; stage nodes use icons",
-    "guide segmented control -> iOS switch (#record-guide-toggle); slimmer closed dock; viewport inset 126->112px"
+    "?cap=1 in-page deterministic canvas capture (VP9 webm, auto-download, captureDone flag)",
+    "recording-mode cinematic framing: dolly-out + pan per format during record (16:9 unchanged)",
+    "capture tail pad +0.5s"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
