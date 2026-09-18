@@ -109,6 +109,64 @@
             </div>
           </details>
 
+          <details id="master-pair-qa-panel" class="edit-panel qa-panel">
+            <summary>
+              <span><strong>Master Pair QA</strong><small id="qa-summary">Load both masters</small></span>
+              <i aria-hidden="true">⌄</i>
+            </summary>
+            <div class="edit-panel-body qa-body">
+              <div class="qa-assets">
+                <div class="qa-asset-row">
+                  <span>Reality</span>
+                  <strong id="qa-reality-meta">Not loaded</strong>
+                </div>
+                <div class="qa-asset-row">
+                  <span>RedBlack</span>
+                  <strong id="qa-redblack-meta">Not loaded</strong>
+                </div>
+                <div class="qa-asset-row">
+                  <span>Pair geometry</span>
+                  <strong id="qa-pair-meta">Waiting</strong>
+                </div>
+              </div>
+
+              <div class="qa-actions">
+                <button id="qa-lock-pair" class="quiet-button" type="button" disabled>Lock Pair</button>
+                <button id="qa-reset" class="quiet-button" type="button" disabled>Reset QA</button>
+              </div>
+
+              <div class="qa-angle-list" aria-label="Master pair acceptance angles">
+                <div class="qa-angle-row" data-qa-row="0">
+                  <button type="button" class="qa-view" data-qa-angle="0" disabled><b>0°</b><span>Closed composition</span></button>
+                  <button type="button" class="qa-verdict" data-qa-pass="0" disabled>Pass</button>
+                  <button type="button" class="qa-verdict" data-qa-fail="0" disabled>Fail</button>
+                </div>
+                <div class="qa-angle-row" data-qa-row="45">
+                  <button type="button" class="qa-view" data-qa-angle="45" disabled><b>45°</b><span>Reveal / edge continuity</span></button>
+                  <button type="button" class="qa-verdict" data-qa-pass="45" disabled>Pass</button>
+                  <button type="button" class="qa-verdict" data-qa-fail="45" disabled>Fail</button>
+                </div>
+                <div class="qa-angle-row" data-qa-row="90">
+                  <button type="button" class="qa-view" data-qa-angle="90" disabled><b>90°</b><span>Hinge continuity</span></button>
+                  <button type="button" class="qa-verdict" data-qa-pass="90" disabled>Pass</button>
+                  <button type="button" class="qa-verdict" data-qa-fail="90" disabled>Fail</button>
+                </div>
+                <div class="qa-angle-row" data-qa-row="135">
+                  <button type="button" class="qa-view" data-qa-angle="135" disabled><b>135°</b><span>Edge / panorama continuity</span></button>
+                  <button type="button" class="qa-verdict" data-qa-pass="135" disabled>Pass</button>
+                  <button type="button" class="qa-verdict" data-qa-fail="135" disabled>Fail</button>
+                </div>
+                <div class="qa-angle-row" data-qa-row="180">
+                  <button type="button" class="qa-view" data-qa-angle="180" disabled><b>180°</b><span>Open endpoint / framing</span></button>
+                  <button type="button" class="qa-verdict" data-qa-pass="180" disabled>Pass</button>
+                  <button type="button" class="qa-verdict" data-qa-fail="180" disabled>Fail</button>
+                </div>
+              </div>
+
+              <p class="qa-note">Automatic checks cover source dimensions and aspect-ratio compatibility. Hinge, skyline, edge artifacts and composition remain visual acceptance checks.</p>
+            </div>
+          </details>
+
         </div>
       </section>
     </div>
