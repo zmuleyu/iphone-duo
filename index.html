@@ -109,17 +109,42 @@
             </div>
           </details>
 
-          <details id="tower-fx-panel" class="edit-panel future-panel">
+          <details id="tower-fx-panel" class="edit-panel tower-fx-panel">
             <summary>
-              <span><strong>Tower FX</strong><small>V5.0.7 · Open only</small></span>
+              <span><strong>Tower FX</strong><small id="tower-sequence-readout">Open only · +1.50s</small></span>
               <i aria-hidden="true">⌄</i>
             </summary>
             <div class="edit-panel-body tower-preview">
-              <p>Reserved for Open Hold → Tower Activation. It stays visually inactive in V5.0.6.</p>
-              <div class="tower-future-grid" aria-disabled="true">
-                <label><span>Start Delay</span><input type="range" min="0" max="1" value="0.2" step="0.05" disabled data-future></label>
-                <label><span>Intensity</span><input type="range" min="0" max="1.5" value="1" step="0.05" disabled data-future></label>
-                <label><span>Pulse</span><select disabled data-future><option>Single</option></select></label>
+              <p>Runs only after the fold reaches 180°. Background and skyline stay locked; only warm tower pixels are enhanced.</p>
+
+              <div class="tower-fx-grid">
+                <label>
+                  <span>Open Delay <output id="tower-delay-value">0.20s</output></span>
+                  <input id="tower-delay" type="range" min="0" max="1" value="0.20" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Activation <output id="tower-duration-value">0.90s</output></span>
+                  <input id="tower-duration" type="range" min="0.35" max="2" value="0.90" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Intensity <output id="tower-intensity-value">100%</output></span>
+                  <input id="tower-intensity" type="range" min="0" max="1.5" value="1" step="0.05" disabled>
+                </label>
+              </div>
+
+              <div class="tower-fx-row">
+                <label class="select-field">
+                  <span>Pulse</span>
+                  <select id="tower-pulse" disabled>
+                    <option value="single">Single</option>
+                    <option value="off">Off</option>
+                  </select>
+                </label>
+
+                <div class="tower-actions">
+                  <button id="tower-preview" class="quiet-button tower-preview-button" type="button" disabled>Preview</button>
+                  <button id="tower-reset" class="quiet-button" type="button" disabled>Reset</button>
+                </div>
               </div>
             </div>
           </details>
