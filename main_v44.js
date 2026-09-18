@@ -1776,7 +1776,7 @@ function finalizeCapture() {
   const blob = new Blob(capChunks, { type: 'video/webm' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `duo_v${'5.5'}_${recordFormat}_${recordFps}fps_${activeFoldPreset || 'custom'}.webm`;
+  a.download = `duo_v${'5.8'}_${recordFormat}_${recordFps}fps_${activeFoldPreset || 'custom'}.webm`;
   document.body.appendChild(a);
   a.click();
   a.remove();
