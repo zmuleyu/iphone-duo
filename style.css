@@ -13,7 +13,7 @@ canvas{display:block;outline:none}
 .github-link svg{width:21px;height:21px;fill:currentColor}
 .github-link:hover{background:#ecefe6;color:#4e5e44}
 
-.control-dock{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:4;width:min(850px,calc(100% - 32px));display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;padding:12px 14px;background:rgba(255,255,255,.93);border:1px solid rgba(213,218,207,.9);border-radius:18px;box-shadow:0 18px 48px -31px #59605255;backdrop-filter:blur(20px)}
+.control-dock{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:4;width:min(980px,calc(100% - 32px));display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;padding:12px 14px;background:rgba(255,255,255,.93);border:1px solid rgba(213,218,207,.9);border-radius:18px;box-shadow:0 18px 48px -31px #59605255;backdrop-filter:blur(20px)}
 
 .source-column{display:flex;flex-direction:column;justify-content:center;gap:8px;padding-right:14px;border-right:1px solid #e6eae1}
 .section-head>div{display:flex;flex-direction:column;gap:2px}
@@ -70,4 +70,51 @@ button:focus-visible,.github-link:focus-visible,input:focus-visible{outline:2px 
   .control-dock{bottom:7px;padding:9px 12px}
   .source-buttons button{padding:6px 4px}
   .action-primary,.endpoint-buttons button{height:30px}
+}
+
+
+/* V5.0.6 — collapsible edit controls. Closed by default so the accepted
+   V5.0.5 presentation remains visually dominant. */
+.edit-panels{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:1px}
+.edit-panel{min-width:0;border:1px solid #e4e8df;border-radius:10px;background:rgba(250,251,249,.82);overflow:hidden}
+.edit-panel summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;cursor:pointer;user-select:none}
+.edit-panel summary::-webkit-details-marker{display:none}
+.edit-panel summary>span{min-width:0;display:flex;align-items:baseline;gap:7px}
+.edit-panel summary strong{font-size:9.5px;color:#4a5345}
+.edit-panel summary small{font-size:7.5px;color:#9aa195;white-space:nowrap}
+.edit-panel summary i{font-style:normal;font-size:11px;color:#8a9284;transition:transform .16s ease}
+.edit-panel[open] summary i{transform:rotate(180deg)}
+.edit-panel[open] summary{border-bottom:1px solid #ecefe8;background:#fff}
+.edit-panel-body{padding:9px;background:rgba(255,255,255,.82)}
+
+.motion-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.motion-grid label,.tower-future-grid label{min-width:0;display:flex;flex-direction:column;gap:3px}
+.motion-grid label>span,.select-field>span,.motion-blur-field>span,.tower-future-grid label>span{display:flex;justify-content:space-between;gap:6px;font-size:7.8px;color:#727b6d;font-variant-numeric:tabular-nums}
+.motion-grid output{font-weight:650;color:#4d5848}
+.motion-grid input[type=range],.tower-future-grid input[type=range]{appearance:none;-webkit-appearance:none;width:100%;height:18px;margin:0;background:transparent}
+.motion-grid input[type=range]::-webkit-slider-runnable-track,.tower-future-grid input[type=range]::-webkit-slider-runnable-track{height:4px;background:#e1e5dd;border-radius:4px}
+.motion-grid input[type=range]::-webkit-slider-thumb,.tower-future-grid input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;margin-top:-4px;border:2px solid #6b7b60;background:#fff;border-radius:50%}
+.motion-grid input[type=range]::-moz-range-track,.tower-future-grid input[type=range]::-moz-range-track{height:4px;background:#e1e5dd;border-radius:4px}
+.motion-grid input[type=range]::-moz-range-thumb,.tower-future-grid input[type=range]::-moz-range-thumb{width:9px;height:9px;border:2px solid #6b7b60;background:#fff;border-radius:50%}
+
+.motion-row{display:grid;grid-template-columns:112px minmax(190px,1fr) auto;align-items:end;gap:9px;margin-top:8px;padding-top:8px;border-top:1px solid #eef0eb}
+.select-field,.motion-blur-field{display:flex;flex-direction:column;gap:4px}
+.select-field select,.tower-future-grid select{height:27px;border:1px solid #dde2d8;border-radius:8px;background:#fff;color:#566151;font-size:8.5px;padding:0 7px}
+.segmented{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;background:#edf0e8;border-radius:8px}
+.segmented button{border:0;border-radius:6px;background:transparent;color:#7d8575;font-size:8px;padding:5px 6px}
+.segmented button[aria-pressed=true]{background:#fff;color:#35402f;box-shadow:0 1px 3px #53624712;font-weight:650}
+.quiet-button{height:27px;border:1px solid #dfe4da;border-radius:8px;background:#fff;color:#687161;font-size:8px;padding:0 9px}
+.quiet-button:hover{background:#f6f8f4;color:#3e4939}
+
+.future-panel summary strong{color:#6d716a}
+.future-panel summary small{padding:2px 5px;border-radius:999px;background:#f2f3f0;color:#8e948a}
+.tower-preview p{margin:0 0 8px;font-size:7.8px;line-height:1.45;color:#8b9287}
+.tower-future-grid{display:grid;grid-template-columns:1fr 1fr 82px;gap:8px;opacity:.52}
+.tower-future-grid select{width:100%}
+
+@media(max-width:760px){
+  .edit-panels{grid-template-columns:1fr}
+  .motion-grid{grid-template-columns:1fr}
+  .motion-row{grid-template-columns:1fr}
+  .tower-future-grid{grid-template-columns:1fr}
 }
