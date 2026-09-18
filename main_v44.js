@@ -433,6 +433,7 @@ function refreshFoldMotionUI() {
     foldTotalReadout.textContent = `Fold ${total.toFixed(2)}s`;
   }
   refreshTowerFxUI();
+  refreshBirdFxUI();
 }
 
 function setFoldMotion(partial = {}) {
@@ -501,7 +502,6 @@ function refreshTowerFxUI() {
         ? 'Legacy experiment'
         : `Tower +${fxTime.toFixed(2)}s · Full ${fullSequenceDuration().toFixed(2)}s`;
   }
-  refreshBirdFxUI();
 }
 
 function setTowerFx(partial = {}) {
