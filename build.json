@@ -1,43 +1,55 @@
 {
-  "build": "5.0.7",
-  "baseline": "5.0.6",
-  "milestone": "Open Tower Activation",
-  "reveal": "V5.0.4 clean crossfade preserved; staged reveal remains experimental",
+  "build": "5.0.7.2",
+  "baseline": "5.0.7",
+  "milestone": "Tower Activation Tuning + Bird FX",
+  "reveal": "V5.0.4 clean crossfade preserved",
   "hingeEndpoint": "V5.0.5 stability preserved",
-  "foldMotion": "V5.0.6 editable Fold Motion controls preserved",
+  "foldMotion": "V5.0.6 editable Fold Motion preserved",
   "towerFx": {
-    "architecture": "no independent tower asset; enhancement is derived from RedBlack tower pixels",
-    "scope": "Open state only",
-    "controls": {
-      "openDelay": "0.00–1.00s",
-      "activationDuration": "0.35–2.00s",
-      "intensity": "0–150%",
-      "pulse": [
-        "Single",
-        "Off"
-      ],
-      "preview": true,
-      "reset": true
-    },
-    "sequence": [
+    "architecture": "uses existing RedBlack tower pixels; no independent tower asset",
+    "tuning": "neutral structure lift -> restrained late gold bias -> exposure-only pulse",
+    "rationale": "latest RedBlack master already defines tower color, so FX no longer repaints it orange",
+    "controls": [
       "Open Delay",
-      "Bottom-to-top structural activation",
-      "Observation deck snap",
-      "Spire rush",
-      "Optional single pulse",
-      "Hero hold"
+      "Activation Duration",
+      "Intensity",
+      "Pulse",
+      "Preview",
+      "Reset"
     ],
-    "isolation": "tight warm/bright tower-content mask; no intentional sky/city/window animation",
-    "default": {
-      "openDelay": 0.2,
-      "activationDuration": 0.9,
-      "intensity": 1,
-      "pulse": "single"
-    }
+    "isolation": "tight tower-content mask only; no intentional sky/city/window animation"
   },
-  "recording": "Tower FX shares the same editable playback/record timeline; full duration includes Tower FX before final Open Hold",
-  "legacyTowerFx": "experimental only via ?towerfx=legacy",
-  "noFx": "?nofx=1 disables Tower FX",
+  "birdFx": {
+    "architecture": "procedural shader silhouettes; no external bird asset",
+    "scope": "Open state only; overlaps Tower FX",
+    "defaultColor": "#FFFFFF",
+    "colorEditable": true,
+    "controls": [
+      "Enabled",
+      "Start Delay",
+      "Duration",
+      "Count",
+      "Size",
+      "Opacity",
+      "Color",
+      "Direction",
+      "Preview",
+      "Reset"
+    ],
+    "default": {
+      "enabled": true,
+      "startDelay": 0.45,
+      "duration": 1,
+      "count": 5,
+      "size": 1,
+      "opacity": 0.9,
+      "color": "#FFFFFF",
+      "direction": "Right -> Left"
+    },
+    "placement": "upper red-sky corridor; avoids the Tokyo Tower anchor"
+  },
+  "timeline": "Tower FX and Bird FX run in parallel after Open; final Open Hold begins after the longer Open FX track finishes",
+  "noFx": "?nofx=1 disables Tower and Bird FX",
   "displacement": "still deferred",
   "timestamp": "2026-09-18"
 }
