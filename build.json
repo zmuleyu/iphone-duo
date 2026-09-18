@@ -1,13 +1,14 @@
 {
-  "build": "5.0.2",
-  "baseline": "5.0.1",
-  "frozenBaselineBranch": "freeze/v5.0.1-open-endpoint",
-  "transition": "lv3-staged-reveal (timing unchanged)",
-  "revealDirection": "hinge-to-left-moving-panel",
-  "openEndpointRepair": "preserved from 5.0.1",
-  "leftPanelBlur": "unchanged",
+  "build": "5.0.2a",
+  "baseline": "5.0.2",
+  "repair": "Visual Cleanup Hotfix",
+  "connectionArtifact": "remove B reveal and blur bleed outside valid panorama UV",
+  "towerHighlight": "replace broad ellipse glow with content-aware bright/warm tower mask",
+  "revealDirection": "hinge-to-left-moving-panel (preserved)",
+  "openEndpointRepair": "5.0.1 preserved",
+  "blurStrength": "unchanged inside valid screen area",
   "timing": "unchanged",
-  "scope": "Reveal Direction Fix only",
+  "scope": "artifact cleanup only",
   "cacheMode": "no-store-development",
   "timestamp": "2026-09-18"
 }
