@@ -130,3 +130,30 @@ button:focus-visible,.github-link:focus-visible,input:focus-visible{outline:2px 
   .tower-fx-grid{grid-template-columns:1fr}
   .tower-fx-row{grid-template-columns:1fr}
 }
+
+
+/* V5.0.7.2 — Bird FX */
+.bird-fx-panel summary strong{color:#4d5560}
+.bird-fx-panel summary small{padding:2px 5px;border-radius:999px;background:#f4f6f8;color:#68717d}
+.bird-preview p{margin:0 0 8px;font-size:7.8px;line-height:1.45;color:#7d8490}
+.bird-fx-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.bird-fx-grid label{min-width:0;display:flex;flex-direction:column;gap:3px}
+.bird-fx-grid label>span{display:flex;justify-content:space-between;gap:6px;font-size:7.8px;color:#727b6d;font-variant-numeric:tabular-nums}
+.bird-fx-grid output{font-weight:650;color:#505966}
+.bird-fx-grid input[type=range]{appearance:none;-webkit-appearance:none;width:100%;height:18px;margin:0;background:transparent}
+.bird-fx-grid input[type=range]::-webkit-slider-runnable-track{height:4px;background:#dfe3e8;border-radius:4px}
+.bird-fx-grid input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;margin-top:-4px;border:2px solid #657180;background:#fff;border-radius:50%}
+.bird-fx-grid input[type=range]::-moz-range-track{height:4px;background:#dfe3e8;border-radius:4px}
+.bird-fx-grid input[type=range]::-moz-range-thumb{width:9px;height:9px;border:2px solid #657180;background:#fff;border-radius:50%}
+.color-field input[type=color]{appearance:none;-webkit-appearance:none;width:100%;height:25px;padding:2px;border:1px solid #dde2e7;border-radius:8px;background:#fff;cursor:pointer}
+.color-field input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.color-field input[type=color]::-webkit-color-swatch{border:0;border-radius:5px}
+.bird-fx-row{display:grid;grid-template-columns:120px 90px 1fr;align-items:end;gap:9px;margin-top:8px;padding-top:8px;border-top:1px solid #edf0f3}
+.bird-actions{display:flex;justify-content:flex-end;gap:6px}
+.bird-preview-button{background:#f7f9fb;border-color:#dce2e8;color:#566273}
+.bird-preview-button:hover{background:#eef3f7;color:#3e4a59}
+
+@media(max-width:760px){
+  .bird-fx-grid{grid-template-columns:1fr}
+  .bird-fx-row{grid-template-columns:1fr}
+}
