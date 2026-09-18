@@ -60,7 +60,7 @@
       <section class="workflow-row" aria-label="Production workflow">
         <details id="setup-panel" class="edit-panel stage-panel">
           <summary>
-            <span class="stage-node" data-stage-node="setup" aria-hidden="true"><i>1</i></span>
+            <span class="stage-node" data-stage-node="setup" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 12h3M13 12h7M4 17h9M19 17h1"/><circle cx="16" cy="7" r="2.1"/><circle cx="10" cy="12" r="2.1"/><circle cx="16" cy="17" r="2.1"/></svg></span>
             <span class="stage-text"><strong>Setup</strong><small id="fold-total-readout">Fast Viral · 1.85s</small></span>
             <i class="chev" aria-hidden="true">⌄</i>
           </summary>
@@ -75,15 +75,9 @@
             </div>
             <div class="setup-motion">
               <div class="motion-presets" role="group" aria-label="Fold motion preset">
-                <button type="button" data-fold-preset="fast" aria-pressed="true" disabled>
-                  <strong>Fast Viral</strong><span>Short-form</span>
-                </button>
-                <button type="button" data-fold-preset="cinematic" aria-pressed="false" disabled>
-                  <strong>Cinematic</strong><span>Hero pacing</span>
-                </button>
-                <button type="button" data-fold-preset="demo" aria-pressed="false" disabled>
-                  <strong>Slow Demo</strong><span>Inspection</span>
-                </button>
+                <button type="button" data-fold-preset="fast" aria-pressed="true" title="Short-form pacing" disabled><svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><strong>Fast Viral</strong></button>
+                <button type="button" data-fold-preset="cinematic" aria-pressed="false" title="Hero pacing" disabled><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 10h4M3 14h4M17 10h4M17 14h4"/></svg><strong>Cinematic</strong></button>
+                <button type="button" data-fold-preset="demo" aria-pressed="false" title="Inspection pacing" disabled><svg viewBox="0 0 24 24"><path d="M4 14a8 8 0 1 1 16 0"/><path d="M12 14l4.5-4.5"/></svg><strong>Slow Demo</strong></button>
               </div>
 
               <div class="motion-grid">
@@ -120,7 +114,7 @@
                   </div>
                 </div>
 
-                <button id="fold-motion-reset" class="quiet-button" type="button" disabled>Reset</button>
+                <button id="fold-motion-reset" class="icon-button" type="button" aria-label="Reset fold motion" title="Reset" disabled><svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 2 6"/><path d="M4 16v-6h6"/></svg></button>
               </div>
             </div>
           </div>
@@ -128,7 +122,7 @@
 
         <details id="master-pair-qa-panel" class="edit-panel stage-panel qa-panel">
           <summary>
-            <span class="stage-node" data-stage-node="quality" aria-hidden="true"><i>2</i></span>
+            <span class="stage-node" data-stage-node="quality" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
             <span class="stage-text"><strong>Quality</strong><small id="qa-summary">Load both masters</small></span>
             <i class="chev" aria-hidden="true">⌄</i>
           </summary>
@@ -149,45 +143,45 @@
             </div>
 
             <div class="qa-actions">
+              <span class="info-dot" tabindex="0" title="Automatic checks cover source dimensions and aspect-ratio compatibility. Hinge, skyline, edge artifacts and composition remain visual acceptance checks.">i</span>
               <button id="qa-lock-pair" class="quiet-button" type="button" disabled>Lock Pair</button>
-              <button id="qa-reset" class="quiet-button" type="button" disabled>Reset QA</button>
+              <button id="qa-reset" class="icon-button" type="button" aria-label="Reset QA" title="Reset QA" disabled><svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 2 6"/><path d="M4 16v-6h6"/></svg></button>
             </div>
 
             <div class="qa-angle-list" aria-label="Master pair acceptance angles">
               <div class="qa-angle-row" data-qa-row="0">
                 <button type="button" class="qa-view" data-qa-angle="0" disabled><b>0°</b><span>Closed composition</span></button>
-                <button type="button" class="qa-verdict" data-qa-pass="0" disabled>Pass</button>
-                <button type="button" class="qa-verdict" data-qa-fail="0" disabled>Fail</button>
+                <button type="button" class="qa-verdict" data-qa-pass="0" aria-label="Pass 0 degrees" title="Pass" disabled>✓</button>
+                <button type="button" class="qa-verdict" data-qa-fail="0" aria-label="Fail 0 degrees" title="Fail" disabled>✗</button>
               </div>
               <div class="qa-angle-row" data-qa-row="45">
                 <button type="button" class="qa-view" data-qa-angle="45" disabled><b>45°</b><span>Reveal / edge continuity</span></button>
-                <button type="button" class="qa-verdict" data-qa-pass="45" disabled>Pass</button>
-                <button type="button" class="qa-verdict" data-qa-fail="45" disabled>Fail</button>
+                <button type="button" class="qa-verdict" data-qa-pass="45" aria-label="Pass 45 degrees" title="Pass" disabled>✓</button>
+                <button type="button" class="qa-verdict" data-qa-fail="45" aria-label="Fail 45 degrees" title="Fail" disabled>✗</button>
               </div>
               <div class="qa-angle-row" data-qa-row="90">
                 <button type="button" class="qa-view" data-qa-angle="90" disabled><b>90°</b><span>Hinge continuity</span></button>
-                <button type="button" class="qa-verdict" data-qa-pass="90" disabled>Pass</button>
-                <button type="button" class="qa-verdict" data-qa-fail="90" disabled>Fail</button>
+                <button type="button" class="qa-verdict" data-qa-pass="90" aria-label="Pass 90 degrees" title="Pass" disabled>✓</button>
+                <button type="button" class="qa-verdict" data-qa-fail="90" aria-label="Fail 90 degrees" title="Fail" disabled>✗</button>
               </div>
               <div class="qa-angle-row" data-qa-row="135">
                 <button type="button" class="qa-view" data-qa-angle="135" disabled><b>135°</b><span>Edge / panorama continuity</span></button>
-                <button type="button" class="qa-verdict" data-qa-pass="135" disabled>Pass</button>
-                <button type="button" class="qa-verdict" data-qa-fail="135" disabled>Fail</button>
+                <button type="button" class="qa-verdict" data-qa-pass="135" aria-label="Pass 135 degrees" title="Pass" disabled>✓</button>
+                <button type="button" class="qa-verdict" data-qa-fail="135" aria-label="Fail 135 degrees" title="Fail" disabled>✗</button>
               </div>
               <div class="qa-angle-row" data-qa-row="180">
                 <button type="button" class="qa-view" data-qa-angle="180" disabled><b>180°</b><span>Open endpoint / framing</span></button>
-                <button type="button" class="qa-verdict" data-qa-pass="180" disabled>Pass</button>
-                <button type="button" class="qa-verdict" data-qa-fail="180" disabled>Fail</button>
+                <button type="button" class="qa-verdict" data-qa-pass="180" aria-label="Pass 180 degrees" title="Pass" disabled>✓</button>
+                <button type="button" class="qa-verdict" data-qa-fail="180" aria-label="Fail 180 degrees" title="Fail" disabled>✗</button>
               </div>
             </div>
 
-            <p class="qa-note">Automatic checks cover source dimensions and aspect-ratio compatibility. Hinge, skyline, edge artifacts and composition remain visual acceptance checks.</p>
           </div>
         </details>
 
         <details id="recording-editing-panel" class="edit-panel stage-panel recording-panel">
           <summary>
-            <span class="stage-node" data-stage-node="capture" aria-hidden="true"><i>3</i></span>
+            <span class="stage-node" data-stage-node="capture" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2" class="fill"/></svg></span>
             <span class="stage-text"><strong>Capture</strong><small id="recording-summary">16:9 · 60 fps</small></span>
             <i class="chev" aria-hidden="true">⌄</i>
           </summary>
@@ -211,20 +205,19 @@
 
             <div class="recording-setting">
               <span>Guide</span>
-              <div class="segmented recording-guide" role="group" aria-label="Safe frame guide">
-                <button type="button" data-record-guide="on" aria-pressed="true" disabled>On</button>
-                <button type="button" data-record-guide="off" aria-pressed="false" disabled>Off</button>
-              </div>
+              <button id="record-guide-toggle" class="switch" type="button" role="switch" aria-checked="true" aria-label="Safe frame guide" title="Safe frame guide" disabled><i></i></button>
             </div>
 
-            <button id="enter-recording-mode" class="recording-enter" type="button" disabled>Enter Recording Mode</button>
-            <p class="recording-note">Recording Mode hides development UI. Preview and ?record=1 use the same active Fold Motion timing.</p>
+            <div class="capture-actions">
+              <button id="enter-recording-mode" class="recording-enter" type="button" disabled>Enter Recording Mode</button>
+              <span class="info-dot" tabindex="0" title="Recording Mode hides development UI. Preview and ?record=1 use the same active Fold Motion timing.">i</span>
+            </div>
           </div>
         </details>
 
         <details id="export-acceptance-panel" class="edit-panel stage-panel export-panel">
           <summary>
-            <span class="stage-node" data-stage-node="accept" aria-hidden="true"><i>4</i></span>
+            <span class="stage-node" data-stage-node="accept" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.2l2.3 2.3 4.7-4.8"/></svg></span>
             <span class="stage-text"><strong>Accept</strong><small id="export-acceptance-summary">Load export</small></span>
             <i class="chev" aria-hidden="true">⌄</i>
           </summary>
@@ -239,7 +232,8 @@
                 </div>
               </div>
               <button id="export-load" class="quiet-button export-load" type="button" disabled>Load Export</button>
-              <button id="export-reset" class="quiet-button" type="button" disabled>Reset QC</button>
+              <button id="export-reset" class="icon-button" type="button" aria-label="Reset QC" title="Reset QC" disabled><svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 2 6"/><path d="M4 16v-6h6"/></svg></button>
+              <span class="info-dot" tabindex="0" title="Auto QC validates the last deterministic capture plus uploaded export metadata. Visual checks remain manual because platform transcoding cannot be simulated reliably in-browser.">i</span>
               <input id="export-review-input" type="file" accept="video/mp4,video/webm,video/quicktime,video/*" hidden disabled>
             </div>
 
@@ -269,32 +263,31 @@
             <div class="export-check-list" aria-label="Export acceptance checklist">
               <div class="export-check-row" data-export-row="motion">
                 <div><b>Motion Blur</b><span>No compression smear / double shell</span></div>
-                <button type="button" class="export-verdict" data-export-pass="motion" disabled>Pass</button>
-                <button type="button" class="export-verdict" data-export-fail="motion" disabled>Fail</button>
+                <button type="button" class="export-verdict" data-export-pass="motion" aria-label="Pass motion" title="Pass" disabled>✓</button>
+                <button type="button" class="export-verdict" data-export-fail="motion" aria-label="Fail motion" title="Fail" disabled>✗</button>
               </div>
               <div class="export-check-row" data-export-row="hinge">
                 <div><b>Hinge</b><span>No flash, tear, or seam jump mid-fold</span></div>
-                <button type="button" class="export-verdict" data-export-pass="hinge" disabled>Pass</button>
-                <button type="button" class="export-verdict" data-export-fail="hinge" disabled>Fail</button>
+                <button type="button" class="export-verdict" data-export-pass="hinge" aria-label="Pass hinge" title="Pass" disabled>✓</button>
+                <button type="button" class="export-verdict" data-export-fail="hinge" aria-label="Fail hinge" title="Fail" disabled>✗</button>
               </div>
               <div class="export-check-row" data-export-row="endpoint">
                 <div><b>Open Endpoint</b><span>Final frame stable at exact Open</span></div>
-                <button type="button" class="export-verdict" data-export-pass="endpoint" disabled>Pass</button>
-                <button type="button" class="export-verdict" data-export-fail="endpoint" disabled>Fail</button>
+                <button type="button" class="export-verdict" data-export-pass="endpoint" aria-label="Pass endpoint" title="Pass" disabled>✓</button>
+                <button type="button" class="export-verdict" data-export-fail="endpoint" aria-label="Fail endpoint" title="Fail" disabled>✗</button>
               </div>
               <div class="export-check-row" data-export-row="crop">
                 <div><b>Crop Safety</b><span>Device and key image content stay inside target frame</span></div>
-                <button type="button" class="export-verdict" data-export-pass="crop" disabled>Pass</button>
-                <button type="button" class="export-verdict" data-export-fail="crop" disabled>Fail</button>
+                <button type="button" class="export-verdict" data-export-pass="crop" aria-label="Pass crop" title="Pass" disabled>✓</button>
+                <button type="button" class="export-verdict" data-export-fail="crop" aria-label="Fail crop" title="Fail" disabled>✗</button>
               </div>
               <div class="export-check-row" data-export-row="compression">
                 <div><b>Compression</b><span>RedBlack contrast and fine edges remain readable</span></div>
-                <button type="button" class="export-verdict" data-export-pass="compression" disabled>Pass</button>
-                <button type="button" class="export-verdict" data-export-fail="compression" disabled>Fail</button>
+                <button type="button" class="export-verdict" data-export-pass="compression" aria-label="Pass compression" title="Pass" disabled>✓</button>
+                <button type="button" class="export-verdict" data-export-fail="compression" aria-label="Fail compression" title="Fail" disabled>✗</button>
               </div>
             </div>
 
-            <p class="export-note">Auto QC validates the last deterministic capture plus uploaded export metadata. Visual checks remain manual because platform transcoding cannot be simulated reliably in-browser.</p>
           </div>
         </details>
       </section>

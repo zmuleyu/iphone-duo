@@ -1,16 +1,15 @@
 {
-  "build": "5.2",
-  "baseline": "5.1",
-  "milestone": "Control Dock IA Rework",
-  "status": "PRODUCTION",
+  "build": "5.3-rc1",
+  "baseline": "5.2",
+  "milestone": "Dock Density & Occlusion",
+  "status": "RD_CANDIDATE",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "G1: transport row rework — endpoint chips, angle degree ticks (data-snap), thumb angle bubble, sequence strip with phase bands + fold anchors + playhead",
-    "G2: single-column dock; Assets merged into Setup; 4-stage workflow cards (Setup/Quality/Capture/Accept) with graphic node states",
-    "G3: [hidden] display guard — record HUD no longer always visible; export review wrap same class fix"
+    "exclusive stage panels with floating sheet bodies (dock height constant; outside click / Esc closes)",
+    "iconified presets/verdicts/resets; note paragraphs moved to info-dot tooltips; stage nodes use icons",
+    "guide segmented control -> iOS switch (#record-guide-toggle); slimmer closed dock; viewport inset 126->112px"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
-  "timestamp": "2026-09-18",
-  "promotedFrom": "RD_CANDIDATE (user visual pass 2026-09-18)"
+  "timestamp": "2026-09-18"
 }

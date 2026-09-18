@@ -65,6 +65,7 @@ const recordingSummary = document.querySelector('#recording-summary');
 const recordFormatButtons = [...document.querySelectorAll('[data-record-format]')];
 const recordFpsButtons = [...document.querySelectorAll('[data-record-fps]')];
 const recordGuideButtons = [...document.querySelectorAll('[data-record-guide]')];
+const recordGuideToggle = document.querySelector('#record-guide-toggle');
 const enterRecordingModeButton = document.querySelector('#enter-recording-mode');
 const recordSafeFrame = document.querySelector('#record-safe-frame');
 const recordSafeFrameLabel = document.querySelector('#record-safe-frame-label');
@@ -804,6 +805,8 @@ function updateRecordingUI() {
   recordGuideButtons.forEach(button => {
     button.setAttribute('aria-pressed', String((button.dataset.recordGuide === 'on') === recordGuide));
   });
+  recordGuideToggle?.setAttribute('aria-checked', String(recordGuide));
+  if (recordGuideToggle) recordGuideToggle.disabled = !ready || recording;
 
   const presetLabel = activeFoldPreset ? FOLD_PRESETS[activeFoldPreset].label : 'Custom';
   if (recordingSummary) recordingSummary.textContent = `${RECORD_FORMATS[recordFormat]} · ${recordFps} fps`;
@@ -1157,6 +1160,7 @@ exportReviewInput?.addEventListener('change', () => {
 recordFormatButtons.forEach(button => button.addEventListener('click', () => setRecordFormat(button.dataset.recordFormat)));
 recordFpsButtons.forEach(button => button.addEventListener('click', () => setRecordFps(button.dataset.recordFps)));
 recordGuideButtons.forEach(button => button.addEventListener('click', () => setRecordGuide(button.dataset.recordGuide === 'on')));
+recordGuideToggle?.addEventListener('click', () => setRecordGuide(!recordGuide));
 enterRecordingModeButton?.addEventListener('click', () => setRecordingMode(true));
 recordStartButton?.addEventListener('click', () => startRecord());
 recordReplayButton?.addEventListener('click', () => startRecord());
@@ -1215,6 +1219,21 @@ closedButton.addEventListener('click', () => { setPlaying(false); playbackTime =
 openButton.addEventListener('click', () => { setPlaying(false); playbackTime = 0; setAngle(180); });
 snapButtons.forEach(button => button.addEventListener('click', () => { setPlaying(false); playbackTime = 0; setAngle(Number(button.dataset.snap)); }));
 slider.addEventListener('input', () => { setPlaying(false); playbackTime = 0; setAngle(Number(slider.value)); });
+
+// Dock density: only one stage panel open at a time; outside click / Esc closes it.
+const workflowRow = document.querySelector('.workflow-row');
+const stageDetails = workflowRow ? [...workflowRow.querySelectorAll('details.stage-panel')] : [];
+stageDetails.forEach(panel => panel.addEventListener('toggle', () => {
+  if (panel.open) stageDetails.forEach(other => { if (other !== panel) other.open = false; });
+}));
+document.addEventListener('click', event => {
+  const openPanel = stageDetails.find(panel => panel.open);
+  if (!openPanel || openPanel.contains(event.target)) return;
+  openPanel.open = false;
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') stageDetails.forEach(panel => { panel.open = false; });
+});
 
 function resize() {
   const { width, height } = viewport.getBoundingClientRect();
