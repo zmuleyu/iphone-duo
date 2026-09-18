@@ -105,7 +105,10 @@ function collectShells(scene, state) {
 }
 
 function isPlaybackRunning() {
-  return document.querySelector('#play-label')?.textContent?.trim() === 'Pause';
+  const normalPlayback = document.querySelector('#play-label')?.textContent?.trim() === 'Pause';
+  const root = document.documentElement;
+  const recordingPlayback = root.dataset.recordT !== undefined && root.dataset.recordDone !== '1';
+  return normalPlayback || recordingPlayback;
 }
 
 function updateVelocity(state) {
