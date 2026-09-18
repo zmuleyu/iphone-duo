@@ -1,44 +1,52 @@
 {
-  "build": "5.0.6.2",
-  "baseline": "5.0.6.1",
-  "milestone": "Master Pair QA",
+  "build": "5.0.6.3",
+  "baseline": "5.0.6.2",
+  "milestone": "Fold Motion Tuning",
   "kept": [
     "Reality + RedBlack two-source architecture",
     "V5.0.4 clean crossfade",
     "V5.0.5 hinge / endpoint stability",
-    "V5.0.6 Fold Motion controls",
+    "V5.0.6.2 Master Pair QA",
     "Tower and Bird effects removed"
   ],
-  "masterPairQA": {
-    "automatic": [
-      "Reality source dimensions",
-      "RedBlack source dimensions",
-      "identical master dimensions",
-      "pair aspect-ratio compatibility",
-      "compatibility with panorama canvas ratio"
-    ],
-    "visualAngles": [
-      0,
-      45,
-      90,
-      135,
-      180
-    ],
-    "visualChecks": [
-      "Closed composition",
-      "Reveal / edge continuity",
-      "Hinge continuity",
-      "Edge / panorama continuity",
-      "Open endpoint / framing"
-    ],
-    "controls": [
-      "View angle",
-      "Pass / Fail per angle",
-      "Lock / Unlock Pair",
-      "Reset QA"
-    ],
-    "acceptance": "QA PASS requires automatic pair geometry pass + 5/5 visual PASS. Pair lock prevents accidental source replacement during acceptance."
+  "foldMotion": {
+    "defaultPreset": "Fast Viral",
+    "presets": {
+      "fast": {
+        "label": "Fast Viral",
+        "closedHold": 0.18,
+        "unfoldDuration": 1.15,
+        "openHold": 0.52,
+        "total": 1.85,
+        "easing": "smooth",
+        "motionBlur": "natural",
+        "purpose": "short-form / X social preview"
+      },
+      "cinematic": {
+        "label": "Cinematic",
+        "closedHold": 0.4,
+        "unfoldDuration": 1.85,
+        "openHold": 0.85,
+        "total": 3.1,
+        "easing": "cinematic",
+        "motionBlur": "natural",
+        "purpose": "hero pacing / polished presentation"
+      },
+      "demo": {
+        "label": "Slow Demo",
+        "closedHold": 0.65,
+        "unfoldDuration": 2.8,
+        "openHold": 1.2,
+        "total": 4.65,
+        "easing": "smooth",
+        "motionBlur": "off",
+        "purpose": "geometry / seam inspection"
+      }
+    },
+    "manualEditing": "Any timing, easing, or motion-blur edit switches the preset label to Custom.",
+    "urlOverride": "?motion=fast | ?motion=cinematic | ?motion=demo",
+    "recording": "Preview and ?record=1 share the exact active Fold Motion timings."
   },
-  "note": "No reveal art changes, Tower FX, Bird FX, or displacement changes in this release.",
+  "note": "No visual reveal, master asset, Tower, Bird, or displacement changes in this release.",
   "timestamp": "2026-09-18"
 }
