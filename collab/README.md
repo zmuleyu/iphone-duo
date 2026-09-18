@@ -14,4 +14,5 @@
 - Tower / Bird / displacement / 新转场一律独立 R&D 分支起步，晋升须独立视觉验证 + 用户拍板。
 | T3 母带捕获管线（v5.4） | 2026-09-18 | done→production（三画幅草稿已交付） |
 | G-A 采集质量（v5.5） | 2026-09-18 | done→production（2x 超采样+颗粒+CRF16 重出草稿） |
-| G-B 边框光亮过渡（v5.6） | 2026-09-18 | done→production（钛银扫光+open pop，待用户目检） | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |
+| G-B 边框光亮过渡（v5.6） | 2026-09-18 | done→production（钛银扫光+open pop，待用户目检） |
+| G-C 屏幕 chrome 状态栏（v5.7） | 2026-09-18 | done→production（?ui=1 状态栏层） | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |
