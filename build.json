@@ -1,14 +1,15 @@
 {
-  "build": "5.0.3",
-  "baseline": "5.0.2a",
-  "repair": "Geometry / Panorama / Hinge Lock",
-  "architecture": "two-source Reality + RedBlack; no independent Tower layer",
-  "fixedPanelAnchor": "right panel remains screen-space anchored while left panel unfolds leftward",
-  "dynamicFraming": "removed recenter and scale compensation to prevent tower/panorama drift",
+  "build": "5.0.4",
+  "baseline": "5.0.3",
+  "repair": "Reveal Cleanup Hotfix",
+  "productionReveal": "clean crossfade driven only by worldMix; no visible staged seam",
+  "stagedReveal": "experimental only via ?reveal=staged or ?staged=1",
+  "stagedOnlyEffects": "leak/collapse/lock boundary, transition blur suppression and red rim",
+  "geometry": "V5.0.3 fixed-right-panel anchor preserved; no displacement work in this hotfix",
   "panorama": "single fixed panorama coordinate preserved",
   "connectionArtifactGuard": "V5.0.2a preserved",
   "towerHighlightGuard": "V5.0.2a preserved",
-  "noFxGeometryTest": "append ?nofx=1 to disable staged FX, impact and pulse while preserving fold + panorama transition",
-  "productionUI": "simplified to Reality, RedBlack, Unfold, Closed/Open and Fold slider",
+  "noFxGeometryTest": "?nofx=1 preserved",
+  "productionUI": "two-source Reality + RedBlack compact UI",
   "timestamp": "2026-09-18"
 }
