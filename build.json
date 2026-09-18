@@ -1,34 +1,46 @@
 {
-  "build": "5.0.7.2",
-  "baseline": "5.0.7",
-  "milestone": "Tower Activation Tuning + Bird FX",
+  "build": "5.0.7.3",
+  "baseline": "5.0.7.2",
+  "milestone": "Hero Tower Rebuild + Spire Bird Redesign",
   "reveal": "V5.0.4 clean crossfade preserved",
   "hingeEndpoint": "V5.0.5 stability preserved",
-  "foldMotion": "V5.0.6 editable Fold Motion preserved",
-  "towerFx": {
-    "architecture": "uses existing RedBlack tower pixels; no independent tower asset",
-    "tuning": "neutral structure lift -> restrained late gold bias -> exposure-only pulse",
-    "rationale": "latest RedBlack master already defines tower color, so FX no longer repaints it orange",
-    "controls": [
-      "Open Delay",
-      "Activation Duration",
-      "Intensity",
-      "Pulse",
-      "Preview",
-      "Reset"
+  "foldMotion": "V5.0.6 controls preserved",
+  "heroTower": {
+    "architecture": "existing RedBlack tower pixels only; no third tower asset",
+    "phases": [
+      "Base Ignition",
+      "Lattice Propagation",
+      "Observation Deck SNAP",
+      "Spire Rush",
+      "Hero Hold",
+      "Single Exposure Pulse"
     ],
-    "isolation": "tight tower-content mask only; no intentional sky/city/window animation"
+    "default": {
+      "openDelay": 0.2,
+      "activationDuration": 1.25,
+      "intensity": 1.15,
+      "deckSnap": 1.3,
+      "heroWarmth": 0.65,
+      "pulseExposure": 0.18
+    },
+    "goal": "make Open state read as a distinct second event, not a subtle color lift",
+    "isolation": "tower-content pixels only; no broad sky/city glow"
   },
-  "birdFx": {
-    "architecture": "procedural shader silhouettes; no external bird asset",
-    "scope": "Open state only; overlaps Tower FX",
+  "spireBirds": {
+    "architecture": "procedural shader glyphs; no external bird asset",
     "defaultColor": "#FFFFFF",
-    "colorEditable": true,
+    "defaultMode": "Orbit",
+    "optionalMode": "Burst",
+    "anchor": "local elliptical motion around Tokyo Tower spire",
     "controls": [
       "Enabled",
+      "Mode",
       "Start Delay",
       "Duration",
       "Count",
+      "Orbit Radius",
+      "Speed",
+      "Spread",
       "Size",
       "Opacity",
       "Color",
@@ -37,18 +49,19 @@
       "Reset"
     ],
     "default": {
-      "enabled": true,
-      "startDelay": 0.45,
-      "duration": 1,
+      "startDelay": 0.82,
+      "duration": 0.8,
       "count": 5,
-      "size": 1,
+      "radius": 1,
+      "speed": 1,
+      "spread": 0.35,
+      "size": 0.9,
       "opacity": 0.9,
       "color": "#FFFFFF",
-      "direction": "Right -> Left"
-    },
-    "placement": "upper red-sky corridor; avoids the Tokyo Tower anchor"
+      "direction": "Mixed"
+    }
   },
-  "timeline": "Tower FX and Bird FX run in parallel after Open; final Open Hold begins after the longer Open FX track finishes",
+  "timeline": "Tower and Spire Bird tracks overlap after Open; Hero Hold follows the longer track",
   "noFx": "?nofx=1 disables Tower and Bird FX",
   "displacement": "still deferred",
   "timestamp": "2026-09-18"
