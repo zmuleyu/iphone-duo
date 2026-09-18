@@ -114,8 +114,11 @@ camera.position.set(0, 0, 40);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 // Capture runs (?cap=1) force 2x supersampling for crisp downscaled delivery.
-renderer.setPixelRatio(new URLSearchParams(location.search).has('cap') ? 2 : Math.min(devicePixelRatio, 2));
-renderer.setClearColor(0x000000, 0);
+// V5.9: 1.5x capture supersample (2x@60fps starved the frame clock, frozen
+// spans) + opaque white clear so captures land on Apple-white, not alpha-black.
+renderer.setPixelRatio(new URLSearchParams(location.search).has('cap') ? 1.5 : Math.min(devicePixelRatio, 2));
+renderer.setClearColor(new URLSearchParams(location.search).has('cap') ? 0xffffff : 0x000000,
+  new URLSearchParams(location.search).has('cap') ? 1 : 0);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.18;
 viewport.appendChild(renderer.domElement);
@@ -181,6 +184,12 @@ const uPulse = { value: 0 };       // Lv1 tower warm pulse @3.18s
 const uTransActive = { value: 0 }; // staged-only blur/rim treatment
 const uNoFx = { value: NO_FX ? 1 : 0 };
 const uUseStagedReveal = { value: STAGED_REVEAL ? 1 : 0 };
+// V5.9: tower-region reveal follows uTowerMix (record drives it late for the
+// two-beat narrative); uFoldBlurScale trims the frozen oblique-angle blur on
+// the record path so panels read rigid. Both are identity in preview.
+const uTowerMix = { value: 0 };
+const uFoldBlurScale = { value: 1 };
+const uTowerBoost = { value: 0 }; // V5.9: record-only hero glow at open-complete
 
 let angle = 0;
 let playing = false;
@@ -1297,6 +1306,7 @@ function setAngle(value) {
   const active = uiTheme === 'custom' && customReady.reality && customReady.redblack;
   const mix = worldMixOverride ?? (active ? worldMixFromGeometry(geometrySignal(angle)) : 0);
   worldMix.value = mix;
+  uTowerMix.value = mix;
   // Manual mode maps the master mix into the three stages; record mode overrides per frame.
   if (!recording) {
     uLeak.value = smoothRange(mix, 0.0, 0.45);
@@ -1397,6 +1407,9 @@ uniform float uPulse;
 uniform float uTransActive;
 uniform float uNoFx;
 uniform float uUseStagedReveal;
+uniform float uTowerMix;
+uniform float uFoldBlurScale;
+uniform float uTowerBoost;
 varying vec3 vUIPosition;
 
 // V5.0.2 Reveal Direction Fix.
@@ -1451,6 +1464,15 @@ float activeReveal(vec2 uv, vec3 bCol) {
   return mix(worldMix, stagedReveal(uv, bCol), uUseStagedReveal);
 }
 
+// V5.9 two-beat reveal (clean-crossfade mode only): the tower's lit lattice
+// holds on Reality until uTowerMix catches up; sky through the lattice belongs
+// to the background phase. Identity when uTowerMix == worldMix (preview).
+float finalReveal(vec2 uv, vec3 bCol) {
+  float r = activeReveal(uv, bCol);
+  if (uUseStagedReveal < 0.5) r = mix(r, uTowerMix, towerContentMask(uv, bCol));
+  return r;
+}
+
 vec3 screenColor() {
   // Intersect the fixed front-view ray with the unfolded inner-screen plane.
   float depth = (0.24948 - uiReferenceEye.z) / (vUIPosition.z - uiReferenceEye.z);
@@ -1486,6 +1508,7 @@ vec3 screenColor() {
   float effect = motion * pow(darkenGradient, 1.35);
   float radius = 72.0 * motion * pow(blurGradient, 1.35);
   radius *= 1.0 - 0.65 * uTransActive; // keep the leak edge crisp mid-transition
+  radius *= uFoldBlurScale; // V5.9: record path trims smear for rigid panels
   vec2 aa = max(fwidth(sourceUV), uiPixel * 0.5);
   vec2 dx = dFdx(sourceUV) / uiPixel;
   vec2 dy = dFdy(sourceUV) / uiPixel;
@@ -1505,7 +1528,7 @@ vec3 screenColor() {
   vec2 uvC = clamp(sourceUV, vec2(0.0), vec2(1.0));
   vec3 colA = textureLod(map, uvC, baseLod).rgb;
   vec3 colB = textureLod(transitionTarget, uvC, baseLod).rgb;
-  float revealAmount = activeReveal(sourceUV, colB);
+  float revealAmount = finalReveal(sourceUV, colB);
   vec3 color = mix(colA, colB, revealAmount) * coverage.x * coverage.y;
   if (radius > 0.0) {
     // Use the same mip level at zero blur, then increase it continuously.
@@ -1526,12 +1549,17 @@ vec3 screenColor() {
         vec2 clampedUV = clamp(sampleUV, vec2(0.0), vec2(1.0));
         vec3 tapA = textureLod(map, clampedUV, lod).rgb;
         vec3 tapB = textureLod(transitionTarget, clampedUV, lod).rgb;
-        float tapReveal = activeReveal(sampleUV, tapB);
+        float tapReveal = finalReveal(sampleUV, tapB);
         color += mix(tapA, tapB, tapReveal) * tapCoverage.x * tapCoverage.y * wx * wy / 256.0;
       }
     }
   }
   color *= 1.0 - min(1.0, effect * 2.0);
+  // V5.9 tower activation: warm hero glow on the tower's lit lattice, ramped by
+  // uTowerBoost at open-complete (record path only; preview stays 0).
+  if (uNoFx < 0.5 && uTowerBoost > 0.001) {
+    color += vec3(1.0, 0.62, 0.25) * uTowerBoost * towerContentMask(sourceUV, colB) * 0.55;
+  }
 
   // Impact @2.15s: one-frame white-red flash + visible RGB split (screen-space
   // only, geometry untouched).
@@ -1541,8 +1569,8 @@ vec3 screenColor() {
     vec2 uvB = clamp(sourceUV - vec2(split, 0.0), vec2(0.0), vec2(1.0));
     vec3 rB2 = textureLod(transitionTarget, uvR, baseLod).rgb;
     vec3 bB2 = textureLod(transitionTarget, uvB, baseLod).rgb;
-    float rr = mix(textureLod(map, uvR, baseLod).rgb.r, rB2.r, activeReveal(uvR, rB2));
-    float bb = mix(textureLod(map, uvB, baseLod).rgb.b, bB2.b, activeReveal(uvB, bB2));
+    float rr = mix(textureLod(map, uvR, baseLod).rgb.r, rB2.r, finalReveal(uvR, rB2));
+    float bb = mix(textureLod(map, uvB, baseLod).rgb.b, bB2.b, finalReveal(uvB, bB2));
     color.r = mix(color.r, rr, uImpact);
     color.b = mix(color.b, bb, uImpact);
     float towerImpact = towerContentMask(sourceUV, colB);
@@ -1635,6 +1663,9 @@ try {
           shader.uniforms.uTransActive = uTransActive;
           shader.uniforms.uNoFx = uNoFx;
           shader.uniforms.uUseStagedReveal = uUseStagedReveal;
+          shader.uniforms.uTowerMix = uTowerMix;
+          shader.uniforms.uFoldBlurScale = uFoldBlurScale;
+          shader.uniforms.uTowerBoost = uTowerBoost;
 
           shader.vertexShader = `varying vec3 vUIPosition;\n${shader.vertexShader}`;
           shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
@@ -1832,7 +1863,7 @@ function startRecord() {
 // dollies out / pans left as the fold progresses. Preview (non-record) is
 // never touched.
 const RECORD_FRAMING = {
-  '16x9': { zoom: 1.0, panX: 0 },
+  '16x9': { zoom: 1.25, panX: 0 }, // V5.9: device +25% for social first-impact
   '1x1': { zoom: 1.0, panX: -132 },
   '9x16': { zoom: 0.62, panX: -103 },
 };
@@ -1874,6 +1905,16 @@ function driveRecord(nowMs) {
   const easedFold = foldEase(rawFold);
   setAngle(easedFold * 180);
   applyRecordFraming(easedFold);
+  // V5.9 narrative repair (record path only): the world follows the physical
+  // opening (25->150deg) instead of saturating at 67deg, and the tower
+  // activates late (110->165deg) as the second beat.
+  const recAngle = easedFold * 180;
+  worldMix.value = smoothRange(recAngle, 25, 150);
+  // Tower activation is time-based: starts at open-complete (foldEnd) and
+  // lands 0.35s into the hold, stacked on the bezel pop — the second beat.
+  uTowerMix.value = smoothRange(t, foldEnd - 0.05, foldEnd + 0.35);
+  uTowerBoost.value = smoothRange(t, foldEnd - 0.05, foldEnd + 0.35);
+  uFoldBlurScale.value = 0.35;
   // V5.8: micro push-in across the open hold so the static plate stays alive
   // (record path only; preview untouched).
   if (t > foldEnd && foldMotion.openHold > 0) {

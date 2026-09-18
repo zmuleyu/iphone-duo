@@ -1,0 +1,8 @@
+{
+  "goal": "v5.9 叙事修复+白底成片（G-G/G-H）",
+  "date": "2026-09-19",
+  "state": "in-progress",
+  "phase": "G-G verified, ready-for-merge",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v5.9-narrative-repair"
+}

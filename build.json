@@ -1,12 +1,13 @@
 {
-  "build": "5.8",
-  "baseline": "5.7",
-  "milestone": "Lock Screen Chrome + Record Push-in",
+  "build": "5.9",
+  "baseline": "5.8",
+  "milestone": "Narrative Repair + White Capture",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "lock-screen chrome (?ui=1): big 9:41 + date top-center, WiFi TR, flashlight/camera BR, home bar; redblack world only",
-    "record open-hold micro push-in zoom x1.015"
+    "record worldMix 25-150deg + tower time-based activation + hero boost",
+    "capture 1.5x (frozen-frame fix) + white bg",
+    "record fold blur x0.35; 16:9 zoom 1.25"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
