@@ -1865,7 +1865,7 @@ function startRecord() {
 const RECORD_FRAMING = {
   '16x9': { zoom: 1.25, panX: -167 }, // V6.0: +25% size, panned to horizontal center
   '1x1': { zoom: 1.0, panX: -132 },
-  '9x16': { zoom: 0.62, panX: -103 },
+  '9x16': { zoom: 0.62, panX: -83 }, // V6.0.1: horizontal centering
 };
 
 function applyRecordFraming(easedProgress) {
