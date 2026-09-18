@@ -1,13 +1,12 @@
 {
-  "build": "5.6",
-  "baseline": "5.5",
-  "milestone": "Bezel Light Transition (titanium sweep + open pop)",
+  "build": "5.7",
+  "baseline": "5.6",
+  "milestone": "Screen Chrome (iOS status bar, ?ui=1)",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "bezel titanium sweep hinge->edge during fold (uBezel=angle/180)",
-    "open-complete bezel pop w/ reduced-motion guard",
-    "?bezeldebug=1 false-color layer; __duo.setBezel probe"
+    "?ui=1 / setScreenChrome: iOS status bar + home indicator painted into world canvas",
+    "folds with screen, captured by ?cap=1; baseline unchanged"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",

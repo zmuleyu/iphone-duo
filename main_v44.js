@@ -379,6 +379,84 @@ document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventLi
 // Upload pipeline — one image fills ONE world canvas; no per-screen crops.
 // ---------------------------------------------------------------------------
 
+// V5.7 screen chrome (?ui=1 or __duo.setScreenChrome): iOS-style status bar +
+// home indicator painted into the world canvas, so it folds with the screen
+// and lands in captures. Default UIs already carry their own chrome; this
+// applies to custom master worlds only.
+let screenChrome = QUERY.has('ui');
+const worldImages = { reality: null, redblack: null };
+
+function drawScreenChrome(canvas) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const barH = Math.round(canvas.height * 0.048);
+  const padX = Math.round(w * 0.022);
+  const midY = barH * 0.5;
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(0,0,0,0.45)';
+  ctx.shadowBlur = barH * 0.08;
+  ctx.shadowOffsetY = barH * 0.02;
+  // Time (left)
+  ctx.font = `600 ${Math.round(barH * 0.46)}px -apple-system, "SF Pro Text", "Segoe UI", sans-serif`;
+  ctx.textBaseline = 'middle';
+  ctx.fillText('9:41', padX, midY);
+  // Cellular bars (right cluster, leftmost)
+  let rx = w - padX;
+  const iconH = barH * 0.34;
+  // Battery: outline + cap + 75% level
+  const batW = barH * 0.72;
+  const batH = iconH * 0.82;
+  const batX = rx - batW;
+  const batY = midY - batH / 2;
+  ctx.lineWidth = Math.max(1.5, barH * 0.035);
+  ctx.beginPath();
+  ctx.roundRect(batX, batY, batW, batH, batH * 0.28);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.roundRect(batX + ctx.lineWidth * 1.2, batY + ctx.lineWidth * 1.2,
+    (batW - ctx.lineWidth * 2.4) * 0.75, batH - ctx.lineWidth * 2.4, batH * 0.16);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.roundRect(batX + batW + ctx.lineWidth, midY - batH * 0.18, barH * 0.06, batH * 0.36, barH * 0.03);
+  ctx.fill();
+  rx = batX - barH * 0.28;
+  // Wi-Fi: three arcs + dot
+  const wifiR = iconH * 0.62;
+  const wifiX = rx - wifiR;
+  const wifiY = midY + iconH * 0.28;
+  ctx.lineWidth = Math.max(1.8, barH * 0.05);
+  ctx.lineCap = 'round';
+  for (let i = 3; i >= 1; i--) {
+    ctx.beginPath();
+    ctx.arc(wifiX, wifiY, wifiR * i / 3, Math.PI * 1.28, Math.PI * 1.72);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.arc(wifiX, wifiY - wifiR * 0.06, ctx.lineWidth * 0.62, 0, Math.PI * 2);
+  ctx.fill();
+  rx = wifiX - wifiR - barH * 0.26;
+  // Cellular: 4 ascending bars
+  const cellBarW = barH * 0.09;
+  const cellGap = cellBarW * 0.42;
+  for (let i = 0; i < 4; i++) {
+    const bh = iconH * (0.32 + i * 0.17);
+    ctx.beginPath();
+    ctx.roundRect(rx - cellBarW, midY + iconH * 0.5 - bh, cellBarW, bh, cellBarW * 0.3);
+    ctx.fill();
+    rx -= cellBarW + cellGap;
+  }
+  // Home indicator (bottom center)
+  const hiW = w * 0.088;
+  const hiH = Math.max(3, barH * 0.09);
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  ctx.roundRect((w - hiW) / 2, canvas.height - hiH * 2.4, hiW, hiH, hiH / 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawWorld(img, canvas, texture) {
   const context = canvas.getContext('2d');
   context.fillStyle = '#101418';
@@ -387,6 +465,7 @@ function drawWorld(img, canvas, texture) {
   const width = img.width * scale;
   const height = img.height * scale;
   context.drawImage(img, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+  if (screenChrome) drawScreenChrome(canvas);
   texture.needsUpdate = true;
 }
 
@@ -511,6 +590,7 @@ realityInput.addEventListener('change', async () => {
   if (!file || qaState.locked) return;
   try {
     const img = await decodeFile(file);
+    worldImages.reality = img;
     drawWorld(img, worldCanvases.reality, worldTextures.reality);
     sourceMeta.reality = {
       name: file.name,
@@ -541,6 +621,7 @@ redBlackInput.addEventListener('change', async () => {
   }
   try {
     const img = await decodeFile(file);
+    worldImages.redblack = img;
     drawWorld(img, worldCanvases.redblack, worldTextures.redblack);
     sourceMeta.redblack = {
       name: file.name,
@@ -1836,6 +1917,13 @@ function driveRecord(nowMs) {
 window.__duo = {
   setAngle: value => { setPlaying(false); playbackTime = 0; recording = false; setAngle(Number(value)); },
   _renderer: renderer,
+  // V5.7: toggle iOS-style status-bar chrome on custom worlds (redraws canvases).
+  setScreenChrome: flag => {
+    screenChrome = !!flag;
+    if (worldImages.reality) drawWorld(worldImages.reality, worldCanvases.reality, worldTextures.reality);
+    if (worldImages.redblack) drawWorld(worldImages.redblack, worldCanvases.redblack, worldTextures.redblack);
+    return screenChrome;
+  },
   // V5.6 debug: force bezel sweep/pop for deterministic verification.
   setBezel: (sweep, pop) => { uBezel.value = Number(sweep); uBezelPop.value = Number(pop); uBezelPopHold = Number(pop) > 0; },
   bezelDebug: () => ({
