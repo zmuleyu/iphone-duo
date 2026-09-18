@@ -1,8 +1,8 @@
 {
-  "build": "5.3-rc1",
+  "build": "5.3",
   "baseline": "5.2",
   "milestone": "Dock Density & Occlusion",
-  "status": "RD_CANDIDATE",
+  "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
     "exclusive stage panels with floating sheet bodies (dock height constant; outside click / Esc closes)",
@@ -11,5 +11,6 @@
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
-  "timestamp": "2026-09-18"
+  "timestamp": "2026-09-18",
+  "promotedFrom": "RD_CANDIDATE (default closeout chain 2026-09-18)"
 }
