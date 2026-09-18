@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.7.2';
+const BUILD_VERSION = 'v5.0.7.3';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -50,20 +50,33 @@ const towerPulseSelect = document.querySelector('#tower-pulse');
 const towerDelayValue = document.querySelector('#tower-delay-value');
 const towerDurationValue = document.querySelector('#tower-duration-value');
 const towerIntensityValue = document.querySelector('#tower-intensity-value');
+const towerSnapInput = document.querySelector('#tower-snap');
+const towerWarmthInput = document.querySelector('#tower-warmth');
+const towerPulseStrengthInput = document.querySelector('#tower-pulse-strength');
+const towerSnapValue = document.querySelector('#tower-snap-value');
+const towerWarmthValue = document.querySelector('#tower-warmth-value');
+const towerPulseStrengthValue = document.querySelector('#tower-pulse-strength-value');
 const towerSequenceReadout = document.querySelector('#tower-sequence-readout');
 const towerPreviewButton = document.querySelector('#tower-preview');
 const towerResetButton = document.querySelector('#tower-reset');
 const birdDelayInput = document.querySelector('#bird-delay');
 const birdDurationInput = document.querySelector('#bird-duration');
 const birdCountInput = document.querySelector('#bird-count');
+const birdRadiusInput = document.querySelector('#bird-radius');
+const birdSpeedInput = document.querySelector('#bird-speed');
+const birdSpreadInput = document.querySelector('#bird-spread');
 const birdSizeInput = document.querySelector('#bird-size');
 const birdOpacityInput = document.querySelector('#bird-opacity');
 const birdColorInput = document.querySelector('#bird-color');
+const birdModeSelect = document.querySelector('#bird-mode');
 const birdDirectionSelect = document.querySelector('#bird-direction');
 const birdEnabledSelect = document.querySelector('#bird-enabled');
 const birdDelayValue = document.querySelector('#bird-delay-value');
 const birdDurationValue = document.querySelector('#bird-duration-value');
 const birdCountValue = document.querySelector('#bird-count-value');
+const birdRadiusValue = document.querySelector('#bird-radius-value');
+const birdSpeedValue = document.querySelector('#bird-speed-value');
+const birdSpreadValue = document.querySelector('#bird-spread-value');
 const birdSizeValue = document.querySelector('#bird-size-value');
 const birdOpacityValue = document.querySelector('#bird-opacity-value');
 const birdColorValue = document.querySelector('#bird-color-value');
@@ -141,14 +154,21 @@ const uTransActive = { value: 0 }; // staged-only blur/rim treatment
 const uNoFx = { value: NO_FX ? 1 : 0 };
 const uUseStagedReveal = { value: STAGED_REVEAL ? 1 : 0 };
 const uTowerActivation = { value: 0 };
-const uTowerIntensity = { value: 1 };
+const uTowerIntensity = { value: 1.15 };
 const uTowerPulseFx = { value: 0 };
+const uTowerSnapStrength = { value: 1.30 };
+const uTowerWarmth = { value: 0.65 };
+const uTowerPulseStrength = { value: 0.18 };
 const uBirdProgress = { value: 0 };
 const uBirdActive = { value: 0 };
 const uBirdOpacity = { value: 0.90 };
 const uBirdCount = { value: 5 };
-const uBirdSize = { value: 1.00 };
-const uBirdDirection = { value: -1 };
+const uBirdSize = { value: 0.90 };
+const uBirdRadius = { value: 1.00 };
+const uBirdSpeed = { value: 1.00 };
+const uBirdSpread = { value: 0.35 };
+const uBirdMode = { value: 0 };
+const uBirdDirection = { value: 0 };
 const uBirdColor = { value: new THREE.Color('#ffffff') };
 
 let angle = 0;
@@ -175,8 +195,11 @@ const foldMotion = { ...DEFAULT_FOLD_MOTION };
 const TOWER_PULSE_DURATION = 0.35;
 const DEFAULT_TOWER_FX = Object.freeze({
   openDelay: 0.20,
-  activationDuration: 0.90,
-  intensity: 1.00,
+  activationDuration: 1.25,
+  intensity: 1.15,
+  snapStrength: 1.30,
+  heroWarmth: 0.65,
+  pulseStrength: 0.18,
   pulse: 'single',
 });
 const towerFx = { ...DEFAULT_TOWER_FX };
@@ -185,13 +208,17 @@ let towerPreviewT0 = 0;
 
 const DEFAULT_BIRD_FX = Object.freeze({
   enabled: true,
-  startDelay: 0.45,
-  duration: 1.00,
+  startDelay: 0.82,
+  duration: 0.80,
   count: 5,
-  size: 1.00,
+  radius: 1.00,
+  speed: 1.00,
+  spread: 0.35,
+  size: 0.90,
   opacity: 0.90,
   color: '#ffffff',
-  direction: 'rtl',
+  mode: 'orbit',
+  direction: 'mixed',
 });
 const birdFx = { ...DEFAULT_BIRD_FX };
 let birdPreviewing = false;
@@ -494,6 +521,9 @@ function refreshTowerFxUI() {
   if (towerDelayValue) towerDelayValue.textContent = `${towerFx.openDelay.toFixed(2)}s`;
   if (towerDurationValue) towerDurationValue.textContent = `${towerFx.activationDuration.toFixed(2)}s`;
   if (towerIntensityValue) towerIntensityValue.textContent = `${Math.round(towerFx.intensity * 100)}%`;
+  if (towerSnapValue) towerSnapValue.textContent = `${Math.round(towerFx.snapStrength * 100)}%`;
+  if (towerWarmthValue) towerWarmthValue.textContent = `${Math.round(towerFx.heroWarmth * 100)}%`;
+  if (towerPulseStrengthValue) towerPulseStrengthValue.textContent = `${Math.round(towerFx.pulseStrength * 100)}%`;
   if (towerSequenceReadout) {
     const fxTime = towerCoreDuration();
     towerSequenceReadout.textContent = NO_FX
@@ -514,14 +544,29 @@ function setTowerFx(partial = {}) {
     if (towerDurationInput) towerDurationInput.value = String(towerFx.activationDuration);
   }
   if (Number.isFinite(partial.intensity)) {
-    towerFx.intensity = THREE.MathUtils.clamp(Number(partial.intensity), 0, 1.5);
+    towerFx.intensity = THREE.MathUtils.clamp(Number(partial.intensity), 0.5, 1.8);
     if (towerIntensityInput) towerIntensityInput.value = String(towerFx.intensity);
+  }
+  if (Number.isFinite(partial.snapStrength)) {
+    towerFx.snapStrength = THREE.MathUtils.clamp(Number(partial.snapStrength), 0, 2);
+    if (towerSnapInput) towerSnapInput.value = String(towerFx.snapStrength);
+  }
+  if (Number.isFinite(partial.heroWarmth)) {
+    towerFx.heroWarmth = THREE.MathUtils.clamp(Number(partial.heroWarmth), 0, 1.5);
+    if (towerWarmthInput) towerWarmthInput.value = String(towerFx.heroWarmth);
+  }
+  if (Number.isFinite(partial.pulseStrength)) {
+    towerFx.pulseStrength = THREE.MathUtils.clamp(Number(partial.pulseStrength), 0, 0.35);
+    if (towerPulseStrengthInput) towerPulseStrengthInput.value = String(towerFx.pulseStrength);
   }
   if (['single', 'off'].includes(partial.pulse)) {
     towerFx.pulse = partial.pulse;
     if (towerPulseSelect) towerPulseSelect.value = towerFx.pulse;
   }
   uTowerIntensity.value = towerFx.intensity;
+  uTowerSnapStrength.value = towerFx.snapStrength;
+  uTowerWarmth.value = towerFx.heroWarmth;
+  uTowerPulseStrength.value = towerFx.pulseStrength;
   refreshTowerFxUI();
 }
 
@@ -539,6 +584,9 @@ function refreshBirdFxUI() {
   if (birdDelayValue) birdDelayValue.textContent = `${birdFx.startDelay.toFixed(2)}s`;
   if (birdDurationValue) birdDurationValue.textContent = `${birdFx.duration.toFixed(2)}s`;
   if (birdCountValue) birdCountValue.textContent = String(birdFx.count);
+  if (birdRadiusValue) birdRadiusValue.textContent = `${Math.round(birdFx.radius * 100)}%`;
+  if (birdSpeedValue) birdSpeedValue.textContent = `${Math.round(birdFx.speed * 100)}%`;
+  if (birdSpreadValue) birdSpreadValue.textContent = `${Math.round(birdFx.spread * 100)}%`;
   if (birdSizeValue) birdSizeValue.textContent = `${Math.round(birdFx.size * 100)}%`;
   if (birdOpacityValue) birdOpacityValue.textContent = `${Math.round(birdFx.opacity * 100)}%`;
   if (birdColorValue) birdColorValue.textContent = birdFx.color.toUpperCase();
@@ -546,7 +594,7 @@ function refreshBirdFxUI() {
     birdSequenceReadout.textContent = NO_FX
       ? 'Disabled by No-FX'
       : birdFx.enabled
-        ? `${birdFx.color.toUpperCase()} · +${birdCoreDuration().toFixed(2)}s`
+        ? `${birdFx.color.toUpperCase()} · ${birdFx.mode === 'orbit' ? 'Orbit' : 'Burst'} · +${birdCoreDuration().toFixed(2)}s`
         : 'Off';
   }
 }
@@ -568,6 +616,18 @@ function setBirdFx(partial = {}) {
     birdFx.count = Math.round(THREE.MathUtils.clamp(Number(partial.count), 1, 8));
     if (birdCountInput) birdCountInput.value = String(birdFx.count);
   }
+  if (Number.isFinite(partial.radius)) {
+    birdFx.radius = THREE.MathUtils.clamp(Number(partial.radius), 0.55, 1.8);
+    if (birdRadiusInput) birdRadiusInput.value = String(birdFx.radius);
+  }
+  if (Number.isFinite(partial.speed)) {
+    birdFx.speed = THREE.MathUtils.clamp(Number(partial.speed), 0.5, 2);
+    if (birdSpeedInput) birdSpeedInput.value = String(birdFx.speed);
+  }
+  if (Number.isFinite(partial.spread)) {
+    birdFx.spread = THREE.MathUtils.clamp(Number(partial.spread), 0, 1);
+    if (birdSpreadInput) birdSpreadInput.value = String(birdFx.spread);
+  }
   if (Number.isFinite(partial.size)) {
     birdFx.size = THREE.MathUtils.clamp(Number(partial.size), 0.5, 1.8);
     if (birdSizeInput) birdSizeInput.value = String(birdFx.size);
@@ -580,7 +640,11 @@ function setBirdFx(partial = {}) {
     birdFx.color = partial.color.toLowerCase();
     if (birdColorInput) birdColorInput.value = birdFx.color;
   }
-  if (['rtl', 'ltr'].includes(partial.direction)) {
+  if (['orbit', 'burst'].includes(partial.mode)) {
+    birdFx.mode = partial.mode;
+    if (birdModeSelect) birdModeSelect.value = birdFx.mode;
+  }
+  if (['mixed', 'cw', 'ccw'].includes(partial.direction)) {
     birdFx.direction = partial.direction;
     if (birdDirectionSelect) birdDirectionSelect.value = birdFx.direction;
   }
@@ -588,7 +652,11 @@ function setBirdFx(partial = {}) {
   uBirdOpacity.value = birdFx.opacity;
   uBirdCount.value = birdFx.count;
   uBirdSize.value = birdFx.size;
-  uBirdDirection.value = birdFx.direction === 'rtl' ? -1 : 1;
+  uBirdRadius.value = birdFx.radius;
+  uBirdSpeed.value = birdFx.speed;
+  uBirdSpread.value = birdFx.spread;
+  uBirdMode.value = birdFx.mode === 'burst' ? 1 : 0;
+  uBirdDirection.value = birdFx.direction === 'cw' ? 1 : birdFx.direction === 'ccw' ? -1 : 0;
   uBirdColor.value.set(birdFx.color);
   refreshBirdFxUI();
   refreshTowerFxUI();
@@ -680,6 +748,9 @@ function previewBirdFx() {
 towerDelayInput?.addEventListener('input', () => setTowerFx({ openDelay: Number(towerDelayInput.value) }));
 towerDurationInput?.addEventListener('input', () => setTowerFx({ activationDuration: Number(towerDurationInput.value) }));
 towerIntensityInput?.addEventListener('input', () => setTowerFx({ intensity: Number(towerIntensityInput.value) }));
+towerSnapInput?.addEventListener('input', () => setTowerFx({ snapStrength: Number(towerSnapInput.value) }));
+towerWarmthInput?.addEventListener('input', () => setTowerFx({ heroWarmth: Number(towerWarmthInput.value) }));
+towerPulseStrengthInput?.addEventListener('input', () => setTowerFx({ pulseStrength: Number(towerPulseStrengthInput.value) }));
 towerPulseSelect?.addEventListener('change', () => setTowerFx({ pulse: towerPulseSelect.value }));
 towerPreviewButton?.addEventListener('click', previewTowerFx);
 towerResetButton?.addEventListener('click', () => {
@@ -691,9 +762,13 @@ towerResetButton?.addEventListener('click', () => {
 birdDelayInput?.addEventListener('input', () => setBirdFx({ startDelay: Number(birdDelayInput.value) }));
 birdDurationInput?.addEventListener('input', () => setBirdFx({ duration: Number(birdDurationInput.value) }));
 birdCountInput?.addEventListener('input', () => setBirdFx({ count: Number(birdCountInput.value) }));
+birdRadiusInput?.addEventListener('input', () => setBirdFx({ radius: Number(birdRadiusInput.value) }));
+birdSpeedInput?.addEventListener('input', () => setBirdFx({ speed: Number(birdSpeedInput.value) }));
+birdSpreadInput?.addEventListener('input', () => setBirdFx({ spread: Number(birdSpreadInput.value) }));
 birdSizeInput?.addEventListener('input', () => setBirdFx({ size: Number(birdSizeInput.value) }));
 birdOpacityInput?.addEventListener('input', () => setBirdFx({ opacity: Number(birdOpacityInput.value) }));
 birdColorInput?.addEventListener('input', () => setBirdFx({ color: birdColorInput.value }));
+birdModeSelect?.addEventListener('change', () => setBirdFx({ mode: birdModeSelect.value }));
 birdDirectionSelect?.addEventListener('change', () => setBirdFx({ direction: birdDirectionSelect.value }));
 birdEnabledSelect?.addEventListener('change', () => setBirdFx({ enabled: birdEnabledSelect.value === 'on' }));
 birdPreviewButton?.addEventListener('click', previewBirdFx);
