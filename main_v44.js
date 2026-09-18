@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.2a';
+const BUILD_VERSION = 'v5.0.3';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -81,12 +81,11 @@ const phone = new THREE.Group();
 scene.add(phone);
 
 const HALF_DEVICE_WIDTH = 7.89935;
-const FRAMING_STRENGTH = 0.90;
-const OPEN_SCALE = 0.97;
-const OPTICAL_X_START = 0.45;
-const OPTICAL_X_PEAK_PROGRESS = 0.65;
-const OPTICAL_X_END = 0.92;
-const OPTICAL_X_PEAK = 0.65;
+// V5.0.3 Geometry Lock: keep the fixed/right panel anchored in screen space.
+// The old dynamic recenter/scale pass made the tower drift even though its UV
+// coordinate was stable. The device now unfolds leftward from a fixed anchor.
+const FIXED_PANEL_ANCHOR_X = -HALF_DEVICE_WIDTH * 0.5 * 0.90;
+const NO_FX = new URLSearchParams(location.search).has('nofx');
 
 const bend = { value: Math.PI };
 const worldMix = { value: 0 };
@@ -97,6 +96,7 @@ const uLock = { value: 0 };
 const uImpact = { value: 0 };      // 1-frame flash + RGB split @2.15s
 const uPulse = { value: 0 };       // Lv1 tower warm pulse @3.18s
 const uTransActive = { value: 0 }; // blur suppression window during transition
+const uNoFx = { value: NO_FX ? 1 : 0 };
 
 let angle = 0;
 let playing = false;
@@ -114,67 +114,13 @@ const movingShellMeshes = [];
 if (revealSettingsButton) revealSettingsButton.hidden = true;
 if (revealSettingsPopover) revealSettingsPopover.hidden = true;
 const subtitle = document.querySelector('.timeline-title-block span');
-if (subtitle) subtitle.textContent = 'One panorama · original screen shader';
+if (subtitle) subtitle.textContent = NO_FX ? 'No-FX geometry test' : 'Fixed right-panel anchor';
 
 // ---------------------------------------------------------------------------
-// Background controls
+// Stage background is intentionally fixed in the production UI.
 // ---------------------------------------------------------------------------
 
-let backgroundMode = 'solid';
-let backgroundImageUrl = null;
-
-function applyBackground() {
-  const modeButtons = { solid: bgSolidButton, image: bgImageButton, transparent: bgTransparentButton };
-  for (const [mode, button] of Object.entries(modeButtons)) button?.setAttribute('aria-pressed', String(mode === backgroundMode));
-  stageBackground.style.filter = 'none';
-  stageBackground.style.transform = 'none';
-  bgFit.disabled = backgroundMode !== 'image' || !backgroundImageUrl;
-  bgColor.disabled = backgroundMode !== 'solid';
-  if (backgroundMode === 'transparent') {
-    stageBackground.style.background = 'transparent';
-    stageBackground.style.opacity = '0';
-    return;
-  }
-  stageBackground.style.opacity = '1';
-  if (backgroundMode === 'solid') {
-    stageBackground.style.backgroundImage = 'none';
-    stageBackground.style.backgroundColor = bgColor.value;
-    return;
-  }
-  if (!backgroundImageUrl) {
-    stageBackground.style.backgroundImage = 'none';
-    stageBackground.style.backgroundColor = bgColor.value;
-    return;
-  }
-  stageBackground.style.backgroundColor = '#111';
-  stageBackground.style.backgroundImage = `url("${backgroundImageUrl}")`;
-  stageBackground.style.backgroundPosition = 'center';
-  stageBackground.style.backgroundRepeat = 'no-repeat';
-  stageBackground.style.backgroundSize = bgFit.value === 'contain' ? 'contain' : 'cover';
-  if (bgFit.value === 'blur') {
-    stageBackground.style.filter = 'blur(14px)';
-    stageBackground.style.transform = 'scale(1.045)';
-  }
-}
-
-bgSolidButton?.addEventListener('click', () => { backgroundMode = 'solid'; applyBackground(); });
-bgTransparentButton?.addEventListener('click', () => { backgroundMode = 'transparent'; applyBackground(); });
-bgImageButton?.addEventListener('click', () => {
-  if (!backgroundImageUrl) { bgUpload.click(); return; }
-  backgroundMode = 'image'; applyBackground();
-});
-bgUpload?.addEventListener('change', () => {
-  const file = bgUpload.files[0];
-  if (!file) return;
-  if (backgroundImageUrl) URL.revokeObjectURL(backgroundImageUrl);
-  backgroundImageUrl = URL.createObjectURL(file);
-  backgroundMode = 'image';
-  applyBackground();
-  bgUpload.value = '';
-});
-bgFit?.addEventListener('change', applyBackground);
-bgColor?.addEventListener('input', applyBackground);
-applyBackground();
+if (stageBackground) stageBackground.style.background = '#f6f6f3';
 
 // ---------------------------------------------------------------------------
 // World textures — ONE canvas per world, shared by both physical screens.
@@ -362,29 +308,20 @@ function worldMixFromGeometry(g) {
 function updateTimelineUI(progress, mix) {
   const progressPercent = Math.round(progress * 100);
   const worldPercent = Math.round(mix * 100);
-  progressReadout.textContent = `Progress ${progressPercent}%`;
-  angleReadout.textContent = `Angle ${Math.round(angle)}°`;
-  revealReadout.textContent = `World ${worldPercent}%`;
-  revealSummaryValue.textContent = `${worldPercent}%`;
-  strategySummary.textContent = 'World';
+  if (progressReadout) progressReadout.textContent = `${progressPercent}%`;
+  if (angleReadout) angleReadout.textContent = `${Math.round(angle)}°`;
+  if (revealReadout) revealReadout.textContent = `World ${worldPercent}%`;
+  if (revealSummaryValue) revealSummaryValue.textContent = `${worldPercent}%`;
+  if (strategySummary) strategySummary.textContent = NO_FX ? 'No FX' : 'World';
   slider.style.setProperty('--progress', `${progressPercent}%`);
   snapButtons.forEach(button => button.classList.toggle('is-current', Math.abs(angle - Number(button.dataset.snap)) < .6));
 }
 
-function smoothOpticalX(progress) {
-  const p = THREE.MathUtils.clamp(progress, 0, 1);
-  if (p <= OPTICAL_X_START || p >= OPTICAL_X_END) return 0;
-  if (p <= OPTICAL_X_PEAK_PROGRESS) return OPTICAL_X_PEAK * THREE.MathUtils.smoothstep(p, OPTICAL_X_START, OPTICAL_X_PEAK_PROGRESS);
-  return OPTICAL_X_PEAK * (1 - THREE.MathUtils.smoothstep(p, OPTICAL_X_PEAK_PROGRESS, OPTICAL_X_END));
-}
-
-function updateFraming(progress) {
-  const p = THREE.MathUtils.clamp(progress, 0, 1);
-  const foldAngle = (1 - p) * Math.PI;
-  const projectedCenter = p <= .5 ? HALF_DEVICE_WIDTH * .5 : HALF_DEVICE_WIDTH * (1 - Math.cos(foldAngle)) * .5;
-  phone.position.x = -projectedCenter * FRAMING_STRENGTH + smoothOpticalX(p);
-  const lateOpen = THREE.MathUtils.smoothstep(p, .52, 1.0);
-  phone.scale.setScalar(THREE.MathUtils.lerp(1.0, OPEN_SCALE, lateOpen));
+function updateFraming() {
+  // Geometry lock: the fixed/right panel never recenters or rescales.
+  // Only the physical left panel moves around the hinge.
+  phone.position.x = FIXED_PANEL_ANCHOR_X;
+  phone.scale.setScalar(1);
 }
 
 function setPlaying(value) {
@@ -474,12 +411,14 @@ uniform vec4 uiFrame;
 uniform vec2 uiGradient;
 uniform vec3 uiReferenceEye;
 uniform sampler2D transitionTarget;
+uniform float worldMix;
 uniform float uLeak;
 uniform float uCollapse;
 uniform float uLock;
 uniform float uImpact;
 uniform float uPulse;
 uniform float uTransActive;
+uniform float uNoFx;
 varying vec3 vUIPosition;
 
 // V5.0.2 Reveal Direction Fix.
@@ -575,7 +514,8 @@ vec3 screenColor() {
   vec2 uvC = clamp(sourceUV, vec2(0.0), vec2(1.0));
   vec3 colA = textureLod(map, uvC, baseLod).rgb;
   vec3 colB = textureLod(transitionTarget, uvC, baseLod).rgb;
-  vec3 color = mix(colA, colB, stagedReveal(sourceUV, colB)) * coverage.x * coverage.y;
+  float revealAmount = mix(stagedReveal(sourceUV, colB), worldMix, uNoFx);
+  vec3 color = mix(colA, colB, revealAmount) * coverage.x * coverage.y;
   if (radius > 0.0) {
     // Use the same mip level at zero blur, then increase it continuously.
     float lod = max(baseLod, log2(max(1.0, radius)));
@@ -595,7 +535,8 @@ vec3 screenColor() {
         vec2 clampedUV = clamp(sampleUV, vec2(0.0), vec2(1.0));
         vec3 tapA = textureLod(map, clampedUV, lod).rgb;
         vec3 tapB = textureLod(transitionTarget, clampedUV, lod).rgb;
-        color += mix(tapA, tapB, stagedReveal(sampleUV, tapB)) * tapCoverage.x * tapCoverage.y * wx * wy / 256.0;
+        float tapReveal = mix(stagedReveal(sampleUV, tapB), worldMix, uNoFx);
+        color += mix(tapA, tapB, tapReveal) * tapCoverage.x * tapCoverage.y * wx * wy / 256.0;
       }
     }
   }
@@ -603,7 +544,7 @@ vec3 screenColor() {
 
   // Impact @2.15s: one-frame white-red flash + visible RGB split (screen-space
   // only, geometry untouched).
-  if (uImpact > 0.001) {
+  if (uNoFx < 0.5 && uImpact > 0.001) {
     float split = uImpact * 7.0 * uiPixel.x;
     vec2 uvR = clamp(sourceUV + vec2(split, 0.0), vec2(0.0), vec2(1.0));
     vec2 uvB = clamp(sourceUV - vec2(split, 0.0), vec2(0.0), vec2(1.0));
@@ -618,7 +559,7 @@ vec3 screenColor() {
   }
 
   // Lv1 pulse @3.18s: tower-centered warm glow + ~25% response on warm windows.
-  if (uPulse > 0.001) {
+  if (uNoFx < 0.5 && uPulse > 0.001) {
     float tw = towerContentMask(sourceUV, colB);
     float lumC = dot(color, vec3(0.299, 0.587, 0.114));
     float warm = clamp((color.r - color.b) * 2.0, 0.0, 1.0) * smoothstep(0.12, 0.35, lumC);
@@ -701,6 +642,7 @@ try {
           shader.uniforms.uImpact = uImpact;
           shader.uniforms.uPulse = uPulse;
           shader.uniforms.uTransActive = uTransActive;
+          shader.uniforms.uNoFx = uNoFx;
 
           shader.vertexShader = `varying vec3 vUIPosition;\n${shader.vertexShader}`;
           shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
@@ -738,11 +680,12 @@ try {
     movingShellMeshes: movingShellMeshes.length,
     oneCanvasPerWorld: true,
     coverRule: 'original-black-at-open',
-    framing: 'step-3.7.2',
+    framing: 'fixed-right-panel-anchor; no dynamic recenter/scale',
     openEndpointRepair: 'projected-uv -> authored-uv + endpoint coverage lock',
     revealDirection: 'hinge-to-left-moving-panel',
     connectionArtifactGuard: 'valid-panorama-only + no blur bleed',
     towerHighlightGuard: 'content-aware tower mask; no broad ellipse glow',
+    noFxGeometryTest: '?nofx=1',
   });
 
   updateSourceUI();
@@ -775,14 +718,14 @@ function driveRecord(nowMs) {
   const t = (nowMs - recordT0) / 1000;
   const ap = THREE.MathUtils.smoothstep(t, 1.20, 2.15);
   setAngle(ap * 180);
-  uLeak.value = recordStage(t, 1.65, 1.90);
-  uCollapse.value = recordStage(t, 1.90, 2.10);
-  uLock.value = recordStage(t, 2.10, 2.15);
-  uTransActive.value = THREE.MathUtils.smoothstep(t, 1.55, 1.70) * (1 - THREE.MathUtils.smoothstep(t, 2.30, 2.45));
-  uImpact.value = t >= 2.15 && t < 2.23 ? 1 - (t - 2.15) / 0.08 : 0;
-  uPulse.value = t >= 3.18 && t <= 3.98 ? Math.sin(((t - 3.18) / 0.80) * Math.PI) : 0;
-  const rw = uTransActive.value;
-  rim.intensity = 2 + 3.2 * rw;
+  uLeak.value = NO_FX ? 0 : recordStage(t, 1.65, 1.90);
+  uCollapse.value = NO_FX ? 0 : recordStage(t, 1.90, 2.10);
+  uLock.value = NO_FX ? 0 : recordStage(t, 2.10, 2.15);
+  uTransActive.value = NO_FX ? 0 : THREE.MathUtils.smoothstep(t, 1.55, 1.70) * (1 - THREE.MathUtils.smoothstep(t, 2.30, 2.45));
+  uImpact.value = NO_FX ? 0 : (t >= 2.15 && t < 2.23 ? 1 - (t - 2.15) / 0.08 : 0);
+  uPulse.value = NO_FX ? 0 : (t >= 3.18 && t <= 3.98 ? Math.sin(((t - 3.18) / 0.80) * Math.PI) : 0);
+  const rw = NO_FX ? 0 : uTransActive.value;
+  rim.intensity = NO_FX ? 2 : 2 + 3.2 * rw;
   rim.color.setRGB(0.91 + 0.09 * rw, 0.93 - 0.62 * rw, 0.96 - 0.68 * rw);
   document.documentElement.dataset.recordT = t.toFixed(2);
   if (t > 5.6) {
@@ -806,6 +749,7 @@ window.__duo = {
     return {
       angle, worldMix: worldMix.value, ready, recording,
       stages: { leak: uLeak.value, collapse: uCollapse.value, lock: uLock.value },
+      geometryLock: { fixedPanelAnchorX: FIXED_PANEL_ANCHOR_X, noDynamicScale: true, noFx: NO_FX },
       customReady: { ...customReady },
     };
   },
