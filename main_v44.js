@@ -606,10 +606,11 @@ function setAngle(value) {
   if (screens.outer) screens.outer.material.color.setScalar(angle >= 180 ? 0 : 1);
   updateTimelineUI(progress, mix);
   updateFraming(progress);
-  if (QA_ANGLES.some(value => Math.abs(value - angle) < 0.1)) {
-    qaState.currentAngle = QA_ANGLES.find(value => Math.abs(value - angle) < 0.1) ?? qaState.currentAngle;
+  const qaAngle = QA_ANGLES.find(value => Math.abs(value - angle) < 0.1);
+  if (qaAngle !== undefined && qaState.currentAngle !== qaAngle) {
+    qaState.currentAngle = qaAngle;
+    updateQaUI();
   }
-  updateQaUI();
 }
 
 play.addEventListener('click', () => {
