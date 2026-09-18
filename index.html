@@ -215,6 +215,81 @@
             </div>
           </details>
 
+          <details id="export-acceptance-panel" class="edit-panel export-panel">
+            <summary>
+              <span><strong>Export Acceptance</strong><small id="export-acceptance-summary">Load export</small></span>
+              <i aria-hidden="true">⌄</i>
+            </summary>
+            <div class="edit-panel-body export-body">
+              <div class="export-toolbar">
+                <div class="export-format-group">
+                  <span>Target</span>
+                  <div class="segmented" role="group" aria-label="Export acceptance target">
+                    <button type="button" data-export-format="16x9" aria-pressed="true" disabled>16:9</button>
+                    <button type="button" data-export-format="1x1" aria-pressed="false" disabled>1:1</button>
+                    <button type="button" data-export-format="9x16" aria-pressed="false" disabled>9:16</button>
+                  </div>
+                </div>
+                <button id="export-load" class="quiet-button export-load" type="button" disabled>Load Export</button>
+                <button id="export-reset" class="quiet-button" type="button" disabled>Reset QC</button>
+                <input id="export-review-input" type="file" accept="video/mp4,video/webm,video/quicktime,video/*" hidden disabled>
+              </div>
+
+              <div class="export-auto-grid">
+                <div class="export-auto-card">
+                  <span>File</span>
+                  <strong id="export-file-meta">Not loaded</strong>
+                </div>
+                <div class="export-auto-card">
+                  <span>Video</span>
+                  <strong id="export-resolution-meta">Waiting</strong>
+                </div>
+                <div class="export-auto-card">
+                  <span>Auto QC</span>
+                  <strong id="export-auto-meta">Waiting for capture + export</strong>
+                </div>
+              </div>
+
+              <div id="export-review-wrap" class="export-review-wrap" hidden>
+                <video id="export-review-video" controls playsinline preload="metadata"></video>
+                <div class="export-review-actions">
+                  <button id="export-review-hinge" class="quiet-button" type="button" disabled>Review Hinge</button>
+                  <button id="export-review-end" class="quiet-button" type="button" disabled>Review End</button>
+                </div>
+              </div>
+
+              <div class="export-check-list" aria-label="Export acceptance checklist">
+                <div class="export-check-row" data-export-row="motion">
+                  <div><b>Motion Blur</b><span>No compression smear / double shell</span></div>
+                  <button type="button" class="export-verdict" data-export-pass="motion" disabled>Pass</button>
+                  <button type="button" class="export-verdict" data-export-fail="motion" disabled>Fail</button>
+                </div>
+                <div class="export-check-row" data-export-row="hinge">
+                  <div><b>Hinge</b><span>No flash, tear, or seam jump mid-fold</span></div>
+                  <button type="button" class="export-verdict" data-export-pass="hinge" disabled>Pass</button>
+                  <button type="button" class="export-verdict" data-export-fail="hinge" disabled>Fail</button>
+                </div>
+                <div class="export-check-row" data-export-row="endpoint">
+                  <div><b>Open Endpoint</b><span>Final frame stable at exact Open</span></div>
+                  <button type="button" class="export-verdict" data-export-pass="endpoint" disabled>Pass</button>
+                  <button type="button" class="export-verdict" data-export-fail="endpoint" disabled>Fail</button>
+                </div>
+                <div class="export-check-row" data-export-row="crop">
+                  <div><b>Crop Safety</b><span>Device and key image content stay inside target frame</span></div>
+                  <button type="button" class="export-verdict" data-export-pass="crop" disabled>Pass</button>
+                  <button type="button" class="export-verdict" data-export-fail="crop" disabled>Fail</button>
+                </div>
+                <div class="export-check-row" data-export-row="compression">
+                  <div><b>Compression</b><span>RedBlack contrast and fine edges remain readable</span></div>
+                  <button type="button" class="export-verdict" data-export-pass="compression" disabled>Pass</button>
+                  <button type="button" class="export-verdict" data-export-fail="compression" disabled>Fail</button>
+                </div>
+              </div>
+
+              <p class="export-note">Auto QC validates the last deterministic capture plus uploaded export metadata. Visual checks remain manual because platform transcoding cannot be simulated reliably in-browser.</p>
+            </div>
+          </details>
+
         </div>
       </section>
     </div>
