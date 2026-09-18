@@ -50,7 +50,7 @@
 
           <div class="timeline-title-block">
             <strong>Fold</strong>
-            <span>Fixed right-panel anchor</span>
+            <span>Clean crossfade · stable hinge</span>
           </div>
 
           <div class="status-row" aria-live="polite">
@@ -61,6 +61,68 @@
 
         <div class="progress-control">
           <input id="angle" aria-label="Fold progress" type="range" min="0" max="180" value="0" step="0.1" disabled>
+        </div>
+
+        <div class="edit-panels" aria-label="Editing controls">
+          <details id="fold-motion-panel" class="edit-panel">
+            <summary>
+              <span><strong>Fold Motion</strong><small id="fold-total-readout">Total 3.10s</small></span>
+              <i aria-hidden="true">⌄</i>
+            </summary>
+            <div class="edit-panel-body">
+              <div class="motion-grid">
+                <label>
+                  <span>Closed Hold <output id="closed-hold-value">0.45s</output></span>
+                  <input id="closed-hold" type="range" min="0" max="1.5" value="0.45" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Unfold <output id="unfold-duration-value">1.80s</output></span>
+                  <input id="unfold-duration" type="range" min="0.8" max="4" value="1.8" step="0.05" disabled>
+                </label>
+                <label>
+                  <span>Open Hold <output id="open-hold-value">0.85s</output></span>
+                  <input id="open-hold" type="range" min="0" max="2.5" value="0.85" step="0.05" disabled>
+                </label>
+              </div>
+
+              <div class="motion-row">
+                <label class="select-field">
+                  <span>Easing</span>
+                  <select id="fold-easing" disabled>
+                    <option value="smooth">Smooth</option>
+                    <option value="cinematic">Cinematic</option>
+                    <option value="linear">Linear</option>
+                  </select>
+                </label>
+
+                <div class="motion-blur-field">
+                  <span>Motion Blur</span>
+                  <div class="segmented" role="group" aria-label="Motion blur strength">
+                    <button type="button" data-motion-blur="off" aria-pressed="false" disabled>Off</button>
+                    <button type="button" data-motion-blur="natural" aria-pressed="true" disabled>Natural</button>
+                    <button type="button" data-motion-blur="strong" aria-pressed="false" disabled>Strong</button>
+                  </div>
+                </div>
+
+                <button id="fold-motion-reset" class="quiet-button" type="button" disabled>Reset</button>
+              </div>
+            </div>
+          </details>
+
+          <details id="tower-fx-panel" class="edit-panel future-panel">
+            <summary>
+              <span><strong>Tower FX</strong><small>V5.0.7 · Open only</small></span>
+              <i aria-hidden="true">⌄</i>
+            </summary>
+            <div class="edit-panel-body tower-preview">
+              <p>Reserved for Open Hold → Tower Activation. It stays visually inactive in V5.0.6.</p>
+              <div class="tower-future-grid" aria-disabled="true">
+                <label><span>Start Delay</span><input type="range" min="0" max="1" value="0.2" step="0.05" disabled data-future></label>
+                <label><span>Intensity</span><input type="range" min="0" max="1.5" value="1" step="0.05" disabled data-future></label>
+                <label><span>Pulse</span><select disabled data-future><option>Single</option></select></label>
+              </div>
+            </div>
+          </details>
         </div>
       </section>
     </div>
