@@ -1,4 +1,4 @@
-const BUILD_ID = '5.0.8';
+const BUILD_ID = '5.1';
 
 globalThis.__IPHONE_DUO_BUILD__ = BUILD_ID;
 document.documentElement.dataset.build = BUILD_ID;
@@ -6,7 +6,7 @@ document.documentElement.dataset.build = BUILD_ID;
 function installVersionBadge() {
   const badge = document.createElement('div');
   badge.id = 'build-version-badge';
-  badge.textContent = `v${BUILD_ID}`;
+  badge.textContent = `v${BUILD_ID} · BASELINE`;
   Object.assign(badge.style, {
     position: 'fixed',
     top: '14px',
@@ -24,7 +24,7 @@ function installVersionBadge() {
     pointerEvents: 'none',
   });
   document.body.appendChild(badge);
-  document.title = `iPhone Duo · v${BUILD_ID}`;
+  document.title = `iPhone Duo · v${BUILD_ID} · Production Fold Baseline`;
   return badge;
 }
 
@@ -32,14 +32,15 @@ const badge = installVersionBadge();
 const summaryLabel = document.querySelector('.reveal-summary > span:not(.reveal-dot)');
 if (summaryLabel) summaryLabel.textContent = 'World';
 const timelineSubtitle = document.querySelector('.timeline-title-block span');
-if (timelineSubtitle) timelineSubtitle.textContent = 'One panorama · original screen shader';
-console.info('iPhone Duo build', BUILD_ID);
+if (timelineSubtitle) timelineSubtitle.textContent = 'Production Fold Baseline · clean crossfade';
+document.documentElement.dataset.productionBaseline = 'v5.1-production-fold';
+console.info('iPhone Duo production baseline', BUILD_ID);
 
 try {
   // v4.4: single screen-shader authority. No wrappers, no renderer monkey-patches.
   await import(`./motionblur381.js?build=${BUILD_ID}`);
   await import(`./main_v44.js?build=${BUILD_ID}`);
-  badge.textContent = `v${BUILD_ID}`;
+  badge.textContent = `v${BUILD_ID} · BASELINE`;
 } catch (error) {
   console.error('iPhone Duo build failed', error);
   badge.textContent = `v${BUILD_ID} · ERROR`;
