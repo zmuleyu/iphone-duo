@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0';
+const BUILD_VERSION = 'v5.0.1';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -519,6 +519,14 @@ vec3 screenColor() {
   vec2 projected = uiReferenceEye.xy + (vUIPosition.xy - uiReferenceEye.xy) * depth;
   vec2 sourceUV = (projected - uiFrame.xy) / uiFrame.zw;
   #ifdef INNER_UI
+    // V5.0.1 Open Endpoint Repair:
+    // In the final ~0.8° of the unfold, converge from the projected panorama
+    // coordinate back to the authored mesh UV. This affects only the Open
+    // endpoint and prevents sourceUV from overshooting the physical screen
+    // boundary by sub-pixels.
+    float endpointLock = 1.0 - smoothstep(0.0, 0.013962634, abs(foldAngle));
+    vec2 endpointUV = clamp(vMapUv, uiPixel * 0.5, vec2(1.0) - uiPixel * 0.5);
+    sourceUV = mix(sourceUV, endpointUV, endpointLock);
     float progress = clamp(foldAngle / 1.570796327, 0.0, 1.0);
   #else
     // Anchor the image to the projected hinge-side edge of the outer screen.
@@ -544,6 +552,11 @@ vec3 screenColor() {
   float baseLod = log2(max(1.0, max(length(dx), length(dy))));
   vec2 coverage = smoothstep(-aa, aa, sourceUV)
     * (1.0 - smoothstep(vec2(1.0) - aa, vec2(1.0) + aa, sourceUV));
+  #ifdef INNER_UI
+    // At the exact Open endpoint the rounded physical mesh is already the
+    // clipping boundary, so do not fade valid edge texels a second time.
+    coverage = mix(coverage, vec2(1.0), endpointLock);
+  #endif
   vec2 uvC = clamp(sourceUV, vec2(0.0), vec2(1.0));
   vec3 colA = textureLod(map, uvC, baseLod).rgb;
   vec3 colB = textureLod(transitionTarget, uvC, baseLod).rgb;
@@ -707,6 +720,7 @@ try {
     oneCanvasPerWorld: true,
     coverRule: 'original-black-at-open',
     framing: 'step-3.7.2',
+    openEndpointRepair: 'projected-uv -> authored-uv + endpoint coverage lock',
   });
 
   updateSourceUI();
