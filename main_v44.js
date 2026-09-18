@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.6.2';
+const BUILD_VERSION = 'v5.0.6.3';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -43,6 +43,7 @@ const unfoldDurationValue = document.querySelector('#unfold-duration-value');
 const openHoldValue = document.querySelector('#open-hold-value');
 const foldTotalReadout = document.querySelector('#fold-total-readout');
 const foldMotionReset = document.querySelector('#fold-motion-reset');
+const foldPresetButtons = [...document.querySelectorAll('[data-fold-preset]')];
 const customSourceButton = document.querySelector('[data-ui-theme="custom"]');
 const qaPanel = document.querySelector('#master-pair-qa-panel');
 const qaSummary = document.querySelector('#qa-summary');
@@ -146,13 +147,45 @@ const qaState = {
 };
 const movingShellMeshes = [];
 
+const FOLD_PRESETS = Object.freeze({
+  fast: Object.freeze({
+    label: 'Fast Viral',
+    closedHold: 0.18,
+    unfoldDuration: 1.15,
+    openHold: 0.52,
+    easing: 'smooth',
+    motionBlur: 'natural',
+  }),
+  cinematic: Object.freeze({
+    label: 'Cinematic',
+    closedHold: 0.40,
+    unfoldDuration: 1.85,
+    openHold: 0.85,
+    easing: 'cinematic',
+    motionBlur: 'natural',
+  }),
+  demo: Object.freeze({
+    label: 'Slow Demo',
+    closedHold: 0.65,
+    unfoldDuration: 2.80,
+    openHold: 1.20,
+    easing: 'smooth',
+    motionBlur: 'off',
+  }),
+});
+const requestedFoldPreset = QUERY.get('motion');
+const DEFAULT_FOLD_PRESET = Object.hasOwn(FOLD_PRESETS, requestedFoldPreset)
+  ? requestedFoldPreset
+  : 'fast';
 const DEFAULT_FOLD_MOTION = Object.freeze({
-  closedHold: 0.45,
-  unfoldDuration: 1.80,
-  openHold: 0.85,
-  easing: 'smooth',
+  closedHold: FOLD_PRESETS[DEFAULT_FOLD_PRESET].closedHold,
+  unfoldDuration: FOLD_PRESETS[DEFAULT_FOLD_PRESET].unfoldDuration,
+  openHold: FOLD_PRESETS[DEFAULT_FOLD_PRESET].openHold,
+  easing: FOLD_PRESETS[DEFAULT_FOLD_PRESET].easing,
 });
 const foldMotion = { ...DEFAULT_FOLD_MOTION };
+let activeFoldPreset = DEFAULT_FOLD_PRESET;
+let applyingFoldPreset = false;
 
 if (revealSettingsButton) revealSettingsButton.hidden = true;
 if (revealSettingsPopover) revealSettingsPopover.hidden = true;
@@ -539,13 +572,18 @@ function refreshFoldMotionUI() {
   if (closedHoldValue) closedHoldValue.textContent = `${foldMotion.closedHold.toFixed(2)}s`;
   if (unfoldDurationValue) unfoldDurationValue.textContent = `${foldMotion.unfoldDuration.toFixed(2)}s`;
   if (openHoldValue) openHoldValue.textContent = `${foldMotion.openHold.toFixed(2)}s`;
+  const total = foldMotion.closedHold + foldMotion.unfoldDuration + foldMotion.openHold;
   if (foldTotalReadout) {
-    const total = foldMotion.closedHold + foldMotion.unfoldDuration + foldMotion.openHold;
-    foldTotalReadout.textContent = `Total ${total.toFixed(2)}s`;
+    const label = activeFoldPreset ? FOLD_PRESETS[activeFoldPreset].label : 'Custom';
+    foldTotalReadout.textContent = `${label} · ${total.toFixed(2)}s`;
   }
+  foldPresetButtons.forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.foldPreset === activeFoldPreset));
+  });
 }
 
-function setFoldMotion(partial = {}) {
+function setFoldMotion(partial = {}, source = 'manual') {
+  if (source === 'manual') activeFoldPreset = null;
   if (Number.isFinite(partial.closedHold)) {
     foldMotion.closedHold = THREE.MathUtils.clamp(Number(partial.closedHold), 0, 1.5);
     if (closedHoldInput) closedHoldInput.value = String(foldMotion.closedHold);
@@ -565,15 +603,40 @@ function setFoldMotion(partial = {}) {
   refreshFoldMotionUI();
 }
 
+function applyFoldPreset(name, { resetView = true } = {}) {
+  const preset = FOLD_PRESETS[name];
+  if (!preset) return;
+  activeFoldPreset = name;
+  setFoldMotion(preset, 'preset');
+
+  applyingFoldPreset = true;
+  document.querySelector(`[data-motion-blur="${preset.motionBlur}"]`)?.click();
+  applyingFoldPreset = false;
+
+  if (resetView) {
+    setPlaying(false);
+    playbackTime = 0;
+    setAngle(0);
+  }
+  refreshFoldMotionUI();
+}
+
 closedHoldInput?.addEventListener('input', () => setFoldMotion({ closedHold: Number(closedHoldInput.value) }));
 unfoldDurationInput?.addEventListener('input', () => setFoldMotion({ unfoldDuration: Number(unfoldDurationInput.value) }));
 openHoldInput?.addEventListener('input', () => setFoldMotion({ openHold: Number(openHoldInput.value) }));
 foldEasingSelect?.addEventListener('change', () => setFoldMotion({ easing: foldEasingSelect.value }));
-foldMotionReset?.addEventListener('click', () => {
-  setFoldMotion(DEFAULT_FOLD_MOTION);
-  document.querySelector('[data-motion-blur="natural"]')?.click();
+foldPresetButtons.forEach(button => button.addEventListener('click', () => {
+  applyFoldPreset(button.dataset.foldPreset);
+}));
+document.querySelectorAll('[data-motion-blur]').forEach(button => {
+  button.addEventListener('click', () => {
+    if (applyingFoldPreset) return;
+    activeFoldPreset = null;
+    refreshFoldMotionUI();
+  });
 });
-refreshFoldMotionUI();
+foldMotionReset?.addEventListener('click', () => applyFoldPreset(DEFAULT_FOLD_PRESET));
+applyFoldPreset(DEFAULT_FOLD_PRESET, { resetView: false });
 
 function setPlaying(value) {
   playing = value;
@@ -964,7 +1027,8 @@ try {
     connectionArtifactGuard: 'valid-panorama-only + no blur bleed',
     towerHighlightGuard: 'content-aware tower mask; no broad ellipse glow',
     noFxGeometryTest: '?nofx=1',
-    foldMotionControls: 'closedHold + unfoldDuration + openHold + easing + motionBlur',
+    foldMotionControls: 'Fast Viral + Cinematic + Slow Demo presets; manual tuning remains available',
+    foldMotionDefault: `${FOLD_PRESETS[DEFAULT_FOLD_PRESET].label} via ?motion=${DEFAULT_FOLD_PRESET}`,
     masterPairQA: 'source dimension/aspect checks + 0/45/90/135/180 visual verdicts + pair lock',
     towerFxControls: 'removed from production; deferred for separate discussion',
     recordTimeline: 'uses editable Fold Motion timing only',
@@ -1053,6 +1117,7 @@ window.__duo = {
   setWorldMix: value => { worldMixOverride = value === null || value === undefined ? null : Number(value); setAngle(angle); },
   setStages: (leak, collapse, lock) => { uLeak.value = Number(leak); uCollapse.value = Number(collapse); uLock.value = Number(lock); },
   setFoldMotion,
+  setFoldPreset: name => applyFoldPreset(name),
   play: () => {
     if (angle > .1) setAngle(0);
     playbackTime = 0;
@@ -1071,7 +1136,12 @@ window.__duo = {
         endpointSnap: true,
       },
       revealMode: STAGED_REVEAL ? 'staged' : 'clean-crossfade',
-      foldMotion: { ...foldMotion },
+      foldMotion: {
+        ...foldMotion,
+        preset: activeFoldPreset,
+        motionBlur: document.documentElement.dataset.motionBlur || 'natural',
+        total: foldMotion.closedHold + foldMotion.unfoldDuration + foldMotion.openHold,
+      },
       masterPairQA: {
         locked: qaState.locked,
         currentAngle: qaState.currentAngle,
