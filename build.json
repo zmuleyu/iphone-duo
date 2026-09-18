@@ -1,43 +1,43 @@
 {
-  "build": "5.0.6",
-  "baseline": "5.0.5",
-  "milestone": "Fold Motion Polish + Editing Controls",
-  "reveal": "V5.0.4 clean crossfade preserved; staged reveal remains experimental only",
+  "build": "5.0.7",
+  "baseline": "5.0.6",
+  "milestone": "Open Tower Activation",
+  "reveal": "V5.0.4 clean crossfade preserved; staged reveal remains experimental",
   "hingeEndpoint": "V5.0.5 stability preserved",
-  "foldMotionControls": {
-    "collapsible": true,
-    "closedHold": "0.00–1.50s",
-    "unfoldDuration": "0.80–4.00s",
-    "openHold": "0.00–2.50s",
-    "easing": [
-      "Smooth",
-      "Cinematic",
-      "Linear"
-    ],
-    "motionBlur": [
-      "Off",
-      "Natural",
-      "Strong"
-    ],
-    "totalDuration": "live readout",
-    "reset": true
-  },
-  "recording": "uses the same editable fold timing and motion blur mode; no hidden tower event in production",
+  "foldMotion": "V5.0.6 editable Fold Motion controls preserved",
   "towerFx": {
-    "panel": "separate collapsed placeholder",
-    "active": false,
-    "targetVersion": "5.0.7",
-    "activationRule": "Open state only, after Open Hold begins",
-    "legacyExperiment": "?towerfx=legacy",
-    "startGate": "begin V5.0.7 only after V5.0.6 fold playback + 0/45/90/135/180 visual acceptance",
-    "plannedControls": [
-      "Open delay",
-      "Activation duration",
-      "Intensity",
-      "Pulse",
-      "Preview/Reset"
-    ]
+    "architecture": "no independent tower asset; enhancement is derived from RedBlack tower pixels",
+    "scope": "Open state only",
+    "controls": {
+      "openDelay": "0.00–1.00s",
+      "activationDuration": "0.35–2.00s",
+      "intensity": "0–150%",
+      "pulse": [
+        "Single",
+        "Off"
+      ],
+      "preview": true,
+      "reset": true
+    },
+    "sequence": [
+      "Open Delay",
+      "Bottom-to-top structural activation",
+      "Observation deck snap",
+      "Spire rush",
+      "Optional single pulse",
+      "Hero hold"
+    ],
+    "isolation": "tight warm/bright tower-content mask; no intentional sky/city/window animation",
+    "default": {
+      "openDelay": 0.2,
+      "activationDuration": 0.9,
+      "intensity": 1,
+      "pulse": "single"
+    }
   },
-  "displacement": "deferred",
+  "recording": "Tower FX shares the same editable playback/record timeline; full duration includes Tower FX before final Open Hold",
+  "legacyTowerFx": "experimental only via ?towerfx=legacy",
+  "noFx": "?nofx=1 disables Tower FX",
+  "displacement": "still deferred",
   "timestamp": "2026-09-18"
 }
