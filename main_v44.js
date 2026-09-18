@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.4';
+const BUILD_VERSION = 'v5.0.5';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -343,7 +343,12 @@ function setPlaying(value) {
 }
 
 function setAngle(value) {
-  angle = THREE.MathUtils.clamp(value, 0, 180);
+  let nextAngle = THREE.MathUtils.clamp(value, 0, 180);
+  // Endpoint stability: prevent tiny floating-point states from leaving the
+  // screen in a visually half-open / half-closed sampling state.
+  if (nextAngle < 0.1) nextAngle = 0;
+  if (nextAngle > 179.9) nextAngle = 180;
+  angle = nextAngle;
   slider.value = angle;
   bend.value = (180 - angle) / 180 * Math.PI;
   const progress = angle / 180;
@@ -490,12 +495,14 @@ vec3 screenColor() {
   vec2 projected = uiReferenceEye.xy + (vUIPosition.xy - uiReferenceEye.xy) * depth;
   vec2 sourceUV = (projected - uiFrame.xy) / uiFrame.zw;
   #ifdef INNER_UI
-    // V5.0.1 Open Endpoint Repair:
-    // In the final ~0.8° of the unfold, converge from the projected panorama
-    // coordinate back to the authored mesh UV. This affects only the Open
-    // endpoint and prevents sourceUV from overshooting the physical screen
-    // boundary by sub-pixels.
-    float endpointLock = 1.0 - smoothstep(0.0, 0.013962634, abs(foldAngle));
+    // V5.0.5 Hinge / Endpoint Stability:
+    // 1) Keep a very narrow band around the physical hinge tied to authored
+    //    panorama X so the two sides cannot visually shear apart.
+    // 2) Ease into authored UV over the final ~1.2° instead of waiting until
+    //    the last sub-degree, avoiding a visible last-frame correction.
+    float hingeLock = 1.0 - smoothstep(0.006, 0.020, abs(vMapUv.x - 0.5));
+    sourceUV.x = mix(sourceUV.x, vMapUv.x, hingeLock);
+    float endpointLock = 1.0 - smoothstep(0.0, 0.020943951, abs(foldAngle));
     vec2 endpointUV = clamp(vMapUv, uiPixel * 0.5, vec2(1.0) - uiPixel * 0.5);
     sourceUV = mix(sourceUV, endpointUV, endpointLock);
     float progress = clamp(foldAngle / 1.570796327, 0.0, 1.0);
@@ -523,6 +530,11 @@ vec3 screenColor() {
   float baseLod = log2(max(1.0, max(length(dx), length(dy))));
   vec2 coverage = smoothstep(-aa, aa, sourceUV)
     * (1.0 - smoothstep(vec2(1.0) - aa, vec2(1.0) + aa, sourceUV));
+  // Invalid panorama coordinates are never allowed to copy a clamped edge
+  // texel back onto the physical display.
+  float sourceValid = step(0.0, sourceUV.x) * step(sourceUV.x, 1.0)
+    * step(0.0, sourceUV.y) * step(sourceUV.y, 1.0);
+  coverage *= sourceValid;
   #ifdef INNER_UI
     // At the exact Open endpoint the rounded physical mesh is already the
     // clipping boundary, so do not fade valid edge texels a second time.
@@ -699,7 +711,9 @@ try {
     oneCanvasPerWorld: true,
     coverRule: 'original-black-at-open',
     framing: 'fixed-right-panel-anchor; no dynamic recenter/scale',
-    openEndpointRepair: 'projected-uv -> authored-uv + endpoint coverage lock',
+    openEndpointRepair: '1.2deg projected-uv -> authored-uv + endpoint coverage lock',
+    hingeContinuity: 'narrow authored-X lock around panorama midpoint',
+    endpointAngleSnap: '0/180 exact-state snap',
     revealMode: STAGED_REVEAL ? 'experimental-staged (?reveal=staged)' : 'production-clean-crossfade',
     connectionArtifactGuard: 'valid-panorama-only + no blur bleed',
     towerHighlightGuard: 'content-aware tower mask; no broad ellipse glow',
@@ -771,7 +785,13 @@ window.__duo = {
     return {
       angle, worldMix: worldMix.value, ready, recording,
       stages: { leak: uLeak.value, collapse: uCollapse.value, lock: uLock.value },
-      geometryLock: { fixedPanelAnchorX: FIXED_PANEL_ANCHOR_X, noDynamicScale: true, noFx: NO_FX },
+      geometryLock: {
+        fixedPanelAnchorX: FIXED_PANEL_ANCHOR_X,
+        noDynamicScale: true,
+        noFx: NO_FX,
+        hingeLock: true,
+        endpointSnap: true,
+      },
       revealMode: STAGED_REVEAL ? 'staged' : 'clean-crossfade',
       customReady: { ...customReady },
     };
