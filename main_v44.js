@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.6.3';
+const BUILD_VERSION = 'v5.0.7';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -56,6 +56,22 @@ const qaAngleButtons = [...document.querySelectorAll('[data-qa-angle]')];
 const qaPassButtons = [...document.querySelectorAll('[data-qa-pass]')];
 const qaFailButtons = [...document.querySelectorAll('[data-qa-fail]')];
 const qaRows = [...document.querySelectorAll('[data-qa-row]')];
+const recordingPanel = document.querySelector('#recording-editing-panel');
+const recordingSummary = document.querySelector('#recording-summary');
+const recordFormatButtons = [...document.querySelectorAll('[data-record-format]')];
+const recordFpsButtons = [...document.querySelectorAll('[data-record-fps]')];
+const recordGuideButtons = [...document.querySelectorAll('[data-record-guide]')];
+const enterRecordingModeButton = document.querySelector('#enter-recording-mode');
+const recordSafeFrame = document.querySelector('#record-safe-frame');
+const recordSafeFrameLabel = document.querySelector('#record-safe-frame-label');
+const recordHud = document.querySelector('#record-hud');
+const recordModeStatus = document.querySelector('#record-mode-status');
+const recordModeMeta = document.querySelector('#record-mode-meta');
+const recordModeTime = document.querySelector('#record-mode-time');
+const recordStartButton = document.querySelector('#record-start');
+const recordReplayButton = document.querySelector('#record-replay');
+const recordResetButton = document.querySelector('#record-reset');
+const recordExitButton = document.querySelector('#record-exit');
 
 const stageBackground = document.querySelector('#stage-background');
 const bgSolidButton = document.querySelector('#bg-solid');
@@ -135,7 +151,23 @@ let uiTheme = 'wallpaper';
 let worldMixOverride = null;
 let recording = false;
 let recordT0 = 0;
+let recordFrameIndex = 0;
+let recordHasRun = false;
 const RECORD_AUTO = QUERY.has('record');
+const RECORDING_MODE_AUTO = RECORD_AUTO || QUERY.has('studio');
+const RECORD_FORMATS = Object.freeze({
+  '16x9': '16:9',
+  '1x1': '1:1',
+  '9x16': '9:16',
+});
+const requestedRecordFormat = QUERY.get('format');
+let recordFormat = Object.hasOwn(RECORD_FORMATS, requestedRecordFormat)
+  ? requestedRecordFormat
+  : '16x9';
+const requestedRecordFps = Number(QUERY.get('fps'));
+let recordFps = requestedRecordFps === 30 ? 30 : 60;
+let recordGuide = QUERY.get('guide') !== 'off';
+let recordingMode = false;
 const screens = {};
 const customReady = { reality: false, redblack: false };
 const sourceMeta = { reality: null, redblack: null };
@@ -568,11 +600,15 @@ function foldEase(progress) {
   return p * p * (3 - 2 * p);
 }
 
+function foldSequenceDuration() {
+  return foldMotion.closedHold + foldMotion.unfoldDuration + foldMotion.openHold;
+}
+
 function refreshFoldMotionUI() {
   if (closedHoldValue) closedHoldValue.textContent = `${foldMotion.closedHold.toFixed(2)}s`;
   if (unfoldDurationValue) unfoldDurationValue.textContent = `${foldMotion.unfoldDuration.toFixed(2)}s`;
   if (openHoldValue) openHoldValue.textContent = `${foldMotion.openHold.toFixed(2)}s`;
-  const total = foldMotion.closedHold + foldMotion.unfoldDuration + foldMotion.openHold;
+  const total = foldSequenceDuration();
   if (foldTotalReadout) {
     const label = activeFoldPreset ? FOLD_PRESETS[activeFoldPreset].label : 'Custom';
     foldTotalReadout.textContent = `${label} · ${total.toFixed(2)}s`;
@@ -580,6 +616,7 @@ function refreshFoldMotionUI() {
   foldPresetButtons.forEach(button => {
     button.setAttribute('aria-pressed', String(button.dataset.foldPreset === activeFoldPreset));
   });
+  updateRecordingUI();
 }
 
 function setFoldMotion(partial = {}, source = 'manual') {
@@ -637,6 +674,132 @@ document.querySelectorAll('[data-motion-blur]').forEach(button => {
 });
 foldMotionReset?.addEventListener('click', () => applyFoldPreset(DEFAULT_FOLD_PRESET));
 applyFoldPreset(DEFAULT_FOLD_PRESET, { resetView: false });
+
+function updateRecordingTime(current = 0, total = foldSequenceDuration()) {
+  if (recordModeTime) recordModeTime.textContent = `${current.toFixed(2)} / ${total.toFixed(2)}s`;
+}
+
+function recordingPrerequisitesReady() {
+  return ready
+    && customReady.reality
+    && customReady.redblack
+    && masterPairCheck().pass;
+}
+
+function updateRecordingUI() {
+  document.documentElement.dataset.recordFormat = recordFormat;
+  document.documentElement.dataset.recordingGuide = recordGuide ? 'on' : 'off';
+
+  recordFormatButtons.forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.recordFormat === recordFormat));
+  });
+  recordFpsButtons.forEach(button => {
+    button.setAttribute('aria-pressed', String(Number(button.dataset.recordFps) === recordFps));
+  });
+  recordGuideButtons.forEach(button => {
+    button.setAttribute('aria-pressed', String((button.dataset.recordGuide === 'on') === recordGuide));
+  });
+
+  const presetLabel = activeFoldPreset ? FOLD_PRESETS[activeFoldPreset].label : 'Custom';
+  if (recordingSummary) recordingSummary.textContent = `${RECORD_FORMATS[recordFormat]} · ${recordFps} fps`;
+  if (recordSafeFrameLabel) recordSafeFrameLabel.textContent = `${RECORD_FORMATS[recordFormat]} SAFE FRAME`;
+  if (recordModeMeta) recordModeMeta.textContent = `${RECORD_FORMATS[recordFormat]} · ${recordFps} fps · ${presetLabel}`;
+
+  if (recordModeStatus) {
+    recordModeStatus.textContent = recording
+      ? 'Recording'
+      : recordHasRun
+        ? 'Complete'
+        : 'Ready';
+  }
+
+  if (enterRecordingModeButton) {
+    enterRecordingModeButton.disabled = !recordingPrerequisitesReady();
+  }
+  if (recordStartButton) recordStartButton.disabled = !ready || recording;
+  if (recordReplayButton) recordReplayButton.disabled = !ready || recording || !recordHasRun;
+  if (recordResetButton) recordResetButton.disabled = !ready;
+  if (recordExitButton) recordExitButton.disabled = !ready;
+
+  if (recordSafeFrame) recordSafeFrame.hidden = !recordingMode;
+  if (recordHud) recordHud.hidden = !recordingMode;
+
+  updateRecordingTime(
+    Number(document.documentElement.dataset.recordT || 0),
+    foldSequenceDuration(),
+  );
+}
+
+function setRecordFormat(value) {
+  if (!Object.hasOwn(RECORD_FORMATS, value) || recording) return;
+  recordFormat = value;
+  updateRecordingUI();
+}
+
+function setRecordFps(value) {
+  const next = Number(value);
+  if (![30, 60].includes(next) || recording) return;
+  recordFps = next;
+  updateRecordingUI();
+}
+
+function setRecordGuide(value) {
+  if (recording) return;
+  recordGuide = Boolean(value);
+  updateRecordingUI();
+}
+
+function setRecordingMode(value) {
+  recordingMode = Boolean(value);
+  if (recordingMode) {
+    document.documentElement.dataset.recordingMode = '1';
+    setPlaying(false);
+    recording = false;
+    recordHasRun = false;
+    playbackTime = 0;
+    setAngle(0);
+    delete document.documentElement.dataset.recordDone;
+    delete document.documentElement.dataset.recordT;
+    delete document.documentElement.dataset.recordFrame;
+    delete document.documentElement.dataset.recordingActive;
+  } else {
+    recording = false;
+    document.documentElement.removeAttribute('data-recording-mode');
+    document.documentElement.removeAttribute('data-recording-active');
+    delete document.documentElement.dataset.recordT;
+    delete document.documentElement.dataset.recordFrame;
+    delete document.documentElement.dataset.recordDone;
+    setPlaying(false);
+    playbackTime = 0;
+    setAngle(0);
+  }
+  updateRecordingUI();
+}
+
+function resetRecordingSession() {
+  recording = false;
+  recordHasRun = false;
+  recordFrameIndex = 0;
+  document.documentElement.removeAttribute('data-recording-active');
+  delete document.documentElement.dataset.recordT;
+  delete document.documentElement.dataset.recordFrame;
+  delete document.documentElement.dataset.recordDone;
+  delete document.documentElement.dataset.recordDuration;
+  setPlaying(false);
+  playbackTime = 0;
+  setAngle(0);
+  updateRecordingUI();
+}
+
+recordFormatButtons.forEach(button => button.addEventListener('click', () => setRecordFormat(button.dataset.recordFormat)));
+recordFpsButtons.forEach(button => button.addEventListener('click', () => setRecordFps(button.dataset.recordFps)));
+recordGuideButtons.forEach(button => button.addEventListener('click', () => setRecordGuide(button.dataset.recordGuide === 'on')));
+enterRecordingModeButton?.addEventListener('click', () => setRecordingMode(true));
+recordStartButton?.addEventListener('click', () => startRecord());
+recordReplayButton?.addEventListener('click', () => startRecord());
+recordResetButton?.addEventListener('click', resetRecordingSession);
+recordExitButton?.addEventListener('click', () => setRecordingMode(false));
+updateRecordingUI();
 
 function setPlaying(value) {
   playing = value;
@@ -1029,6 +1192,8 @@ try {
     noFxGeometryTest: '?nofx=1',
     foldMotionControls: 'Fast Viral + Cinematic + Slow Demo presets; manual tuning remains available',
     foldMotionDefault: `${FOLD_PRESETS[DEFAULT_FOLD_PRESET].label} via ?motion=${DEFAULT_FOLD_PRESET}`,
+    recordingEditingMode: 'clean UI + 16:9/1:1/9:16 safe frames + 30/60fps deterministic record clock',
+    recordingQueries: '?studio=1&format=16x9|1x1|9x16&fps=30|60; ?record=1 auto-starts',
     masterPairQA: 'source dimension/aspect checks + 0/45/90/135/180 visual verdicts + pair lock',
     towerFxControls: 'removed from production; deferred for separate discussion',
     recordTimeline: 'uses editable Fold Motion timing only',
@@ -1042,6 +1207,8 @@ try {
   setPlaying(false);
   setAngle(0);
   updateQaUI();
+  updateRecordingUI();
+  if (RECORDING_MODE_AUTO) setRecordingMode(true);
   if (RECORD_AUTO) startRecord();
 } catch (error) {
   alert('Unable to load the model. Refresh the page to try again.');
@@ -1055,18 +1222,28 @@ function recordStage(t, a, b) {
 
 function startRecord() {
   recordT0 = performance.now();
+  recordFrameIndex = 0;
+  recordHasRun = false;
   recording = true;
   setPlaying(false);
   setAngle(0);
+  document.documentElement.dataset.recordingActive = '1';
+  document.documentElement.dataset.recordFps = String(recordFps);
+  document.documentElement.dataset.recordFormat = recordFormat;
+  document.documentElement.dataset.recordGuide = recordGuide ? 'on' : 'off';
   delete document.documentElement.dataset.recordDone;
   delete document.documentElement.dataset.recordT;
-  delete document.documentElement.dataset.recordDuration;
+  delete document.documentElement.dataset.recordFrame;
+  document.documentElement.dataset.recordDuration = foldSequenceDuration().toFixed(2);
+  updateRecordingUI();
 }
 
 // Lv3 record timeline (case-study §6): real fold drives geometry, three stage
 // uniforms drive the world hand-off on their own synced schedule.
 function driveRecord(nowMs) {
-  const t = (nowMs - recordT0) / 1000;
+  const rawT = (nowMs - recordT0) / 1000;
+  recordFrameIndex = Math.max(0, Math.floor(rawT * recordFps + 1e-6));
+  const t = recordFrameIndex / recordFps;
   const foldStart = foldMotion.closedHold;
   const foldEnd = foldStart + foldMotion.unfoldDuration;
   const sequenceEnd = foldEnd + foldMotion.openHold;
@@ -1098,17 +1275,23 @@ function driveRecord(nowMs) {
   const rw = STAGED_REVEAL ? uTransActive.value : 0;
   rim.intensity = 2 + 3.2 * rw;
   rim.color.setRGB(0.91 + 0.09 * rw, 0.93 - 0.62 * rw, 0.96 - 0.68 * rw);
-  document.documentElement.dataset.recordT = t.toFixed(2);
-  document.documentElement.dataset.recordDuration = sequenceEnd.toFixed(2);
+  document.documentElement.dataset.recordT = t.toFixed(3);
+  document.documentElement.dataset.recordFrame = String(recordFrameIndex);
+  document.documentElement.dataset.recordDuration = sequenceEnd.toFixed(3);
+  updateRecordingTime(Math.min(t, sequenceEnd), sequenceEnd);
 
-  if (t > sequenceEnd + 0.05) {
+  if (rawT > sequenceEnd + (1 / recordFps)) {
     recording = false;
+    recordHasRun = true;
     uImpact.value = 0;
     uPulse.value = 0;
     uTransActive.value = 0;
     rim.intensity = 2;
     rim.color.setHex(0xe8edf5);
     document.documentElement.dataset.recordDone = '1';
+    document.documentElement.removeAttribute('data-recording-active');
+    setAngle(180);
+    updateRecordingUI();
   }
 }
 
@@ -1118,6 +1301,10 @@ window.__duo = {
   setStages: (leak, collapse, lock) => { uLeak.value = Number(leak); uCollapse.value = Number(collapse); uLock.value = Number(lock); },
   setFoldMotion,
   setFoldPreset: name => applyFoldPreset(name),
+  setRecordingMode,
+  setRecordFormat,
+  setRecordFps,
+  resetRecordingSession,
   play: () => {
     if (angle > .1) setAngle(0);
     playbackTime = 0;
@@ -1140,7 +1327,16 @@ window.__duo = {
         ...foldMotion,
         preset: activeFoldPreset,
         motionBlur: document.documentElement.dataset.motionBlur || 'natural',
-        total: foldMotion.closedHold + foldMotion.unfoldDuration + foldMotion.openHold,
+        total: foldSequenceDuration(),
+      },
+      recordingMode: {
+        active: recordingMode,
+        recording,
+        hasRun: recordHasRun,
+        format: recordFormat,
+        fps: recordFps,
+        guide: recordGuide,
+        frame: recordFrameIndex,
       },
       masterPairQA: {
         locked: qaState.locked,
