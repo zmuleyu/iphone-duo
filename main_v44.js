@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.1';
+const BUILD_VERSION = 'v5.0.2';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -482,15 +482,20 @@ uniform float uPulse;
 uniform float uTransActive;
 varying vec3 vUIPosition;
 
-// Hinge-centered organic leak gradient (panorama space; hinge at u=0.5).
+// V5.0.2 Reveal Direction Fix.
+// Physical unfolding exposes the moving INNER LEFT half from the hinge (u≈0.5)
+// toward the left edge (u=0). The leak therefore propagates hinge -> left only;
+// it no longer grows symmetrically onto the fixed right half.
 float leakPattern(vec2 uv) {
   float center = 0.5
     + 0.012 * sin(uv.y * 23.0)
     + 0.020 * sin(uv.y * 57.0 + 1.7)
     + 0.014 * sin(uv.y * 91.0 + 4.2);
-  float g = clamp(1.0 - abs(uv.x - center) / 0.52, 0.0, 1.0);
+  float leftDistance = clamp((center - uv.x) / max(center, 0.001), 0.0, 1.0);
+  float g = 1.0 - leftDistance;
+  float movingHalf = step(uv.x, center + 0.002);
   float j = fract(sin(dot(floor(uv * vec2(220.0, 160.0)), vec2(12.9898, 78.233))) * 43758.5453);
-  return clamp(g + (j - 0.5) * 0.10, 0.0, 1.0);
+  return clamp(g + (j - 0.5) * 0.10, 0.0, 1.0) * movingHalf;
 }
 
 // Tokyo Tower anchor measured on the final B asset (2670x1878).
@@ -721,6 +726,7 @@ try {
     coverRule: 'original-black-at-open',
     framing: 'step-3.7.2',
     openEndpointRepair: 'projected-uv -> authored-uv + endpoint coverage lock',
+    revealDirection: 'hinge-to-left-moving-panel',
   });
 
   updateSourceUI();
