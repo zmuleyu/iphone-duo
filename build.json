@@ -1,59 +1,47 @@
 {
-  "build": "5.0.7",
-  "baseline": "5.0.6.3",
-  "milestone": "Recording / Editing Mode",
+  "build": "5.0.8",
+  "baseline": "5.0.7",
+  "milestone": "Export Acceptance",
   "kept": [
     "Reality + RedBlack two-source architecture",
     "V5.0.4 clean crossfade",
     "V5.0.5 hinge / endpoint stability",
     "V5.0.6.2 Master Pair QA",
     "V5.0.6.3 Fold Motion presets",
+    "V5.0.7 Recording / Editing Mode",
     "Tower and Bird effects removed"
   ],
-  "recordingEditingMode": {
-    "cleanMode": "Entering Recording Mode hides development controls, GitHub link and build badge.",
-    "safeFrames": [
+  "exportAcceptance": {
+    "targets": [
       "16:9",
       "1:1",
       "9:16"
     ],
-    "safeFrameBehavior": "Guide is visible while composing and automatically hidden during active recording.",
-    "frameRates": [
-      30,
-      60
+    "localReview": "Load a locally exported MP4/WebM/QuickTime file directly in-browser for metadata and visual review.",
+    "automaticChecks": [
+      "Last deterministic capture exists for selected format",
+      "Capture frame clock within ±2 terminal frames",
+      "Capture ends at exact 180° Open endpoint",
+      "Master Pair geometry passed at capture",
+      "Export aspect ratio within 1.5% of target",
+      "Export duration within max(0.35s, 4/fps) of deterministic capture",
+      "Resolution warning when shortest side is below 720px"
     ],
-    "deterministicClock": "Record timeline is quantized to the selected 30/60 fps frame clock.",
-    "controls": [
-      "Start",
-      "Replay",
-      "Reset",
-      "Exit"
+    "manualChecks": [
+      "Motion Blur — no compression smear or double shell",
+      "Hinge — no flash, tear, or seam jump",
+      "Open Endpoint — final frame remains stable",
+      "Crop Safety — device and key content remain inside target",
+      "Compression — RedBlack contrast and fine edges remain readable"
     ],
-    "prerequisites": "Manual entry requires loaded Reality + RedBlack masters and automatic Master Pair geometry PASS.",
-    "foldMotion": "Uses the exact active Fast Viral / Cinematic / Slow Demo / Custom timing.",
-    "urlControls": [
-      "?studio=1",
-      "?record=1",
-      "?format=16x9|1x1|9x16",
-      "?fps=30|60",
-      "?guide=off",
-      "?motion=fast|cinematic|demo"
+    "reviewHelpers": [
+      "Review Hinge jumps exported video to mid-fold",
+      "Review End jumps to final Open hold"
     ],
-    "automationDatasets": [
-      "data-record-t",
-      "data-record-frame",
-      "data-record-duration",
-      "data-record-fps",
-      "data-record-format",
-      "data-record-done"
-    ]
+    "acceptanceRule": "EXPORT PASS requires automatic QC pass plus 5/5 manual visual PASS.",
+    "formatIsolation": "16:9, 1:1 and 9:16 acceptance states are tracked independently.",
+    "automationDataset": "html[data-export-acceptance=pass|fail|pending]"
   },
-  "default": {
-    "motion": "Fast Viral",
-    "format": "16:9",
-    "fps": 60,
-    "guide": true
-  },
-  "note": "This release adds capture/editing workflow only. No reveal art, source master, Tower, Bird, or displacement changes.",
+  "note": "Platform transcoding itself is not simulated; compression quality remains a manual acceptance item after reviewing the actual exported/transcoded clip.",
   "timestamp": "2026-09-18"
 }
