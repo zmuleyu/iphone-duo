@@ -1,13 +1,13 @@
 {
-  "build": "6.1",
-  "baseline": "6.0.1",
-  "milestone": "Clean Hero (graphic master v2, single tower glow)",
+  "build": "6.2",
+  "baseline": "6.1",
+  "milestone": "Spatial Reveal + Real Shell",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "master B v2: halo/smoke crushed, sky pure gradient, city lights -70%, lattice-only protection",
-    "tower boost 0.55->0.35 (single steady glow)",
-    "finals vignette PI/6->PI/10"
+    "record reveal -> left-to-right spatial wavefront (uRevealFront), preview untouched",
+    "tower boost off in record (pocket flip is the beat)",
+    "record bezel sweep off, lock pop halved (real titanium shell)"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",

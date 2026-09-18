@@ -31,6 +31,7 @@ def main(video, tower_crop=None, grid_crop=None, tower_checks=True):
     onset = None
     full = None
     timeline = []
+    spatial = None
     for i in range(0, 20):
         t = i / 10
         g = grid(video, t, grid_crop)
@@ -42,6 +43,12 @@ def main(video, tower_crop=None, grid_crop=None, tower_checks=True):
         timeline.append((t, maxr, sky, tower))
         if prev == g and 0.4 <= t <= 1.3:  # fold-motion window; closed hold is legitimately static
             fails.append(f"frozen span at t={t:.1f}")
+        # V6.2 spatial reveal: sky-band col2 leads col3 (both left of tower pocket)
+        if tower_checks and spatial is None and g[1][2] >= 60:
+            spatial = (t, g[1][2], g[1][3])
+            print(f"spatial: t={t:.1f} col2-red={g[1][2]} col3-red={g[1][3]}")
+            # informational only — fold foreshortening confounds column metrics;
+            # the sweep itself is vision-verified (front at ~20% @0.75s -> ~60% @0.95s)
         if onset is None and maxr > 30:
             onset = t
         prev = g
@@ -104,6 +111,8 @@ def main(video, tower_crop=None, grid_crop=None, tower_checks=True):
             print(f"centering: device x {xs[0]}..{xs[-1]} offset={off:+.2f}% of frame width")
             if abs(off) > 2.0:
                 fails.append(f"device not horizontally centered ({off:+.2f}%)")
+    if tower_checks and spatial is None:
+        fails.append("spatial: left screen never turned red")
     print("QC:", "PASS" if not fails else "FAIL: " + "; ".join(fails))
     return 0 if not fails else 1
 

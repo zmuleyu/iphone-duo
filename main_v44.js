@@ -189,7 +189,8 @@ const uUseStagedReveal = { value: STAGED_REVEAL ? 1 : 0 };
 // the record path so panels read rigid. Both are identity in preview.
 const uTowerMix = { value: 0 };
 const uFoldBlurScale = { value: 1 };
-const uTowerBoost = { value: 0 }; // V5.9: record-only hero glow at open-complete
+const uTowerBoost = { value: 0 }; // V5.9: hero glow (V6.2: disabled in record — pocket flip IS the beat)
+const uRevealFront = { value: -1 }; // V6.2: spatial left->right wavefront (record drives; -1 = off)
 
 let angle = 0;
 let playing = false;
@@ -1410,6 +1411,7 @@ uniform float uUseStagedReveal;
 uniform float uTowerMix;
 uniform float uFoldBlurScale;
 uniform float uTowerBoost;
+uniform float uRevealFront;
 varying vec3 vUIPosition;
 
 // V5.0.2 Reveal Direction Fix.
@@ -1469,7 +1471,12 @@ float activeReveal(vec2 uv, vec3 bCol) {
 // to the background phase. Identity when uTowerMix == worldMix (preview).
 float finalReveal(vec2 uv, vec3 bCol) {
   float r = activeReveal(uv, bCol);
-  if (uUseStagedReveal < 0.5) r = mix(r, uTowerMix, towerMask(uv));  // V6.0: whole tower region holds Reality
+  if (uUseStagedReveal < 0.5) {
+    // V6.2: spatial reveal — the world transforms left->right following the
+    // opening panel, replacing the global crossfade on the record path.
+    if (uRevealFront >= 0.0) r = 1.0 - smoothstep(uRevealFront - 0.12, uRevealFront, uv.x);
+    r = mix(r, uTowerMix, towerMask(uv));  // V6.0: whole tower region holds Reality
+  }
   return r;
 }
 
@@ -1666,6 +1673,7 @@ try {
           shader.uniforms.uTowerMix = uTowerMix;
           shader.uniforms.uFoldBlurScale = uFoldBlurScale;
           shader.uniforms.uTowerBoost = uTowerBoost;
+    shader.uniforms.uRevealFront = uRevealFront;
 
           shader.vertexShader = `varying vec3 vUIPosition;\n${shader.vertexShader}`;
           shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
@@ -1913,7 +1921,10 @@ function driveRecord(nowMs) {
   const foldActive = rawFold > 0 && rawFold < 1;
   worldMix.value = smoothRange(recAngle, 25, 150);
   uTowerMix.value = smoothRange(t, foldEnd + 0.05, foldEnd + 0.35);
-  uTowerBoost.value = smoothRange(t, foldEnd - 0.05, foldEnd + 0.35);
+  uTowerBoost.value = 0;              // V6.2: no artificial tower glow
+  uRevealFront.value = easedFold * 1.12; // V6.2: L->R wavefront (0..1.12 covers uv 0..1 + soft edge)
+  uBezel.value = 0;                   // V6.2: real titanium shell — no sweep light in exports
+  if (uBezelPop.value > 0) uBezelPop.value *= 0.5; // lock pop kept subtle
   uFoldBlurScale.value = 0.35;
   if (foldActive) uBezel.value *= 0.35;  // V6.0: soften hinge strip mid-fold (pop untouched)
   // V5.8: micro push-in across the open hold so the static plate stays alive
