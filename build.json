@@ -1,8 +1,12 @@
 {
-  "build": "5.0",
-  "transition": "lv3-staged-reveal (red-leak / black-collapse / yellow-lock)",
-  "leftPanelBlur": "original-inner-gradient",
-  "timing": "record-timeline+geometry-driven-manual",
+  "build": "5.0.1",
+  "baseline": "5.0",
+  "baselineCommit": "5a2391b2f4357e332aa221f21dc96544ec916524",
+  "transition": "lv3-staged-reveal (unchanged)",
+  "leftPanelBlur": "original-inner-gradient (unchanged)",
+  "timing": "record-timeline+geometry-driven-manual (unchanged)",
+  "repair": "open-endpoint-authored-uv-lock + edge-coverage-lock",
+  "scope": "Open Endpoint Repair only",
   "cacheMode": "no-store-development",
-  "timestamp": "2026-09-18T12:05:00+08:00"
+  "timestamp": "2026-09-18"
 }
