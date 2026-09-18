@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.6.1';
+const BUILD_VERSION = 'v5.0.6.2';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -43,6 +43,18 @@ const unfoldDurationValue = document.querySelector('#unfold-duration-value');
 const openHoldValue = document.querySelector('#open-hold-value');
 const foldTotalReadout = document.querySelector('#fold-total-readout');
 const foldMotionReset = document.querySelector('#fold-motion-reset');
+const customSourceButton = document.querySelector('[data-ui-theme="custom"]');
+const qaPanel = document.querySelector('#master-pair-qa-panel');
+const qaSummary = document.querySelector('#qa-summary');
+const qaRealityMeta = document.querySelector('#qa-reality-meta');
+const qaRedBlackMeta = document.querySelector('#qa-redblack-meta');
+const qaPairMeta = document.querySelector('#qa-pair-meta');
+const qaLockPairButton = document.querySelector('#qa-lock-pair');
+const qaResetButton = document.querySelector('#qa-reset');
+const qaAngleButtons = [...document.querySelectorAll('[data-qa-angle]')];
+const qaPassButtons = [...document.querySelectorAll('[data-qa-pass]')];
+const qaFailButtons = [...document.querySelectorAll('[data-qa-fail]')];
+const qaRows = [...document.querySelectorAll('[data-qa-row]')];
 
 const stageBackground = document.querySelector('#stage-background');
 const bgSolidButton = document.querySelector('#bg-solid');
@@ -125,6 +137,13 @@ let recordT0 = 0;
 const RECORD_AUTO = QUERY.has('record');
 const screens = {};
 const customReady = { reality: false, redblack: false };
+const sourceMeta = { reality: null, redblack: null };
+const QA_ANGLES = Object.freeze([0, 45, 90, 135, 180]);
+const qaState = {
+  locked: false,
+  currentAngle: 0,
+  verdicts: Object.fromEntries(QA_ANGLES.map(value => [value, null])),
+};
 const movingShellMeshes = [];
 
 const DEFAULT_FOLD_MOTION = Object.freeze({
@@ -263,19 +282,127 @@ async function decodeFile(file) {
   finally { URL.revokeObjectURL(url); }
 }
 
+function metaLabel(meta) {
+  if (!meta) return 'Not loaded';
+  return `${meta.width}×${meta.height} · ${meta.ratio.toFixed(4)}`;
+}
+
+function masterPairCheck() {
+  const reality = sourceMeta.reality;
+  const redblack = sourceMeta.redblack;
+  if (!reality || !redblack) {
+    return { ready: false, pass: false, sameDimensions: false, ratioDelta: null, targetDelta: null, text: 'Waiting' };
+  }
+
+  const targetRatio = WORLD_WIDTH / WORLD_HEIGHT;
+  const ratioDelta = Math.abs(reality.ratio - redblack.ratio) / Math.max(reality.ratio, 1e-6);
+  const targetDelta = Math.max(
+    Math.abs(reality.ratio - targetRatio) / targetRatio,
+    Math.abs(redblack.ratio - targetRatio) / targetRatio,
+  );
+  const sameDimensions = reality.width === redblack.width && reality.height === redblack.height;
+  const ratioCompatible = ratioDelta <= 0.0015;
+  const targetCompatible = targetDelta <= 0.005;
+  const pass = sameDimensions && ratioCompatible && targetCompatible;
+
+  let text = 'Geometry OK';
+  if (!sameDimensions) text = 'Dimensions differ';
+  else if (!ratioCompatible) text = 'Aspect mismatch';
+  else if (!targetCompatible) text = 'Master ratio mismatch';
+
+  return { ready: true, pass, sameDimensions, ratioDelta, targetDelta, text };
+}
+
+function resetQaVerdicts() {
+  QA_ANGLES.forEach(value => { qaState.verdicts[value] = null; });
+}
+
+function updateQaUI() {
+  if (qaRealityMeta) qaRealityMeta.textContent = metaLabel(sourceMeta.reality);
+  if (qaRedBlackMeta) qaRedBlackMeta.textContent = metaLabel(sourceMeta.redblack);
+
+  const pair = masterPairCheck();
+  if (qaPairMeta) {
+    qaPairMeta.textContent = pair.ready
+      ? pair.pass
+        ? `PASS · ${sourceMeta.reality.width}×${sourceMeta.reality.height}`
+        : pair.text
+      : 'Waiting';
+  }
+
+  const bothLoaded = customReady.reality && customReady.redblack;
+  const passCount = QA_ANGLES.filter(value => qaState.verdicts[value] === 'pass').length;
+  const failCount = QA_ANGLES.filter(value => qaState.verdicts[value] === 'fail').length;
+
+  qaRows.forEach(row => {
+    const value = Number(row.dataset.qaRow);
+    const verdict = qaState.verdicts[value];
+    row.classList.toggle('is-current', Math.abs(qaState.currentAngle - value) < 0.1);
+    row.classList.toggle('is-pass', verdict === 'pass');
+    row.classList.toggle('is-fail', verdict === 'fail');
+  });
+
+  qaPassButtons.forEach(button => {
+    const value = Number(button.dataset.qaPass);
+    button.classList.toggle('is-active', qaState.verdicts[value] === 'pass');
+    button.disabled = !(ready && bothLoaded);
+  });
+  qaFailButtons.forEach(button => {
+    const value = Number(button.dataset.qaFail);
+    button.classList.toggle('is-active', qaState.verdicts[value] === 'fail');
+    button.disabled = !(ready && bothLoaded);
+  });
+  qaAngleButtons.forEach(button => { button.disabled = !(ready && bothLoaded); });
+
+  if (qaLockPairButton) {
+    qaLockPairButton.disabled = !(ready && pair.pass) && !qaState.locked;
+    qaLockPairButton.textContent = qaState.locked ? 'Unlock Pair' : 'Lock Pair';
+  }
+  if (qaResetButton) qaResetButton.disabled = !(ready && bothLoaded);
+
+  const sourceLocked = qaState.locked;
+  if (customSourceButton) customSourceButton.disabled = !ready || sourceLocked;
+  if (redBlackButton) redBlackButton.disabled = !ready || sourceLocked;
+  if (realityInput) realityInput.disabled = !ready || sourceLocked;
+  if (redBlackInput) redBlackInput.disabled = !ready || sourceLocked;
+
+  qaPanel?.classList.toggle('is-ready', pair.pass && passCount === QA_ANGLES.length && failCount === 0);
+  qaPanel?.classList.toggle('is-failed', failCount > 0 || (pair.ready && !pair.pass));
+  qaPanel?.classList.toggle('is-locked', qaState.locked);
+
+  if (qaSummary) {
+    if (!bothLoaded) qaSummary.textContent = 'Load both masters';
+    else if (!pair.pass) qaSummary.textContent = pair.text;
+    else if (failCount > 0) qaSummary.textContent = `QA FAIL · ${failCount} angle${failCount === 1 ? '' : 's'}`;
+    else if (passCount === QA_ANGLES.length && qaState.locked) qaSummary.textContent = 'QA PASS · pair frozen';
+    else if (passCount === QA_ANGLES.length) qaSummary.textContent = '5/5 PASS · lock pair';
+    else if (qaState.locked) qaSummary.textContent = `Locked · ${passCount}/5 PASS`;
+    else qaSummary.textContent = `${passCount}/5 PASS`;
+  }
+}
+
 function updateSourceUI() {
   document.querySelectorAll('[data-ui-theme]').forEach(button => button.setAttribute('aria-selected', String(uiTheme === 'custom' && button.dataset.uiTheme === 'custom')));
   redBlackButton.classList.toggle('is-loaded', customReady.redblack);
   redBlackButton.textContent = customReady.redblack ? 'RedBlack ✓' : 'RedBlack';
+  updateQaUI();
 }
 
 realityInput.addEventListener('change', async () => {
   const file = realityInput.files[0];
-  if (!file) return;
+  if (!file || qaState.locked) return;
   try {
     const img = await decodeFile(file);
     drawWorld(img, worldCanvases.reality, worldTextures.reality);
+    sourceMeta.reality = {
+      name: file.name,
+      width: img.naturalWidth || img.width,
+      height: img.naturalHeight || img.height,
+      ratio: (img.naturalWidth || img.width) / Math.max(img.naturalHeight || img.height, 1),
+    };
     customReady.reality = true;
+    qaState.locked = false;
+    resetQaVerdicts();
     uiTheme = 'custom';
     applyCustomWorld();
     setPlaying(false); setAngle(0); updateSourceUI();
@@ -287,7 +414,7 @@ realityInput.addEventListener('change', async () => {
 
 redBlackInput.addEventListener('change', async () => {
   const file = redBlackInput.files[0];
-  if (!file) return;
+  if (!file || qaState.locked) return;
   if (!customReady.reality) {
     alert('Upload the Reality image first.');
     redBlackInput.value = '';
@@ -296,7 +423,15 @@ redBlackInput.addEventListener('change', async () => {
   try {
     const img = await decodeFile(file);
     drawWorld(img, worldCanvases.redblack, worldTextures.redblack);
+    sourceMeta.redblack = {
+      name: file.name,
+      width: img.naturalWidth || img.width,
+      height: img.naturalHeight || img.height,
+      ratio: (img.naturalWidth || img.width) / Math.max(img.naturalHeight || img.height, 1),
+    };
     customReady.redblack = true;
+    qaState.locked = false;
+    resetQaVerdicts();
     uiTheme = 'custom';
     applyCustomWorld();
     setPlaying(false); setAngle(0); updateSourceUI();
@@ -307,8 +442,46 @@ redBlackInput.addEventListener('change', async () => {
 });
 
 redBlackButton?.addEventListener('click', () => {
+  if (qaState.locked) return;
   if (!customReady.reality) { alert('Upload the Reality image first.'); return; }
   redBlackInput.click();
+});
+
+qaAngleButtons.forEach(button => button.addEventListener('click', () => {
+  const value = Number(button.dataset.qaAngle);
+  setPlaying(false);
+  playbackTime = 0;
+  qaState.currentAngle = value;
+  setAngle(value);
+  updateQaUI();
+}));
+
+qaPassButtons.forEach(button => button.addEventListener('click', () => {
+  const value = Number(button.dataset.qaPass);
+  qaState.verdicts[value] = qaState.verdicts[value] === 'pass' ? null : 'pass';
+  updateQaUI();
+}));
+
+qaFailButtons.forEach(button => button.addEventListener('click', () => {
+  const value = Number(button.dataset.qaFail);
+  qaState.verdicts[value] = qaState.verdicts[value] === 'fail' ? null : 'fail';
+  updateQaUI();
+}));
+
+qaLockPairButton?.addEventListener('click', () => {
+  const pair = masterPairCheck();
+  if (!qaState.locked && !pair.pass) {
+    alert('Master Pair QA cannot lock this pair until both masters use identical dimensions and compatible panorama aspect ratio.');
+    return;
+  }
+  qaState.locked = !qaState.locked;
+  updateQaUI();
+});
+
+qaResetButton?.addEventListener('click', () => {
+  resetQaVerdicts();
+  qaState.currentAngle = angle;
+  updateQaUI();
 });
 
 // ---------------------------------------------------------------------------
@@ -433,6 +606,10 @@ function setAngle(value) {
   if (screens.outer) screens.outer.material.color.setScalar(angle >= 180 ? 0 : 1);
   updateTimelineUI(progress, mix);
   updateFraming(progress);
+  if (QA_ANGLES.some(value => Math.abs(value - angle) < 0.1)) {
+    qaState.currentAngle = QA_ANGLES.find(value => Math.abs(value - angle) < 0.1) ?? qaState.currentAngle;
+  }
+  updateQaUI();
 }
 
 play.addEventListener('click', () => {
@@ -787,6 +964,7 @@ try {
     towerHighlightGuard: 'content-aware tower mask; no broad ellipse glow',
     noFxGeometryTest: '?nofx=1',
     foldMotionControls: 'closedHold + unfoldDuration + openHold + easing + motionBlur',
+    masterPairQA: 'source dimension/aspect checks + 0/45/90/135/180 visual verdicts + pair lock',
     towerFxControls: 'removed from production; deferred for separate discussion',
     recordTimeline: 'uses editable Fold Motion timing only',
   });
@@ -798,6 +976,7 @@ try {
   ready = true;
   setPlaying(false);
   setAngle(0);
+  updateQaUI();
   if (RECORD_AUTO) startRecord();
 } catch (error) {
   alert('Unable to load the model. Refresh the page to try again.');
@@ -892,6 +1071,16 @@ window.__duo = {
       },
       revealMode: STAGED_REVEAL ? 'staged' : 'clean-crossfade',
       foldMotion: { ...foldMotion },
+      masterPairQA: {
+        locked: qaState.locked,
+        currentAngle: qaState.currentAngle,
+        verdicts: { ...qaState.verdicts },
+        pair: masterPairCheck(),
+        sourceMeta: {
+          reality: sourceMeta.reality ? { ...sourceMeta.reality } : null,
+          redblack: sourceMeta.redblack ? { ...sourceMeta.redblack } : null,
+        },
+      },
       customReady: { ...customReady },
     };
   },
