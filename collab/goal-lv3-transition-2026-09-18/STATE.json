@@ -1,0 +1,14 @@
+{
+  "goal": "lv3-transition 三阶段空间转场",
+  "date": "2026-09-18",
+  "state": "in_progress",
+  "phase": "implementation",
+  "writer": "hermes-desktop-session",
+  "implementation_head": null,
+  "next_action": "implement staged reveal + record timeline in main_v44.js",
+  "dependencies": {
+    "t0b_assets": "READY — C:/Users/Admin/Downloads/duo/T0B_final/ (A_open/A_closed originals, B_open/B_closed from accepted candidate 02; shift -1.7px, vision-pass)",
+    "masks": "RESOLVED — procedural in-shader (leak=hinge gradient+noise, city=B luminance threshold, tower=ellipse), no file assets",
+    "tower_uv": "center (0.730, 0.430), ellipse radii (0.085, 0.300) — from QC bbox on final B"
+  }
+}

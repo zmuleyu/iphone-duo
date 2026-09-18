@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v4.4';
+const BUILD_VERSION = 'v5.0';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -90,6 +90,13 @@ const OPTICAL_X_PEAK = 0.65;
 
 const bend = { value: Math.PI };
 const worldMix = { value: 0 };
+// Lv3 staged transition: Red Leak -> Black Collapse -> Yellow Lock
+const uLeak = { value: 0 };
+const uCollapse = { value: 0 };
+const uLock = { value: 0 };
+const uImpact = { value: 0 };      // 1-frame flash + RGB split @2.15s
+const uPulse = { value: 0 };       // Lv1 tower warm pulse @3.18s
+const uTransActive = { value: 0 }; // blur suppression window during transition
 
 let angle = 0;
 let playing = false;
@@ -97,6 +104,9 @@ let playbackTime = 0;
 let ready = false;
 let uiTheme = 'wallpaper';
 let worldMixOverride = null;
+let recording = false;
+let recordT0 = 0;
+const RECORD_AUTO = new URLSearchParams(location.search).has('record');
 const screens = {};
 const customReady = { reality: false, redblack: false };
 const movingShellMeshes = [];
@@ -393,6 +403,12 @@ function setAngle(value) {
   const active = uiTheme === 'custom' && customReady.reality && customReady.redblack;
   const mix = worldMixOverride ?? (active ? worldMixFromGeometry(geometrySignal(angle)) : 0);
   worldMix.value = mix;
+  // Manual mode maps the master mix into the three stages; record mode overrides per frame.
+  if (!recording) {
+    uLeak.value = smoothRange(mix, 0.0, 0.45);
+    uCollapse.value = smoothRange(mix, 0.30, 0.75);
+    uLock.value = smoothRange(mix, 0.62, 0.90);
+  }
   // Original external-cover rule: black out the cover at fully open.
   if (screens.outer) screens.outer.material.color.setScalar(angle >= 180 ? 0 : 1);
   updateTimelineUI(progress, mix);
@@ -453,13 +469,50 @@ vec4 bendStrip(vec3 p) {
 // shared worldMix. Coordinate/blur math is verbatim the original.
 const screenShader = `
 uniform float foldAngle;
-uniform float worldMix;
 uniform vec2 uiPixel;
 uniform vec4 uiFrame;
 uniform vec2 uiGradient;
 uniform vec3 uiReferenceEye;
 uniform sampler2D transitionTarget;
+uniform float uLeak;
+uniform float uCollapse;
+uniform float uLock;
+uniform float uImpact;
+uniform float uPulse;
+uniform float uTransActive;
 varying vec3 vUIPosition;
+
+// Hinge-centered organic leak gradient (panorama space; hinge at u=0.5).
+float leakPattern(vec2 uv) {
+  float center = 0.5
+    + 0.012 * sin(uv.y * 23.0)
+    + 0.020 * sin(uv.y * 57.0 + 1.7)
+    + 0.014 * sin(uv.y * 91.0 + 4.2);
+  float g = clamp(1.0 - abs(uv.x - center) / 0.52, 0.0, 1.0);
+  float j = fract(sin(dot(floor(uv * vec2(220.0, 160.0)), vec2(12.9898, 78.233))) * 43758.5453);
+  return clamp(g + (j - 0.5) * 0.10, 0.0, 1.0);
+}
+
+// Tokyo Tower anchor measured on the final B asset (2670x1878).
+float towerMask(vec2 uv) {
+  vec2 d = (uv - vec2(0.730, 0.430)) / vec2(0.085, 0.300);
+  return 1.0 - smoothstep(0.7, 1.0, length(d));
+}
+
+// Staged reveal of world B: hinge leak first, city collapse next, tower locks last.
+float stagedReveal(vec2 uv, vec3 bCol) {
+  float leak = leakPattern(uv);
+  float lumB = dot(bCol, vec3(0.299, 0.587, 0.114));
+  float city = 1.0 - smoothstep(0.045, 0.15, lumB);
+  float tower = towerMask(uv);
+  float base = smoothstep(1.0 - uLeak - 0.06, 1.0 - uLeak + 0.06, leak);
+  base *= step(0.001, uLeak); // no leak stage -> no speckle from the noise term
+  float reveal = base;
+  reveal = mix(reveal, clamp(base + uCollapse, 0.0, 1.0), city);
+  reveal = mix(reveal, clamp(base + uLock, 0.0, 1.0), tower);
+  return clamp(reveal, 0.0, 1.0);
+}
+
 vec3 screenColor() {
   // Intersect the fixed front-view ray with the unfolded inner-screen plane.
   float depth = (0.24948 - uiReferenceEye.z) / (vUIPosition.z - uiReferenceEye.z);
@@ -484,17 +537,17 @@ vec3 screenColor() {
   float darkenGradient = clamp((edge - 0.2) / 0.8, 0.0, 1.0);
   float effect = motion * pow(darkenGradient, 1.35);
   float radius = 72.0 * motion * pow(blurGradient, 1.35);
+  radius *= 1.0 - 0.65 * uTransActive; // keep the leak edge crisp mid-transition
   vec2 aa = max(fwidth(sourceUV), uiPixel * 0.5);
   vec2 dx = dFdx(sourceUV) / uiPixel;
   vec2 dy = dFdy(sourceUV) / uiPixel;
   float baseLod = log2(max(1.0, max(length(dx), length(dy))));
   vec2 coverage = smoothstep(-aa, aa, sourceUV)
     * (1.0 - smoothstep(vec2(1.0) - aa, vec2(1.0) + aa, sourceUV));
-  vec3 worldColor = mix(
-    textureLod(map, clamp(sourceUV, vec2(0.0), vec2(1.0)), baseLod).rgb,
-    textureLod(transitionTarget, clamp(sourceUV, vec2(0.0), vec2(1.0)), baseLod).rgb,
-    worldMix);
-  vec3 color = worldColor * coverage.x * coverage.y;
+  vec2 uvC = clamp(sourceUV, vec2(0.0), vec2(1.0));
+  vec3 colA = textureLod(map, uvC, baseLod).rgb;
+  vec3 colB = textureLod(transitionTarget, uvC, baseLod).rgb;
+  vec3 color = mix(colA, colB, stagedReveal(sourceUV, colB)) * coverage.x * coverage.y;
   if (radius > 0.0) {
     // Use the same mip level at zero blur, then increase it continuously.
     float lod = max(baseLod, log2(max(1.0, radius)));
@@ -509,15 +562,38 @@ vec3 screenColor() {
         vec2 tapCoverage = smoothstep(-footprint, footprint, sampleUV)
           * (1.0 - smoothstep(vec2(1.0) - footprint, vec2(1.0) + footprint, sampleUV));
         vec2 clampedUV = clamp(sampleUV, vec2(0.0), vec2(1.0));
-        vec3 worldTap = mix(
-          textureLod(map, clampedUV, lod).rgb,
-          textureLod(transitionTarget, clampedUV, lod).rgb,
-          worldMix);
-        color += worldTap * tapCoverage.x * tapCoverage.y * wx * wy / 256.0;
+        vec3 tapA = textureLod(map, clampedUV, lod).rgb;
+        vec3 tapB = textureLod(transitionTarget, clampedUV, lod).rgb;
+        color += mix(tapA, tapB, stagedReveal(sampleUV, tapB)) * tapCoverage.x * tapCoverage.y * wx * wy / 256.0;
       }
     }
   }
-  return color * (1.0 - min(1.0, effect * 2.0));
+  color *= 1.0 - min(1.0, effect * 2.0);
+
+  // Impact @2.15s: one-frame white-red flash + visible RGB split (screen-space
+  // only, geometry untouched).
+  if (uImpact > 0.001) {
+    float split = uImpact * 7.0 * uiPixel.x;
+    vec2 uvR = clamp(sourceUV + vec2(split, 0.0), vec2(0.0), vec2(1.0));
+    vec2 uvB = clamp(sourceUV - vec2(split, 0.0), vec2(0.0), vec2(1.0));
+    vec3 rB2 = textureLod(transitionTarget, uvR, baseLod).rgb;
+    vec3 bB2 = textureLod(transitionTarget, uvB, baseLod).rgb;
+    float rr = mix(textureLod(map, uvR, baseLod).rgb.r, rB2.r, stagedReveal(uvR, rB2));
+    float bb = mix(textureLod(map, uvB, baseLod).rgb.b, bB2.b, stagedReveal(uvB, bB2));
+    color.r = mix(color.r, rr, uImpact);
+    color.b = mix(color.b, bb, uImpact);
+    color = mix(color, vec3(1.0, 0.97, 0.94), uImpact * (0.42 + 0.30 * towerMask(sourceUV)));
+  }
+
+  // Lv1 pulse @3.18s: tower-centered warm glow + ~25% response on warm windows.
+  if (uPulse > 0.001) {
+    float tw = towerMask(sourceUV);
+    float lumC = dot(color, vec3(0.299, 0.587, 0.114));
+    float warm = clamp((color.r - color.b) * 2.0, 0.0, 1.0) * smoothstep(0.12, 0.35, lumC);
+    color += vec3(1.0, 0.62, 0.25) * uPulse * (tw * 0.85 + warm * 0.25);
+  }
+
+  return color;
 }
 `;
 
@@ -587,6 +663,12 @@ try {
           shader.uniforms.uiReferenceEye = { value: uiReferenceEye };
           shader.uniforms.transitionTarget = screen.target;
           shader.uniforms.worldMix = worldMix;
+          shader.uniforms.uLeak = uLeak;
+          shader.uniforms.uCollapse = uCollapse;
+          shader.uniforms.uLock = uLock;
+          shader.uniforms.uImpact = uImpact;
+          shader.uniforms.uPulse = uPulse;
+          shader.uniforms.uTransActive = uTransActive;
 
           shader.vertexShader = `varying vec3 vUIPosition;\n${shader.vertexShader}`;
           shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
@@ -634,17 +716,62 @@ try {
   ready = true;
   setPlaying(false);
   setAngle(0);
+  if (RECORD_AUTO) startRecord();
 } catch (error) {
   alert('Unable to load the model. Refresh the page to try again.');
   console.error(error);
 }
 
-// Debug hooks for acceptance (window.__duo.setAngle / setWorldMix(0|0.5|1|null)).
+// Debug hooks for acceptance (window.__duo.setAngle / setWorldMix / setStages / startRecord).
+function recordStage(t, a, b) {
+  return THREE.MathUtils.clamp((t - a) / (b - a), 0, 1);
+}
+
+function startRecord() {
+  recordT0 = performance.now();
+  recording = true;
+  setPlaying(false);
+}
+
+// Lv3 record timeline (case-study §6): real fold drives geometry, three stage
+// uniforms drive the world hand-off on their own synced schedule.
+function driveRecord(nowMs) {
+  const t = (nowMs - recordT0) / 1000;
+  const ap = THREE.MathUtils.smoothstep(t, 1.20, 2.15);
+  setAngle(ap * 180);
+  uLeak.value = recordStage(t, 1.65, 1.90);
+  uCollapse.value = recordStage(t, 1.90, 2.10);
+  uLock.value = recordStage(t, 2.10, 2.15);
+  uTransActive.value = THREE.MathUtils.smoothstep(t, 1.55, 1.70) * (1 - THREE.MathUtils.smoothstep(t, 2.30, 2.45));
+  uImpact.value = t >= 2.15 && t < 2.23 ? 1 - (t - 2.15) / 0.08 : 0;
+  uPulse.value = t >= 3.18 && t <= 3.98 ? Math.sin(((t - 3.18) / 0.80) * Math.PI) : 0;
+  const rw = uTransActive.value;
+  rim.intensity = 2 + 3.2 * rw;
+  rim.color.setRGB(0.91 + 0.09 * rw, 0.93 - 0.62 * rw, 0.96 - 0.68 * rw);
+  document.documentElement.dataset.recordT = t.toFixed(2);
+  if (t > 5.6) {
+    recording = false;
+    uImpact.value = 0;
+    uTransActive.value = 0;
+    rim.intensity = 2;
+    rim.color.setHex(0xe8edf5);
+    document.documentElement.dataset.recordDone = '1';
+  }
+}
+
 window.__duo = {
-  setAngle: value => { setPlaying(false); playbackTime = 0; setAngle(Number(value)); },
+  setAngle: value => { setPlaying(false); playbackTime = 0; recording = false; setAngle(Number(value)); },
   setWorldMix: value => { worldMixOverride = value === null || value === undefined ? null : Number(value); setAngle(angle); },
+  setStages: (leak, collapse, lock) => { uLeak.value = Number(leak); uCollapse.value = Number(collapse); uLock.value = Number(lock); },
+  setImpact: value => { uImpact.value = Number(value); },
+  setPulse: value => { uPulse.value = Number(value); },
+  startRecord,
   get state() {
-    return { angle, worldMix: worldMix.value, ready, customReady: { ...customReady } };
+    return {
+      angle, worldMix: worldMix.value, ready, recording,
+      stages: { leak: uLeak.value, collapse: uCollapse.value, lock: uLock.value },
+      customReady: { ...customReady },
+    };
   },
 };
 
@@ -668,6 +795,8 @@ renderer.setAnimationLoop(now => {
       setPlaying(false);
     }
   }
+
+  if (ready && recording) driveRecord(now);
 
   renderer.render(scene, camera);
 });

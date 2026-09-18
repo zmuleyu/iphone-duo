@@ -1,8 +1,8 @@
 {
-  "build": "4.4",
-  "transition": "original-screen-shader-rebuild",
+  "build": "5.0",
+  "transition": "lv3-staged-reveal (red-leak / black-collapse / yellow-lock)",
   "leftPanelBlur": "original-inner-gradient",
-  "timing": "geometry-driven-simple+debug-override",
+  "timing": "record-timeline+geometry-driven-manual",
   "cacheMode": "no-store-development",
-  "timestamp": "2026-09-18T00:52:00+08:00"
+  "timestamp": "2026-09-18T12:05:00+08:00"
 }
