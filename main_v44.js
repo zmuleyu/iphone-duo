@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.7';
+const BUILD_VERSION = 'v5.0.8';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -72,6 +72,22 @@ const recordStartButton = document.querySelector('#record-start');
 const recordReplayButton = document.querySelector('#record-replay');
 const recordResetButton = document.querySelector('#record-reset');
 const recordExitButton = document.querySelector('#record-exit');
+const exportPanel = document.querySelector('#export-acceptance-panel');
+const exportSummary = document.querySelector('#export-acceptance-summary');
+const exportFormatButtons = [...document.querySelectorAll('[data-export-format]')];
+const exportLoadButton = document.querySelector('#export-load');
+const exportResetButton = document.querySelector('#export-reset');
+const exportReviewInput = document.querySelector('#export-review-input');
+const exportFileMeta = document.querySelector('#export-file-meta');
+const exportResolutionMeta = document.querySelector('#export-resolution-meta');
+const exportAutoMeta = document.querySelector('#export-auto-meta');
+const exportReviewWrap = document.querySelector('#export-review-wrap');
+const exportReviewVideo = document.querySelector('#export-review-video');
+const exportReviewHingeButton = document.querySelector('#export-review-hinge');
+const exportReviewEndButton = document.querySelector('#export-review-end');
+const exportPassButtons = [...document.querySelectorAll('[data-export-pass]')];
+const exportFailButtons = [...document.querySelectorAll('[data-export-fail]')];
+const exportRows = [...document.querySelectorAll('[data-export-row]')];
 
 const stageBackground = document.querySelector('#stage-background');
 const bgSolidButton = document.querySelector('#bg-solid');
@@ -168,6 +184,18 @@ const requestedRecordFps = Number(QUERY.get('fps'));
 let recordFps = requestedRecordFps === 30 ? 30 : 60;
 let recordGuide = QUERY.get('guide') !== 'off';
 let recordingMode = false;
+const EXPORT_CRITERIA = Object.freeze(['motion', 'hinge', 'endpoint', 'crop', 'compression']);
+const exportAcceptance = Object.fromEntries(
+  Object.keys(RECORD_FORMATS).map(format => [format, {
+    verdicts: Object.fromEntries(EXPORT_CRITERIA.map(key => [key, null])),
+    file: null,
+    objectUrl: null,
+    videoMeta: null,
+  }]),
+);
+const captureHistory = Object.fromEntries(
+  Object.keys(RECORD_FORMATS).map(format => [format, null]),
+);
 const screens = {};
 const customReady = { reality: false, redblack: false };
 const sourceMeta = { reality: null, redblack: null };
