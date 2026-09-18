@@ -15,7 +15,8 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.0.8';
+const BUILD_VERSION = 'v5.1';
+const PRODUCTION_BASELINE_ID = 'v5.1-production-fold';
 
 const viewport = document.querySelector('#viewport');
 const slider = document.querySelector('#angle');
@@ -140,12 +141,17 @@ const HALF_DEVICE_WIDTH = 7.89935;
 // coordinate was stable. The device now unfolds leftward from a fixed anchor.
 const FIXED_PANEL_ANCHOR_X = -HALF_DEVICE_WIDTH * 0.5 * 0.90;
 const QUERY = new URLSearchParams(location.search);
+const PRODUCTION_BASELINE = true;
+const DEV_EXPERIMENTS = QUERY.has('dev');
 const NO_FX = QUERY.has('nofx');
-// V5.0.4: production uses a seam-free clean crossfade.
-// The previous staged leak/collapse/lock reveal remains available only for
-// explicit experiments via ?reveal=staged (or ?staged=1).
-const STAGED_REVEAL = !NO_FX && (QUERY.get('reveal') === 'staged' || QUERY.has('staged'));
-const LEGACY_TOWER_FX = false; // tower effects removed from the fold-only production baseline
+// V5.1 production lock: clean crossfade is the only production reveal.
+// Historical staged reveal remains accessible only behind explicit ?dev=1.
+const STAGED_REVEAL = DEV_EXPERIMENTS
+  && !NO_FX
+  && (QUERY.get('reveal') === 'staged' || QUERY.has('staged'));
+const LEGACY_TOWER_FX = false; // Tower/Bird FX stay outside the V5.1 production baseline
+document.documentElement.dataset.productionBaseline = PRODUCTION_BASELINE_ID;
+document.documentElement.dataset.devExperiments = DEV_EXPERIMENTS ? '1' : '0';
 
 const bend = { value: Math.PI };
 const worldMix = { value: 0 };
@@ -1472,7 +1478,12 @@ try {
     openEndpointRepair: '1.2deg projected-uv -> authored-uv + endpoint coverage lock',
     hingeContinuity: 'narrow authored-X lock around panorama midpoint',
     endpointAngleSnap: '0/180 exact-state snap',
-    revealMode: STAGED_REVEAL ? 'experimental-staged (?reveal=staged)' : 'production-clean-crossfade',
+    productionBaseline: PRODUCTION_BASELINE_ID,
+    baselineLocked: PRODUCTION_BASELINE,
+    devExperiments: DEV_EXPERIMENTS,
+    revealMode: STAGED_REVEAL
+      ? 'dev-only experimental staged reveal (?dev=1&reveal=staged)'
+      : 'production-clean-crossfade',
     connectionArtifactGuard: 'valid-panorama-only + no blur bleed',
     towerHighlightGuard: 'content-aware tower mask; no broad ellipse glow',
     noFxGeometryTest: '?nofx=1',
@@ -1482,7 +1493,9 @@ try {
     recordingQueries: '?studio=1&format=16x9|1x1|9x16&fps=30|60; ?record=1 auto-starts',
     exportAcceptance: 'load local export -> auto aspect/duration/capture QC -> 5 manual visual checks -> EXPORT PASS',
     masterPairQA: 'source dimension/aspect checks + 0/45/90/135/180 visual verdicts + pair lock',
-    towerFxControls: 'removed from production; deferred for separate discussion',
+    towerFxControls: 'removed from production; future work must use a separate R&D branch',
+    birdFxControls: 'removed from production; future work must use a separate R&D branch',
+    displacement: 'deferred and excluded from V5.1 baseline',
     recordTimeline: 'uses editable Fold Motion timing only',
   });
 
@@ -1612,8 +1625,19 @@ function driveRecord(nowMs) {
 
 window.__duo = {
   setAngle: value => { setPlaying(false); playbackTime = 0; recording = false; setAngle(Number(value)); },
-  setWorldMix: value => { worldMixOverride = value === null || value === undefined ? null : Number(value); setAngle(angle); },
-  setStages: (leak, collapse, lock) => { uLeak.value = Number(leak); uCollapse.value = Number(collapse); uLock.value = Number(lock); },
+  setWorldMix: value => {
+    if (!DEV_EXPERIMENTS) return false;
+    worldMixOverride = value === null || value === undefined ? null : Number(value);
+    setAngle(angle);
+    return true;
+  },
+  setStages: (leak, collapse, lock) => {
+    if (!DEV_EXPERIMENTS) return false;
+    uLeak.value = Number(leak);
+    uCollapse.value = Number(collapse);
+    uLock.value = Number(lock);
+    return true;
+  },
   setFoldMotion,
   setFoldPreset: name => applyFoldPreset(name),
   setRecordingMode,
@@ -1633,6 +1657,13 @@ window.__duo = {
   get state() {
     return {
       angle, worldMix: worldMix.value, ready, recording,
+      baseline: {
+        id: PRODUCTION_BASELINE_ID,
+        locked: PRODUCTION_BASELINE,
+        devExperiments: DEV_EXPERIMENTS,
+        productionReveal: 'clean-crossfade',
+        excluded: ['tower-fx', 'bird-fx', 'displacement'],
+      },
       stages: { leak: uLeak.value, collapse: uCollapse.value, lock: uLock.value },
       geometryLock: {
         fixedPanelAnchorX: FIXED_PANEL_ANCHOR_X,
