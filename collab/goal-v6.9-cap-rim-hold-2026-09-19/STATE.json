@@ -1,0 +1,9 @@
+{
+  "goal": "V6.9 外壳 stock 回归",
+  "date": "2026-09-19",
+  "state": "in-progress",
+  "phase": "verified, ready-for-merge",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v6.9-stock-restore",
+  "note": "parallel-lane WIP stashed; stock=A组对照一致"
+}

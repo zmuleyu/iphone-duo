@@ -1784,9 +1784,10 @@ try {
   document.querySelectorAll('.control-dock button, .control-dock input, .control-dock select').forEach(element => {
     if (element !== revealSettingsButton && !element.hasAttribute('data-future')) element.disabled = false;
   });
-  // V6.4 P1 (record/cap path only): shell fidelity — surface the real side
-  // buttons (they exist in the USDZ at x 4.64-4.72 but protrude sub-pixel),
-  // warm the titanium frame family, add a warm key light for edge glints.
+  // V6.9 (record/cap path only): STOCK rendering — all v6.4-v6.9 shell color
+  // tweaks deleted per user directive ("可以直接全部删除"): they were the
+  // interference. Stock = the v5.1/plate look (natural Star White silver).
+  // Kept: side-button surfacing (real USDZ geometry) + inner-screen overscan.
   if (QUERY.has('cap')) {
     const btnSig = [];
     phone.traverse(o => {
@@ -1796,30 +1797,8 @@ try {
       const sx = bb.max.x - bb.min.x, sy = bb.max.y - bb.min.y;
       const cx = (bb.max.x + bb.min.x) / 2, cy = (bb.max.y + bb.min.y) / 2;
       if (cx > 4.4 && sx < 0.2 && sy > 1.4 && sy < 2.1 && Math.abs(cy) > 1.2 && Math.abs(cy) < 3.2) btnSig.push(o);
-      const m = o.material;
-      if (m && m.color) {
-        const c = m.color;
-        const brightWarm = c.r > 0.75 && c.r >= c.g && c.g >= c.b && (c.r - c.b) < 0.25;
-        const midNeutral = c.r > 0.4 && c.r <= 0.75 && c.r >= c.g && c.g >= c.b && (c.r - c.b) < 0.15;
-        if (brightWarm) {
-          c.r *= 0.95; c.g *= 0.87; c.b *= 0.74; // V6.8: champagne titanium albedo
-        } else if (midNeutral) {
-          c.r *= 0.97; c.g *= 0.90; c.b *= 0.78; // V6.8: warm the #807a73/#99938a frame family
-        }
-        if (brightWarm || midNeutral) {
-          // metalness=1 + polished roughness made the shell a pure env mirror
-          // (always cool); satin finish lets the warm albedo read.
-          if ('metalness' in m) m.metalness = Math.min(m.metalness, 0.9);
-          if ('roughness' in m) m.roughness = Math.max(m.roughness, 0.32);
-          if ('envMapIntensity' in m) m.envMapIntensity = 0.8;
-        }
-      }
     });
     btnSig.forEach(o => { o.position.x += 0.12; });
-    scene.environmentIntensity = 1.0; // was 1.35 — frame read blown-white on white bg
-    key.intensity = 1.7; // was 2.6 — left-edge frame highlight read as a light band (V6.6)
-    rim.intensity = 1.4; rim.color.set(0xf5e8d8); // V6.8: cool rim was washing the open-state shell to silver
-    hemi && (hemi.intensity = 1.5); // see note: keep room read, trim wash
   }
   ready = true;
   setPlaying(false);
