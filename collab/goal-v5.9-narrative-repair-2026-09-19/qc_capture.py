@@ -94,10 +94,13 @@ def main(video, tower_crop=None, grid_crop=None, tower_checks=True):
             print(f"tower-core lum: 1.30s={lum[1.30]:.1f} 1.75s={lum[1.75]:.1f} rise={rise:+.1%}")
             # informational; the pocket-flip drama is vision-checked on frames
     if tower_crop:  # 16:9 only: open-state horizontal centering
+        pr = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0",
+                             "-show_entries", "stream=width,height", "-of", "csv=p=0", video],
+                            capture_output=True, text=True)
+        W2, H2 = map(int, pr.stdout.strip().split(","))
         r = subprocess.run(["ffmpeg", "-v", "error", "-ss", "2.8", "-i", video,
                             "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
                            capture_output=True)
-        W2, H2 = 2160, 1350
         d = r.stdout
         xs = []
         for yy in range(0, H2, 4):

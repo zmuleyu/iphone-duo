@@ -1,13 +1,13 @@
 {
-  "build": "6.2",
-  "baseline": "6.1",
-  "milestone": "Spatial Reveal + Real Shell",
+  "build": "6.3",
+  "baseline": "6.2",
+  "milestone": "Restore Original Master + Per-Panel Reveal",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "record reveal -> left-to-right spatial wavefront (uRevealFront), preview untouched",
-    "tower boost off in record (pocket flip is the beat)",
-    "record bezel sweep off, lock pop halved (real titanium shell)"
+    "capture master reverted to original RedBlack_Final (graphic filter overshot, rejected)",
+    "reveal per-panel sequential (left completes as it opens, right follows; no right-edge residue)",
+    "capture 1.25x (VP9 encoder stall with photographic master at 1.5x)"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",

@@ -116,7 +116,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 // Capture runs (?cap=1) force 2x supersampling for crisp downscaled delivery.
 // V5.9: 1.5x capture supersample (2x@60fps starved the frame clock, frozen
 // spans) + opaque white clear so captures land on Apple-white, not alpha-black.
-renderer.setPixelRatio(new URLSearchParams(location.search).has('cap') ? 1.5 : Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(new URLSearchParams(location.search).has('cap') ? 1.25 : Math.min(devicePixelRatio, 2)); // V6.3: original-master VP9 throughput
 renderer.setClearColor(new URLSearchParams(location.search).has('cap') ? 0xffffff : 0x000000,
   new URLSearchParams(location.search).has('cap') ? 1 : 0);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1474,7 +1474,15 @@ float finalReveal(vec2 uv, vec3 bCol) {
   if (uUseStagedReveal < 0.5) {
     // V6.2: spatial reveal — the world transforms left->right following the
     // opening panel, replacing the global crossfade on the record path.
-    if (uRevealFront >= 0.0) r = 1.0 - smoothstep(uRevealFront - 0.12, uRevealFront, uv.x);
+    if (uRevealFront >= 0.0) {
+      // V6.3: per-panel sequential reveal — the left panel transforms as it
+      // opens, the right panel follows left->right; full coverage by fold end.
+      float seqL = clamp(uRevealFront / 0.55, 0.0, 1.0);
+      float seqR = clamp((uRevealFront - 0.45) / 0.55, 0.0, 1.0);
+      float panel = uv.x < 0.5 ? seqL : seqR;
+      float lu = uv.x < 0.5 ? uv.x * 2.0 : (uv.x - 0.5) * 2.0;
+      r = 1.0 - smoothstep(panel * 1.25 - 0.25, panel * 1.25, lu);
+    }
     r = mix(r, uTowerMix, towerMask(uv));  // V6.0: whole tower region holds Reality
   }
   return r;
@@ -1922,7 +1930,7 @@ function driveRecord(nowMs) {
   worldMix.value = smoothRange(recAngle, 25, 150);
   uTowerMix.value = smoothRange(t, foldEnd + 0.05, foldEnd + 0.35);
   uTowerBoost.value = 0;              // V6.2: no artificial tower glow
-  uRevealFront.value = easedFold * 1.12; // V6.2: L->R wavefront (0..1.12 covers uv 0..1 + soft edge)
+  uRevealFront.value = easedFold; // V6.3: per-panel sequential windows (shader maps 0..1)
   uBezel.value = 0;                   // V6.2: real titanium shell — no sweep light in exports
   if (uBezelPop.value > 0) uBezelPop.value *= 0.5; // lock pop kept subtle
   uFoldBlurScale.value = 0.35;
