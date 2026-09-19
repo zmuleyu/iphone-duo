@@ -1,0 +1,85 @@
+{
+  "runId": "tokyo-v6.17-silent-review-20260920",
+  "intent": "review-preview",
+  "status": "accepted-for-user-review",
+  "determinism": "frame-indexed Fold Engine rendered through captureStream; review preview, not a numbered-frame master",
+  "sourceBaseCommit": "3f53b81ff114531079e88f0bd876e76393801b36",
+  "branch": "work/v6.16-tokyo-world-pair",
+  "timeline": {
+    "fps": 60,
+    "frameStart": 0,
+    "frameEndExclusive": 348,
+    "durationSeconds": 5.8,
+    "closedHold": [0, 39],
+    "editorialUnfold": [39, 288],
+    "posterFinish": [288, 348],
+    "unfoldBeats": [0.22, 0.58, 0.7, 1.0]
+  },
+  "composition": {
+    "resolution": [1920, 1080],
+    "camera": "fixed v6.14 16x9 record framing",
+    "reveal": "right-to-left, driven by fold progress",
+    "audio": "none",
+    "birds": false,
+    "towerHighlight": false,
+    "pulse": false,
+    "extraText": false
+  },
+  "inputs": [
+    {
+      "path": "media/tokyo/candidates/reality-v6.16-astra-master.png",
+      "sha256": "73C49B072686D47795CFF0A2C3EF1290C4AC089450427E305E0CC2FFEFD1791F",
+      "role": "Reality and geometry authority"
+    },
+    {
+      "path": "media/tokyo/candidates/redblack-v6.16-astra-master.png",
+      "sha256": "F54A66D8BC1F3917BB95398677B9CF90C17F1BCADB175D1EF3ED12F7FCE4B011",
+      "role": "RedBlack world"
+    }
+  ],
+  "tools": {
+    "chrome": "153.0.8010.52 headless",
+    "python": "3.11.9",
+    "ffmpeg": "8.1.1-full_build-www.gyan.dev",
+    "ffmpegBuildconfSha256": "8030505B551B944C4802B163B95F6DECEEC83466885654F8A3DC226B4255E637"
+  },
+  "scripts": [
+    {
+      "path": "scripts/capture_tokyo_v617_demo.py",
+      "sha256": "E06350F1D0BFC2E0495487F5DB06ED3118FCF17422F502C1054F30A37705BF56"
+    },
+    {
+      "path": "scripts/make_tokyo_v617_silent_demo.py",
+      "sha256": "B9C9D9AE57FD606A8C063A67090EDF72C8C2067EAD06CBB01A40DBA7E94C294C"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "artifacts/v6.17-tokyo-silent-demo/duo_v6.17-review-demo_16x9_60fps_tokyo-demo.webm",
+      "sha256": "514E6FDF77B638C03D49673380E3BAA6736013495F1ADA6F4F63E030F372F493",
+      "status": "capture-source"
+    },
+    {
+      "path": "artifacts/v6.17-tokyo-silent-demo/iphone-duo-tokyo-v6.17-silent-review-demo.mp4",
+      "sha256": "92DBD3CA80E01C76FC783AF0E1D6734AA710835A725BD091C9727BEB48C00505",
+      "status": "accepted-for-user-review"
+    }
+  ],
+  "qc": {
+    "runtimeDurationSeconds": 5.8,
+    "expectedFrames": 348,
+    "finalFrameIndex": 347,
+    "clockPass": true,
+    "encodedFrames": 348,
+    "encodedAudioStreams": 0,
+    "consoleErrors": 0,
+    "masterPairDimensions": [2670, 1878],
+    "masterPairGate": "pass"
+  },
+  "rejectedRuns": [
+    "artifacts/v6.17-tokyo-silent-demo-rejected-static-tail",
+    "artifacts/v6.17-tokyo-silent-demo-rejected-runtime-clamp",
+    "artifacts/v6.17-tokyo-silent-demo-rejected-frame-boundary"
+  ],
+  "rights": "Source assertion remains the existing user-confirmed Wikipedia record; no new source or publication claim is made."
+}

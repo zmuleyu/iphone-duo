@@ -32,3 +32,7 @@
 | V6.11 官方渲染对齐（v6.11） | 2026-09-19 | done→production（铰链凸出+下键收回；reveal R→L；锁屏 chrome 默认开） | [goal-v6.11-official-align-2026-09-19](./goal-v6.11-official-align-2026-09-19/GOAL.md) |
 | V6.12 外壳烘焙+Night Sky+close 对齐（v6.12） | 2026-09-19 | done→production（键/铰链入资产；rim 0.85 去右缘亮带；chrome 双世界+放大修正；?shell=nightsky） | [goal-v6.12-shell-bake-nightsky-2026-09-19](./goal-v6.12-shell-bake-nightsky-2026-09-19/GOAL.md) |
 | V6.13 模型全面修复（v6.13） | 2026-09-19 | done→production（cover chrome 0.5 压缩布局；双键 0.08 烘焙；Vercel build 链入烘焙） | [goal-v6.13-model-comprehensive-2026-09-19](./goal-v6.13-model-comprehensive-2026-09-19/GOAL.md) |
+| V6.14 Tokyo 无音乐发布候选 | 2026-09-20 | done→production baseline（5.50s；R→L reveal；固定相机） | [release receipt](../docs/tokyo-v6.14-release.md) |
+| V6.15.1 官方状态 chrome 复核 | 2026-09-20 | done→review（close 隐藏/open 显示；侧键与右下控制复核） | [review](../docs/v6.15-device-chrome-review.md) |
+| V6.16 Tokyo World Pair | 2026-09-20 | done→review（Reality/RedBlack 双母版 PixelLock） | [spec](../docs/specs/2026-09-20-tokyo-v6-16-world-pair.md) |
+| V6.17 无音乐最小 Demo | 2026-09-20 | local review ready（5.80s；四段开合节奏；无音乐/鸟/塔高亮/文字） | [review](../docs/tokyo-v6.17-silent-demo.md) |

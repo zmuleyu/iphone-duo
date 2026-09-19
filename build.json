@@ -1,7 +1,7 @@
 {
-  "build": "6.15.1-review",
+  "build": "6.17-review-demo",
   "baseline": "6.12",
-  "milestone": "Interactive official-state chrome and device-control review",
+  "milestone": "Tokyo v6.17 silent review demo",
   "status": "REVIEW",
   "basedOn": "v5.1-production-fold",
   "changes": [
@@ -13,9 +13,11 @@
     "record: fixed camera from frame zero; no fold-coupled zoom/pan or hero push-in",
     "timeline: 5.50s Tokyo two-beat master — 0.50s Reality hold, 1.55s unfold, 0.20s pause, 1.20s Tower activation, 2.05s hero hold",
     "nofx: disables external motion blur plus screen shader blur/darken",
-    "assets: bundled Wikipedia-origin Reality/RedBlack pair available with ?tokyo=1"
+    "assets: bundled Wikipedia-origin Reality/RedBlack pair available with ?tokyo=1",
+    "demo-assets: PixelLock-approved v6.16 Reality/RedBlack pair available with ?tokyo=v616",
+    "demo-timeline: silent 5.80s review cut with a 0.65s hold, 4.15s four-beat editorial unfold, 1.00s poster finish, and no additive tower highlight or pulse"
   ],
-  "lockedFromBaseline": "V6.14 fold geometry, hinge, panels, R->L world reveal, fixed camera, frame clock, device materials and Screen UV unchanged",
+  "lockedFromBaseline": "V6.14 fold geometry, hinge, panels, R->L world reveal, fixed camera, frame clock, device materials and Screen UV unchanged; v6.16 accepted world-pair files remain immutable inputs",
   "mergePolicy": "Exact candidate requires local capture/QC, source delivery, then explicit production activation",
   "timestamp": "2026-09-20",
   "promotedFrom": "V6.14 production baseline"

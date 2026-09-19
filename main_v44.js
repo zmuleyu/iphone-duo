@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v6.15.1-review';
+const BUILD_VERSION = 'v6.17-review-demo';
 const PRODUCTION_BASELINE_ID = 'v5.1-production-fold';
 
 const viewport = document.querySelector('#viewport');
@@ -172,6 +172,7 @@ const HALF_DEVICE_WIDTH = 7.89935;
 // coordinate was stable. The device now unfolds leftward from a fixed anchor.
 const FIXED_PANEL_ANCHOR_X = -HALF_DEVICE_WIDTH * 0.5 * 0.90;
 const QUERY = new URLSearchParams(location.search);
+const REVIEW_DEMO = QUERY.get('motion') === 'tokyo-demo';
 const PRODUCTION_BASELINE = true;
 const DEV_EXPERIMENTS = QUERY.has('dev');
 const NO_FX = QUERY.has('nofx');
@@ -302,6 +303,14 @@ const FOLD_PRESETS = Object.freeze({
     unfoldDuration: 1.55,
     openHold: 3.45,
     easing: 'cinematic',
+    motionBlur: 'natural',
+  }),
+  'tokyo-demo': Object.freeze({
+    label: 'Tokyo Review Demo',
+    closedHold: 0.65,
+    unfoldDuration: 4.15,
+    openHold: 1.00,
+    easing: 'editorial',
     motionBlur: 'natural',
   }),
 });
@@ -586,22 +595,29 @@ async function decodeUrl(url) {
 }
 
 async function loadBundledTokyoPair() {
+  const useV616Pair = QUERY.get('tokyo') === 'v616';
+  const realityPath = useV616Pair
+    ? './media/tokyo/candidates/reality-v6.16-astra-master.png'
+    : './media/tokyo/reality-wikipedia.png';
+  const redblackPath = useV616Pair
+    ? './media/tokyo/candidates/redblack-v6.16-astra-master.png'
+    : './media/tokyo/redblack-wikipedia.png';
   const [reality, redblack] = await Promise.all([
-    decodeUrl('./media/tokyo/reality-wikipedia.png'),
-    decodeUrl('./media/tokyo/redblack-wikipedia.png'),
+    decodeUrl(realityPath),
+    decodeUrl(redblackPath),
   ]);
   worldImages.reality = reality;
   worldImages.redblack = redblack;
   drawWorld(reality, worldCanvases.reality, worldTextures.reality, chromeFor('cover'));
   drawWorld(redblack, worldCanvases.redblack, worldTextures.redblack, chromeFor('inner'));
   sourceMeta.reality = {
-    name: 'reality-wikipedia.png',
+    name: realityPath.split('/').at(-1),
     width: reality.naturalWidth || reality.width,
     height: reality.naturalHeight || reality.height,
     ratio: (reality.naturalWidth || reality.width) / Math.max(reality.naturalHeight || reality.height, 1),
   };
   sourceMeta.redblack = {
-    name: 'redblack-wikipedia.png',
+    name: redblackPath.split('/').at(-1),
     width: redblack.naturalWidth || redblack.width,
     height: redblack.naturalHeight || redblack.height,
     ratio: (redblack.naturalWidth || redblack.width) / Math.max(redblack.naturalHeight || redblack.height, 1),
@@ -873,6 +889,15 @@ function updateFraming() {
 function foldEase(progress) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
   if (foldMotion.easing === 'linear') return p;
+  if (foldMotion.easing === 'editorial') {
+    // Four authored beats: restrained pull, decisive formation, a brief
+    // near-hold, then a clean settle. This keeps the reveal tied to the real
+    // fold while adding enough editorial variation for the silent review cut.
+    if (p < 0.22) return 0.10 * smooth01(p / 0.22);
+    if (p < 0.58) return 0.10 + 0.58 * smooth01((p - 0.22) / 0.36);
+    if (p < 0.70) return 0.68 + 0.04 * smooth01((p - 0.58) / 0.12);
+    return 0.72 + 0.28 * smooth01((p - 0.70) / 0.30);
+  }
   if (foldMotion.easing === 'cinematic') {
     // Smootherstep: slower settle at both ends, useful for editorial cuts.
     return p * p * p * (p * (p * 6 - 15) + 10);
@@ -960,14 +985,14 @@ function setFoldMotion(partial = {}, source = 'manual') {
     if (closedHoldInput) closedHoldInput.value = String(foldMotion.closedHold);
   }
   if (Number.isFinite(partial.unfoldDuration)) {
-    foldMotion.unfoldDuration = THREE.MathUtils.clamp(Number(partial.unfoldDuration), 0.8, 4);
+    foldMotion.unfoldDuration = THREE.MathUtils.clamp(Number(partial.unfoldDuration), 0.8, 4.5);
     if (unfoldDurationInput) unfoldDurationInput.value = String(foldMotion.unfoldDuration);
   }
   if (Number.isFinite(partial.openHold)) {
     foldMotion.openHold = THREE.MathUtils.clamp(Number(partial.openHold), 0, 4);
     if (openHoldInput) openHoldInput.value = String(foldMotion.openHold);
   }
-  if (['smooth', 'cinematic', 'linear'].includes(partial.easing)) {
+  if (['smooth', 'cinematic', 'editorial', 'linear'].includes(partial.easing)) {
     foldMotion.easing = partial.easing;
     if (foldEasingSelect) foldEasingSelect.value = foldMotion.easing;
   }
@@ -1972,7 +1997,8 @@ function finalizeCapture() {
   const blob = new Blob(capChunks, { type: 'video/webm' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `duo_${BUILD_VERSION}_${recordFormat}_${recordFps}fps_${activeFoldPreset || 'custom'}.webm`;
+  const capturePreset = activeFoldPreset || (REVIEW_DEMO ? 'tokyo-demo' : 'custom');
+  a.download = `duo_${BUILD_VERSION}_${recordFormat}_${recordFps}fps_${capturePreset}.webm`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -2002,12 +2028,12 @@ function startRecord() {
     format: recordFormat,
     fps: recordFps,
     duration,
-    expectedFrames: Math.ceil(duration * recordFps),
+    expectedFrames: Math.round(duration * recordFps),
     finalFrame: 0,
     clockPass: false,
     endpointAngle: 0,
     masterPairPass: masterPairCheck().pass,
-    preset: activeFoldPreset,
+    preset: activeFoldPreset || (REVIEW_DEMO ? 'tokyo-demo' : null),
     motionBlur: document.documentElement.dataset.motionBlur || 'natural',
   };
   resetExportVerdicts(recordFormat);
@@ -2075,11 +2101,21 @@ function driveRecord(nowMs) {
   const recAngle = easedFold * 180;
   const foldActive = rawFold > 0 && rawFold < 1;
   worldMix.value = smoothRange(recAngle, 25, 150);
-  const tokyoTimeline = activeFoldPreset === 'tokyo' || QUERY.get('timeline') === 'tokyo';
+  const tokyoTimeline = activeFoldPreset === 'tokyo'
+    || activeFoldPreset === 'tokyo-demo'
+    || QUERY.get('timeline') === 'tokyo';
+  const reviewDemo = REVIEW_DEMO;
   const towerStart = foldEnd + (tokyoTimeline ? 0.20 : 0.05);
   const towerEnd = towerStart + (tokyoTimeline ? 1.20 : 0.30);
-  uTowerMix.value = smoothRange(t, towerStart, towerEnd);
-  uTowerBoost.value = NO_FX || !tokyoTimeline ? 0 : 0.65 * smoothRange(t, towerStart, towerEnd);
+  // The demo keeps the shared tower inside the same fold-driven hand-off;
+  // the historical post-open tower activation remains available to v6.14.
+  uTowerMix.value = reviewDemo
+    ? worldMix.value
+    : smoothRange(t, towerStart, towerEnd);
+  // The v6.17 review demo deliberately omits the additive tower highlight.
+  uTowerBoost.value = NO_FX || !tokyoTimeline || reviewDemo
+    ? 0
+    : 0.65 * smoothRange(t, towerStart, towerEnd);
   uRevealFront.value = easedFold; // V6.3: per-panel sequential windows (shader maps 0..1)
   uBezel.value = 0;                   // V6.2: real titanium shell — no sweep light in exports
   if (uBezelPop.value > 0) uBezelPop.value *= 0.5; // lock pop kept subtle
@@ -2103,7 +2139,9 @@ function driveRecord(nowMs) {
   uImpact.value = 0;
   const pulseCenter = 4.28;
   const pulseDistance = Math.abs(t - pulseCenter);
-  uPulse.value = NO_FX || !tokyoTimeline ? 0 : Math.max(0, 1 - pulseDistance / 0.28) * 0.42;
+  uPulse.value = NO_FX || !tokyoTimeline || reviewDemo
+    ? 0
+    : Math.max(0, 1 - pulseDistance / 0.28) * 0.42;
 
   const rw = STAGED_REVEAL ? uTransActive.value : 0;
   if (STAGED_REVEAL) {
@@ -2117,7 +2155,8 @@ function driveRecord(nowMs) {
   document.documentElement.dataset.recordDuration = sequenceEnd.toFixed(3);
   updateRecordingTime(Math.min(t, sequenceEnd), sequenceEnd);
 
-  if (rawT > sequenceEnd + (1 / recordFps)) {
+  const lastAuthoredFrame = Math.max(0, Math.round(sequenceEnd * recordFps) - 1);
+  if (recordFrameIndex >= lastAuthoredFrame) {
     recording = false;
     recordHasRun = true;
     uImpact.value = 0;
@@ -2133,7 +2172,7 @@ function driveRecord(nowMs) {
     if (capture) {
       capture.done = true;
       capture.finalFrame = recordFrameIndex;
-      capture.clockPass = Math.abs(recordFrameIndex - capture.expectedFrames) <= 2;
+      capture.clockPass = recordFrameIndex === capture.expectedFrames - 1;
       capture.endpointAngle = angle;
       capture.completedAt = Date.now();
     }
@@ -2216,12 +2255,16 @@ window.__duo = {
       revealMode: STAGED_REVEAL ? 'staged' : 'clean-crossfade',
       foldMotion: {
         ...foldMotion,
-        preset: activeFoldPreset,
+        preset: activeFoldPreset || (REVIEW_DEMO ? 'tokyo-demo' : null),
         motionBlur: document.documentElement.dataset.motionBlur || 'natural',
         total: foldSequenceDuration(),
       },
       recordTimeline: {
-        mode: activeFoldPreset === 'tokyo' || QUERY.get('timeline') === 'tokyo' ? 'tokyo-two-beat' : 'fold-only',
+        mode: REVIEW_DEMO
+          ? 'tokyo-v6.17-silent-review'
+          : activeFoldPreset === 'tokyo' || QUERY.get('timeline') === 'tokyo'
+            ? 'tokyo-two-beat'
+            : 'fold-only',
         fixedCamera: true,
         noFxDisablesScreenBlurAndDarken: NO_FX,
       },
