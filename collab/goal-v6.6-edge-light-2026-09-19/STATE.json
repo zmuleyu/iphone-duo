@@ -1,8 +1,12 @@
 {
   "goal": "V6.6 左缘亮带",
   "date": "2026-09-19",
-  "state": "in-progress",
-  "phase": "verified, ready-for-merge",
+  "state": "done",
+  "phase": "production-verified + final delivered",
   "writer": "hermes-desktop-session",
-  "branch": "work/v6.6-edge-light"
+  "branch": "work/v6.6-edge-light",
+  "deliverables": [
+    "duo_v6.6_16x9_1080p_final.mp4"
+  ],
+  "verify": "QC PASS;左缘剖面亮带消失;vision整帧通过"
 }
