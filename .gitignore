@@ -4,3 +4,4 @@
 /assets/
 /.venv/
 __pycache__/
+/artifacts/

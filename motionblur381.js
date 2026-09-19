@@ -8,7 +8,8 @@ import * as THREE from 'three';
 
 const originalRender = THREE.WebGLRenderer.prototype.render;
 const rendererState = new WeakMap();
-let motionBlurMode = 'natural';
+const NO_FX = new URLSearchParams(location.search).has('nofx');
+let motionBlurMode = NO_FX ? 'off' : 'natural';
 
 // If the visual trail is reversed for the current hinge motion, flip to -1.
 const SCREEN_TRAIL_SIGN_FOR_OPEN = 1;
@@ -237,6 +238,7 @@ THREE.WebGLRenderer.prototype.render = function patchedRender(scene, camera) {
 
 function setMode(mode) {
   if (!['off', 'natural', 'strong'].includes(mode)) return;
+  if (NO_FX && mode !== 'off') mode = 'off';
   motionBlurMode = mode;
   document.querySelectorAll('[data-motion-blur]').forEach(button => {
     button.setAttribute('aria-pressed', String(button.dataset.motionBlur === mode));
@@ -247,8 +249,9 @@ function setMode(mode) {
 document.querySelectorAll('[data-motion-blur]').forEach(button => {
   button.addEventListener('click', () => setMode(button.dataset.motionBlur));
 });
+document.addEventListener('duo-motion-blur', event => setMode(event.detail));
 
-setMode('natural');
+setMode(NO_FX ? 'off' : 'natural');
 
 console.info('Lv3 Step 3.8.1 asymmetric directional shell motion blur ready', {
   framingBaseline: 'Step 3.7.2',
