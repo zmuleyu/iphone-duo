@@ -117,8 +117,9 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 // V5.9: 1.5x capture supersample (2x@60fps starved the frame clock, frozen
 // spans) + opaque white clear so captures land on Apple-white, not alpha-black.
 renderer.setPixelRatio(new URLSearchParams(location.search).has('cap') ? 1.25 : Math.min(devicePixelRatio, 2)); // V6.3: original-master VP9 throughput
-renderer.setClearColor(new URLSearchParams(location.search).has('cap') ? 0xffffff : 0x000000,
-  new URLSearchParams(location.search).has('cap') ? 1 : 0);
+// V6.10: preview was alpha-0 over CSS #f6f6f3 so blown Star White punched through to paper.
+// Opaque page-color clear for preview; Apple-white for cap.
+renderer.setClearColor(new URLSearchParams(location.search).has('cap') ? 0xffffff : 0xf6f6f3, 1);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.18;
 viewport.appendChild(renderer.domElement);
@@ -137,6 +138,15 @@ scene.add(key);
 const rim = new THREE.DirectionalLight(0xe8edf5, 2);
 rim.position.set(15, 5, -15);
 scene.add(rim);
+function applyShellExposure() {
+  // V6.10: keep Star White albedo; stop ACES+HDR from clipping the front bezel to paper.
+  scene.environmentIntensity = 0.92;
+  hemi.intensity = 1.15;
+  key.intensity = 1.7;
+  rim.intensity = 1.4;
+  rim.color.setHex(0xe8edf5);
+}
+applyShellExposure();
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = false;
@@ -1302,9 +1312,10 @@ function setAngle(value) {
   slider.value = angle;
   bend.value = (180 - angle) / 180 * Math.PI;
   const progress = angle / 180;
-  const bezelPrev = uBezel.value;
-  uBezel.value = progress;
-  if (!REDUCED_MOTION && angle >= 179.9 && bezelPrev * 180 < 179.9) { uBezelPopHold = false; uBezelPop.value = 1; }
+  // V6.10: fake titanium sweep made the preview shell change color while unfolding.
+  uBezel.value = 0;
+  uBezelPop.value = 0;
+  uBezelPopHold = false;
   const active = uiTheme === 'custom' && customReady.reality && customReady.redblack;
   const mix = worldMixOverride ?? (active ? worldMixFromGeometry(geometrySignal(angle)) : 0);
   worldMix.value = mix;
@@ -1981,8 +1992,12 @@ function driveRecord(nowMs) {
   uPulse.value = 0;
 
   const rw = STAGED_REVEAL ? uTransActive.value : 0;
-  rim.intensity = 2 + 3.2 * rw;
-  rim.color.setRGB(0.91 + 0.09 * rw, 0.93 - 0.62 * rw, 0.96 - 0.68 * rw);
+  if (STAGED_REVEAL) {
+    rim.intensity = 2 + 3.2 * rw;
+    rim.color.setRGB(0.91 + 0.09 * rw, 0.93 - 0.62 * rw, 0.96 - 0.68 * rw);
+  } else {
+    applyShellExposure();
+  }
   document.documentElement.dataset.recordT = t.toFixed(3);
   document.documentElement.dataset.recordFrame = String(recordFrameIndex);
   document.documentElement.dataset.recordDuration = sequenceEnd.toFixed(3);
@@ -1994,8 +2009,7 @@ function driveRecord(nowMs) {
     uImpact.value = 0;
     uPulse.value = 0;
     uTransActive.value = 0;
-    rim.intensity = 2;
-    rim.color.setHex(0xe8edf5);
+    applyShellExposure();
     document.documentElement.dataset.recordDone = '1';
     document.documentElement.removeAttribute('data-recording-active');
     setAngle(180);

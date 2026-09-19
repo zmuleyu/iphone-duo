@@ -1,4 +1,4 @@
-const BUILD_ID = '6.9.1';
+const BUILD_ID = '6.10';
 
 globalThis.__IPHONE_DUO_BUILD__ = BUILD_ID;
 document.documentElement.dataset.build = BUILD_ID;

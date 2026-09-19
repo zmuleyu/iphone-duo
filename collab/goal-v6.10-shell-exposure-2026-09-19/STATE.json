@@ -1,0 +1,9 @@
+{
+  "goal": "V6.10 Star White 可读性",
+  "date": "2026-09-19",
+  "state": "in_progress",
+  "phase": "implement",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v6.10-shell-exposure",
+  "next_action": "patch exposure + preview clear + bezel off"
+}

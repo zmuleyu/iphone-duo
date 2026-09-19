@@ -1,15 +1,16 @@
 {
-  "build": "6.9",
-  "baseline": "6.8",
-  "milestone": "Stock Shell Restore (all color tweaks deleted)",
-  "status": "PRODUCTION",
+  "build": "6.10",
+  "baseline": "6.9",
+  "milestone": "Star White readability (exposure lock, no color retint)",
+  "status": "RD_CANDIDATE",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "cap: ALL v6.4-v6.9 shell color/light tweaks deleted (tints/satin/env/key/rim/hemi overrides) — they were the interference; stock = v5.1/plate natural Star White",
-    "kept: side-button surfacing + inner-screen overscan + pixelRatio 1.25 + white clear"
+    "unified preview+cap exposure: env 0.72 / hemi 1.1 / key 1.7 / rim 1.25 cool — Star White albedo unchanged",
+    "preview opaque clear #f6f6f3 (no alpha punch-through on page white)",
+    "production preview uBezel/uBezelPop=0 (same as record; unfold no longer paints a fake rim)"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
-  "timestamp": "2026-09-18",
-  "promotedFrom": "RD_CANDIDATE (default closeout chain 2026-09-18)"
+  "timestamp": "2026-09-19",
+  "promotedFrom": null
 }
