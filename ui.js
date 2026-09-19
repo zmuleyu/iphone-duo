@@ -28,5 +28,11 @@ export async function loadDefaultUIs() {
       screens[kind] = canvas;
     }
   }
-  return themes;
+  return {
+    themes,
+    lockChrome: {
+      inner: images['clock-inner.avif'],
+      cover: images['clock-outer.avif'],
+    },
+  };
 }

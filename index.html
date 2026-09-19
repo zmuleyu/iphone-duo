@@ -73,6 +73,28 @@
               <input id="ui-upload" type="file" accept="image/*" hidden disabled>
               <input id="redblack-upload" type="file" accept="image/*" hidden disabled>
             </div>
+
+            <div class="chrome-controls" aria-label="Lock screen UI controls">
+              <div class="chrome-toggle-row">
+                <span><strong>Closed UI</strong><small>Hidden by default</small></span>
+                <button id="closed-chrome-toggle" class="switch" type="button" role="switch" aria-checked="false" aria-label="Show lock screen UI while closed" disabled><i></i></button>
+              </div>
+              <div class="chrome-toggle-row">
+                <span><strong>Open UI</strong><small>Visible by default</small></span>
+                <button id="open-chrome-toggle" class="switch" type="button" role="switch" aria-checked="true" aria-label="Show lock screen UI while open" disabled><i></i></button>
+              </div>
+              <div class="motion-grid chrome-tuning">
+                <label>
+                  <span>Clock Size <output id="clock-scale-value">78%</output></span>
+                  <input id="clock-scale" type="range" min="70" max="105" value="78" step="1" aria-label="Clock size" disabled>
+                </label>
+                <label>
+                  <span>Clock Y <output id="clock-y-value">2%</output></span>
+                  <input id="clock-y" type="range" min="-4" max="10" value="2" step="1" aria-label="Clock vertical position" disabled>
+                </label>
+              </div>
+            </div>
+
             <div class="setup-motion">
               <div class="motion-presets" role="group" aria-label="Fold motion preset">
                 <button type="button" data-fold-preset="fast" aria-pressed="true" title="Short-form pacing" disabled><svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><strong>Fast Viral</strong></button>
