@@ -1,12 +1,13 @@
 {
-  "build": "6.15-review",
+  "build": "6.15.1-review",
   "baseline": "6.12",
-  "milestone": "Official device outline and system chrome review",
+  "milestone": "Interactive official-state chrome and device-control review",
   "status": "REVIEW",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "chrome: custom Tokyo worlds use the prepared Apple lock-screen overlays already used by the default UI; hand-drawn clock, Wi-Fi, utility controls and home indicator removed",
-    "shell: official two-key right rail retained; both clusters seated at +0.04x while stock hinge, panels and top-edge geometry remain unchanged",
+    "chrome: Closed UI defaults hidden, Open UI defaults visible, and direct controls adjust state, clock scale and clock vertical position",
+    "icons: clock/date and Wi-Fi retain the prepared Apple overlay; flashlight and camera use matching white-ring stroke treatment",
+    "shell: upper right-rail key stays at +0.04x, lower key is flush, and both top caps keep the Apple-authored height on one aligned baseline",
     "deploy: vercel.json buildCommand chains scripts/patch-shell-asset.py after prepare-assets.py so production model = baked model every deploy",
     "audit: back/camera-island (white glass, dual-lens capsule) verified vs onmyduo; no Apple logo in stock asset (same as onmyduo)",
     "record: fixed camera from frame zero; no fold-coupled zoom/pan or hero push-in",

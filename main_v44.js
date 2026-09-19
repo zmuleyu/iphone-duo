@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v6.15-review';
+const BUILD_VERSION = 'v6.15.1-review';
 const PRODUCTION_BASELINE_ID = 'v5.1-production-fold';
 
 const viewport = document.querySelector('#viewport');
@@ -49,6 +49,12 @@ const foldTotalReadout = document.querySelector('#fold-total-readout');
 const foldMotionReset = document.querySelector('#fold-motion-reset');
 const foldPresetButtons = [...document.querySelectorAll('[data-fold-preset]')];
 const customSourceButton = document.querySelector('[data-ui-theme="custom"]');
+const closedChromeToggle = document.querySelector('#closed-chrome-toggle');
+const openChromeToggle = document.querySelector('#open-chrome-toggle');
+const clockScaleInput = document.querySelector('#clock-scale');
+const clockYInput = document.querySelector('#clock-y');
+const clockScaleValue = document.querySelector('#clock-scale-value');
+const clockYValue = document.querySelector('#clock-y-value');
 const qaPanel = document.querySelector('#master-pair-qa-panel');
 const qaSummary = document.querySelector('#qa-summary');
 const qaRealityMeta = document.querySelector('#qa-reality-meta');
@@ -251,6 +257,20 @@ const qaState = {
 };
 const movingShellMeshes = [];
 
+const requestedClockScale = QUERY.has('clockScale') ? Number(QUERY.get('clockScale')) : Number.NaN;
+const requestedClockY = QUERY.has('clockY') ? Number(QUERY.get('clockY')) : Number.NaN;
+const legacyChrome = QUERY.get('ui');
+const chromeConfig = {
+  closed: legacyChrome === '1' || QUERY.get('closedUi') === '1',
+  open: legacyChrome !== '0' && QUERY.get('openUi') !== '0',
+  clockScale: Number.isFinite(requestedClockScale)
+    ? THREE.MathUtils.clamp(requestedClockScale / 100, 0.70, 1.05)
+    : 0.78,
+  clockY: Number.isFinite(requestedClockY)
+    ? THREE.MathUtils.clamp(requestedClockY / 100, -0.04, 0.10)
+    : 0.02,
+};
+
 const FOLD_PRESETS = Object.freeze({
   fast: Object.freeze({
     label: 'Fast Viral',
@@ -410,23 +430,133 @@ document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventLi
 // Upload pipeline — one image fills ONE world canvas; no per-screen crops.
 // ---------------------------------------------------------------------------
 
-// V5.8 lock-screen chrome (?ui=1 or __duo.setScreenChrome): paint Apple's
-// prepared lock-screen overlays into BOTH world canvases. V6.15 removes the
-// hand-drawn approximation so clock hierarchy, Wi-Fi, utility controls and
-// home indicator share the exact authority already used by the default UI.
-// V6.11: default ON per official render (user directive); ?ui=0 opts out.
-let screenChrome = QUERY.get('ui') !== '0';
+// V6.15.1: Closed and Open lock-screen UI are independently controllable.
+// Closed defaults clean; Open defaults visible. The official Apple source owns
+// clock/date and Wi-Fi geometry, while the two utility controls use the same
+// white-ring visual language instead of the former filled beige buttons.
 const worldImages = { reality: null, redblack: null };
+
+function drawUtilityChrome(ctx, x, y, radius, kind) {
+  ctx.save();
+  ctx.lineWidth = Math.max(2, radius * 0.10);
+  ctx.strokeStyle = 'rgba(255,255,255,.96)';
+  ctx.fillStyle = 'rgba(14,18,22,.32)';
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = Math.max(1.6, radius * 0.085);
+  if (kind === 'camera') {
+    const width = radius * 1.10;
+    const height = radius * 0.72;
+    ctx.beginPath();
+    ctx.roundRect(x - width / 2, y - height / 2, width, height, radius * 0.16);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x, y, radius * 0.22, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x - width * 0.26, y - height / 2);
+    ctx.lineTo(x - width * 0.12, y - height * 0.70);
+    ctx.lineTo(x + width * 0.16, y - height * 0.70);
+    ctx.lineTo(x + width * 0.25, y - height / 2);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,.96)';
+    ctx.fillRect(x - radius * 0.30, y - radius * 0.34, radius * 0.60, radius * 0.16);
+    ctx.beginPath();
+    ctx.moveTo(x - radius * 0.28, y - radius * 0.17);
+    ctx.lineTo(x + radius * 0.28, y - radius * 0.17);
+    ctx.lineTo(x + radius * 0.11, y + radius * 0.03);
+    ctx.lineTo(x - radius * 0.11, y + radius * 0.03);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(x - radius * 0.10, y, radius * 0.20, radius * 0.40, radius * 0.06);
+    ctx.fill();
+  }
+  ctx.restore();
+}
 
 function drawLockChrome(canvas, region = 'inner') {
   const ctx = canvas.getContext('2d');
   const w = canvas.width;
   const h = canvas.height;
+  const isCover = region === 'cover';
+  const source = isCover ? lockChrome.cover : lockChrome.inner;
+  const regionX = isCover ? w / 2 : 0;
+  const regionWidth = isCover ? w / 2 : w;
+  const centerX = regionX + regionWidth / 2;
+  const clockClipWidth = regionWidth * (isCover ? 0.68 : 0.56);
+  const wifiX = regionX + regionWidth * 0.79;
   ctx.save();
-  if (region === 'cover') ctx.drawImage(lockChrome.cover, w / 2, 0, w / 2, h);
-  else ctx.drawImage(lockChrome.inner, 0, 0, w, h);
+  ctx.beginPath();
+  ctx.rect(centerX - clockClipWidth / 2, 0, clockClipWidth, h * 0.52);
+  ctx.clip();
+  ctx.translate(centerX, h * chromeConfig.clockY);
+  ctx.scale(chromeConfig.clockScale, chromeConfig.clockScale);
+  ctx.translate(-centerX, 0);
+  ctx.drawImage(source, regionX, 0, regionWidth, h);
+  ctx.restore();
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(wifiX, 0, regionWidth * 0.21, h * 0.24);
+  ctx.clip();
+  ctx.drawImage(source, regionX, 0, regionWidth, h);
+  ctx.restore();
+
+  const controlRadius = Math.min(regionWidth * 0.036, h * 0.027);
+  const controlX = regionX + regionWidth * (isCover ? 0.925 : 0.955);
+  drawUtilityChrome(ctx, controlX, h * 0.735, controlRadius, 'torch');
+  drawUtilityChrome(ctx, controlX, h * 0.835, controlRadius, 'camera');
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,.96)';
+  ctx.lineWidth = Math.max(4, h * 0.006);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(centerX - regionWidth * (isCover ? 0.17 : 0.14), h * 0.975);
+  ctx.lineTo(centerX + regionWidth * (isCover ? 0.17 : 0.14), h * 0.975);
+  ctx.stroke();
   ctx.restore();
 }
+
+function chromeFor(region) {
+  return region === 'cover' ? chromeConfig.closed && 'cover' : chromeConfig.open && 'inner';
+}
+
+function redrawChromeWorlds() {
+  if (worldImages.reality) drawWorld(worldImages.reality, worldCanvases.reality, worldTextures.reality, chromeFor('cover'));
+  if (worldImages.redblack) drawWorld(worldImages.redblack, worldCanvases.redblack, worldTextures.redblack, chromeFor('inner'));
+}
+
+function updateChromeControls() {
+  closedChromeToggle?.setAttribute('aria-checked', String(chromeConfig.closed));
+  openChromeToggle?.setAttribute('aria-checked', String(chromeConfig.open));
+  if (clockScaleInput) clockScaleInput.value = String(Math.round(chromeConfig.clockScale * 100));
+  if (clockYInput) clockYInput.value = String(Math.round(chromeConfig.clockY * 100));
+  if (clockScaleValue) clockScaleValue.value = `${Math.round(chromeConfig.clockScale * 100)}%`;
+  if (clockYValue) clockYValue.value = `${Math.round(chromeConfig.clockY * 100)}%`;
+}
+
+function setChromeConfig(patch) {
+  if (Object.hasOwn(patch, 'closed')) chromeConfig.closed = Boolean(patch.closed);
+  if (Object.hasOwn(patch, 'open')) chromeConfig.open = Boolean(patch.open);
+  if (Object.hasOwn(patch, 'clockScale')) chromeConfig.clockScale = THREE.MathUtils.clamp(Number(patch.clockScale), 0.70, 1.05);
+  if (Object.hasOwn(patch, 'clockY')) chromeConfig.clockY = THREE.MathUtils.clamp(Number(patch.clockY), -0.04, 0.10);
+  updateChromeControls();
+  redrawChromeWorlds();
+  return { ...chromeConfig };
+}
+
+closedChromeToggle?.addEventListener('click', () => setChromeConfig({ closed: !chromeConfig.closed }));
+openChromeToggle?.addEventListener('click', () => setChromeConfig({ open: !chromeConfig.open }));
+clockScaleInput?.addEventListener('input', () => setChromeConfig({ clockScale: Number(clockScaleInput.value) / 100 }));
+clockYInput?.addEventListener('input', () => setChromeConfig({ clockY: Number(clockYInput.value) / 100 }));
+updateChromeControls();
 
 function drawWorld(img, canvas, texture, chrome = false) {
   const context = canvas.getContext('2d');
@@ -462,8 +592,8 @@ async function loadBundledTokyoPair() {
   ]);
   worldImages.reality = reality;
   worldImages.redblack = redblack;
-  drawWorld(reality, worldCanvases.reality, worldTextures.reality, screenChrome && 'cover');
-  drawWorld(redblack, worldCanvases.redblack, worldTextures.redblack, screenChrome && 'inner');
+  drawWorld(reality, worldCanvases.reality, worldTextures.reality, chromeFor('cover'));
+  drawWorld(redblack, worldCanvases.redblack, worldTextures.redblack, chromeFor('inner'));
   sourceMeta.reality = {
     name: 'reality-wikipedia.png',
     width: reality.naturalWidth || reality.width,
@@ -601,7 +731,7 @@ realityInput.addEventListener('change', async () => {
   try {
     const img = await decodeFile(file);
     worldImages.reality = img;
-    drawWorld(img, worldCanvases.reality, worldTextures.reality, screenChrome && 'cover');
+    drawWorld(img, worldCanvases.reality, worldTextures.reality, chromeFor('cover'));
     sourceMeta.reality = {
       name: file.name,
       width: img.naturalWidth || img.width,
@@ -632,7 +762,7 @@ redBlackInput.addEventListener('change', async () => {
   try {
     const img = await decodeFile(file);
     worldImages.redblack = img;
-    drawWorld(img, worldCanvases.redblack, worldTextures.redblack, screenChrome && 'inner');
+    drawWorld(img, worldCanvases.redblack, worldTextures.redblack, chromeFor('inner'));
     sourceMeta.redblack = {
       name: file.name,
       width: img.naturalWidth || img.width,
@@ -1761,6 +1891,7 @@ try {
     towerHighlightGuard: 'content-aware tower mask; no broad ellipse glow',
     noFxGeometryTest: '?nofx=1',
     foldMotionControls: 'Fast Viral + Cinematic + Slow Demo presets; manual tuning remains available',
+    lockScreenControls: 'Closed UI off by default; Open UI on; clock size/Y adjustable; utility icons share Wi-Fi ring style',
     foldMotionDefault: `${FOLD_PRESETS[DEFAULT_FOLD_PRESET].label} via ?motion=${DEFAULT_FOLD_PRESET}`,
     recordingEditingMode: 'clean UI + 16:9/1:1/9:16 safe frames + 30/60fps deterministic record clock',
     recordingQueries: '?studio=1&format=16x9|1x1|9x16&fps=30|60; ?record=1 auto-starts',
@@ -1777,8 +1908,9 @@ try {
     if (element !== revealSettingsButton && !element.hasAttribute('data-future')) element.disabled = false;
   });
   // Shell geometry is baked into assets/iPhone_Duo_Render.usdc by
-  // scripts/patch-shell-asset.py. V6.15 seats both official right-rail key
-  // clusters at +0.04x; stock hinge/panel geometry remains untouched.
+  // scripts/patch-shell-asset.py. V6.15.1 keeps the upper right-rail key at
+  // +0.04x, seats the lower key flush and keeps both top caps on the same
+  // Apple-authored protrusion baseline.
   // Optional Night Sky variant (?shell=nightsky): dye the warm titanium frame
   // family deep graphite; Star White remains the default/main.
   if (QUERY.get('shell') === 'nightsky') {
@@ -2015,12 +2147,12 @@ window.__duo = {
   _renderer: renderer,
   _scene: scene,
   _phone: phone,
-  // V5.7: toggle iOS-style status-bar chrome on custom worlds (redraws canvases).
+  setChromeConfig,
+  // Backward-compatible master toggle for prior review automation.
   setScreenChrome: flag => {
-    screenChrome = !!flag;
-    if (worldImages.reality) drawWorld(worldImages.reality, worldCanvases.reality, worldTextures.reality, screenChrome && 'cover');
-    if (worldImages.redblack) drawWorld(worldImages.redblack, worldCanvases.redblack, worldTextures.redblack, screenChrome && 'inner');
-    return screenChrome;
+    const enabled = Boolean(flag);
+    setChromeConfig({ closed: enabled, open: enabled });
+    return enabled;
   },
   // V5.6 debug: force bezel sweep/pop for deterministic verification.
   setBezel: (sweep, pop) => { uBezel.value = Number(sweep); uBezelPop.value = Number(pop); uBezelPopHold = Number(pop) > 0; },
@@ -2065,6 +2197,7 @@ window.__duo = {
   get state() {
     return {
       angle, worldMix: worldMix.value, ready, recording,
+      chrome: { ...chromeConfig },
       baseline: {
         id: PRODUCTION_BASELINE_ID,
         locked: PRODUCTION_BASELINE,
