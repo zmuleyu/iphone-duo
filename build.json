@@ -1,17 +1,21 @@
 {
-  "build": "6.13",
+  "build": "6.14",
   "baseline": "6.12",
-  "milestone": "Model comprehensive fix (cover chrome layout + two-key rail + asset bake into Vercel build)",
+  "milestone": "Tokyo final master (fixed camera + honest No-FX + two-beat timeline)",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
     "chrome: cover-state layout defect fixed — cover displays panorama right half, so lock chrome is compressed 0.5x around u=0.75 (9:41 fully readable on closed cover; was cut to '41')",
     "shell: two-key right rail per onmyduo (same Apple USDZ) — lower key cluster baked too; protrusion 0.12->0.08 (less floaty at 3/4 angles)",
     "deploy: vercel.json buildCommand chains scripts/patch-shell-asset.py after prepare-assets.py so production model = baked model every deploy",
-    "audit: back/camera-island (white glass, dual-lens capsule) verified vs onmyduo; no Apple logo in stock asset (same as onmyduo)"
+    "audit: back/camera-island (white glass, dual-lens capsule) verified vs onmyduo; no Apple logo in stock asset (same as onmyduo)",
+    "record: fixed camera from frame zero; no fold-coupled zoom/pan or hero push-in",
+    "timeline: 5.50s Tokyo two-beat master — 0.50s Reality hold, 1.55s unfold, 0.20s pause, 1.20s Tower activation, 2.05s hero hold",
+    "nofx: disables external motion blur plus screen shader blur/darken",
+    "assets: bundled Wikipedia-origin Reality/RedBlack pair available with ?tokyo=1"
   ],
-  "lockedFromBaseline": "Fold architecture, reveal R->L, geometry, motion, QA, recording clock, v6.10 exposure lock unchanged; no video output per user directive",
-  "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
-  "timestamp": "2026-09-19",
-  "promotedFrom": "RD_CANDIDATE (goal auto closeout chain, user: 全面修复模型不用直接输出视频)"
+  "lockedFromBaseline": "V6.13 shell/model bake, fold geometry, R->L world reveal, v6.10 exposure, device materials and Screen UV unchanged",
+  "mergePolicy": "Exact candidate requires local capture/QC, source delivery, then explicit production activation",
+  "timestamp": "2026-09-20",
+  "promotedFrom": "V6.13 production baseline"
 }

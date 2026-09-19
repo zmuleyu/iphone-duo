@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v5.1';
+const BUILD_VERSION = 'v6.14';
 const PRODUCTION_BASELINE_ID = 'v5.1-production-fold';
 
 const viewport = document.querySelector('#viewport');
@@ -276,11 +276,21 @@ const FOLD_PRESETS = Object.freeze({
     easing: 'smooth',
     motionBlur: 'off',
   }),
+  tokyo: Object.freeze({
+    label: 'Tokyo Master',
+    closedHold: 0.50,
+    unfoldDuration: 1.55,
+    openHold: 3.45,
+    easing: 'cinematic',
+    motionBlur: 'natural',
+  }),
 });
 const requestedFoldPreset = QUERY.get('motion');
 const DEFAULT_FOLD_PRESET = Object.hasOwn(FOLD_PRESETS, requestedFoldPreset)
   ? requestedFoldPreset
-  : 'fast';
+  : RECORD_AUTO
+    ? 'tokyo'
+    : 'fast';
 const DEFAULT_FOLD_MOTION = Object.freeze({
   closedHold: FOLD_PRESETS[DEFAULT_FOLD_PRESET].closedHold,
   unfoldDuration: FOLD_PRESETS[DEFAULT_FOLD_PRESET].unfoldDuration,
@@ -518,6 +528,45 @@ async function decodeFile(file) {
   img.src = url;
   try { await img.decode(); return img; }
   finally { URL.revokeObjectURL(url); }
+}
+
+async function decodeUrl(url) {
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  return img;
+}
+
+async function loadBundledTokyoPair() {
+  const [reality, redblack] = await Promise.all([
+    decodeUrl('./media/tokyo/reality-wikipedia.png'),
+    decodeUrl('./media/tokyo/redblack-wikipedia.png'),
+  ]);
+  worldImages.reality = reality;
+  worldImages.redblack = redblack;
+  drawWorld(reality, worldCanvases.reality, worldTextures.reality, screenChrome && 'cover');
+  drawWorld(redblack, worldCanvases.redblack, worldTextures.redblack, screenChrome && 'inner');
+  sourceMeta.reality = {
+    name: 'reality-wikipedia.png',
+    width: reality.naturalWidth || reality.width,
+    height: reality.naturalHeight || reality.height,
+    ratio: (reality.naturalWidth || reality.width) / Math.max(reality.naturalHeight || reality.height, 1),
+  };
+  sourceMeta.redblack = {
+    name: 'redblack-wikipedia.png',
+    width: redblack.naturalWidth || redblack.width,
+    height: redblack.naturalHeight || redblack.height,
+    ratio: (redblack.naturalWidth || redblack.width) / Math.max(redblack.naturalHeight || redblack.height, 1),
+  };
+  customReady.reality = true;
+  customReady.redblack = true;
+  uiTheme = 'custom';
+  resetQaVerdicts();
+  resetExportAcceptanceAll({ clearFiles: true });
+  applyCustomWorld();
+  setPlaying(false);
+  setAngle(0);
+  updateSourceUI();
 }
 
 function metaLabel(meta) {
@@ -867,7 +916,7 @@ function setFoldMotion(partial = {}, source = 'manual') {
     if (unfoldDurationInput) unfoldDurationInput.value = String(foldMotion.unfoldDuration);
   }
   if (Number.isFinite(partial.openHold)) {
-    foldMotion.openHold = THREE.MathUtils.clamp(Number(partial.openHold), 0, 2.5);
+    foldMotion.openHold = THREE.MathUtils.clamp(Number(partial.openHold), 0, 4);
     if (openHoldInput) openHoldInput.value = String(foldMotion.openHold);
   }
   if (['smooth', 'cinematic', 'linear'].includes(partial.easing)) {
@@ -884,7 +933,10 @@ function applyFoldPreset(name, { resetView = true } = {}) {
   setFoldMotion(preset, 'preset');
 
   applyingFoldPreset = true;
-  document.querySelector(`[data-motion-blur="${preset.motionBlur}"]`)?.click();
+  document.dispatchEvent(new CustomEvent('duo-motion-blur', { detail: preset.motionBlur }));
+  document.querySelectorAll('[data-motion-blur]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.motionBlur === preset.motionBlur));
+  });
   applyingFoldPreset = false;
 
   if (resetView) {
@@ -1543,8 +1595,8 @@ vec3 screenColor() {
   float motion = smoothstep(0.0, 1.0, progress);
   float blurGradient = clamp(edge, 0.0, 1.0);
   float darkenGradient = clamp((edge - 0.2) / 0.8, 0.0, 1.0);
-  float effect = motion * pow(darkenGradient, 1.35);
-  float radius = 72.0 * motion * pow(blurGradient, 1.35);
+  float effect = motion * pow(darkenGradient, 1.35) * (1.0 - uNoFx);
+  float radius = 72.0 * motion * pow(blurGradient, 1.35) * (1.0 - uNoFx);
   radius *= 1.0 - 0.65 * uTransActive; // keep the leak edge crisp mid-transition
   radius *= uFoldBlurScale; // V5.9: record path trims smear for rigid panels
   vec2 aa = max(fwidth(sourceUV), uiPixel * 0.5);
@@ -1828,6 +1880,7 @@ try {
     });
   }
   ready = true;
+  if (QUERY.has('tokyo')) await loadBundledTokyoPair();
   setPlaying(false);
   setAngle(0);
   updateQaUI();
@@ -1870,7 +1923,7 @@ function finalizeCapture() {
   const blob = new Blob(capChunks, { type: 'video/webm' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `duo_v${'5.8'}_${recordFormat}_${recordFps}fps_${activeFoldPreset || 'custom'}.webm`;
+  a.download = `duo_${BUILD_VERSION}_${recordFormat}_${recordFps}fps_${activeFoldPreset || 'custom'}.webm`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -1921,21 +1974,19 @@ function startRecord() {
   updateRecordingUI();
 }
 
-// Recording-mode cinematic framing (T3): portrait targets cannot contain the
-// landscape-opened device at the preview camera, so during record the camera
-// dollies out / pans left as the fold progresses. Preview (non-record) is
-// never touched.
+// Recording framing is locked from frame zero. The fixed/right screen and its
+// Tokyo Tower anchor must remain in the same output coordinates throughout the
+// fold; only the physical left panel moves.
 const RECORD_FRAMING = {
   '16x9': { zoom: 1.25, panX: -167 }, // V6.0: +25% size, panned to horizontal center
   '1x1': { zoom: 1.0, panX: -132 },
   '9x16': { zoom: 0.62, panX: -83 }, // V6.0.1: horizontal centering
 };
 
-function applyRecordFraming(easedProgress) {
+function applyRecordFraming() {
   const f = RECORD_FRAMING[recordFormat] || RECORD_FRAMING['16x9'];
-  const zoom = 1 + (f.zoom - 1) * easedProgress;
-  const pan = f.panX * easedProgress;
-  camera.zoom = zoom;
+  const pan = f.panX;
+  camera.zoom = f.zoom;
   if (Math.abs(pan) > 0.01) {
     camera.setViewOffset(innerWidth, innerHeight, pan, 0, innerWidth, innerHeight);
   } else {
@@ -1967,7 +2018,7 @@ function driveRecord(nowMs) {
   );
   const easedFold = foldEase(rawFold);
   setAngle(easedFold * 180);
-  applyRecordFraming(easedFold);
+  applyRecordFraming();
   // V5.9 narrative repair (record path only): the world follows the physical
   // opening (25->150deg) instead of saturating at 67deg, and the tower
   // activates late (110->165deg) as the second beat.
@@ -1975,21 +2026,16 @@ function driveRecord(nowMs) {
   const recAngle = easedFold * 180;
   const foldActive = rawFold > 0 && rawFold < 1;
   worldMix.value = smoothRange(recAngle, 25, 150);
-  uTowerMix.value = smoothRange(t, foldEnd + 0.05, foldEnd + 0.35);
-  uTowerBoost.value = 0;              // V6.2: no artificial tower glow
+  const tokyoTimeline = activeFoldPreset === 'tokyo' || QUERY.get('timeline') === 'tokyo';
+  const towerStart = foldEnd + (tokyoTimeline ? 0.20 : 0.05);
+  const towerEnd = towerStart + (tokyoTimeline ? 1.20 : 0.30);
+  uTowerMix.value = smoothRange(t, towerStart, towerEnd);
+  uTowerBoost.value = NO_FX || !tokyoTimeline ? 0 : 0.65 * smoothRange(t, towerStart, towerEnd);
   uRevealFront.value = easedFold; // V6.3: per-panel sequential windows (shader maps 0..1)
   uBezel.value = 0;                   // V6.2: real titanium shell — no sweep light in exports
   if (uBezelPop.value > 0) uBezelPop.value *= 0.5; // lock pop kept subtle
-  uFoldBlurScale.value = 0.35;
+  uFoldBlurScale.value = NO_FX ? 0 : 0.35;
   if (foldActive) uBezel.value *= 0.35;  // V6.0: soften hinge strip mid-fold (pop untouched)
-  // V5.8: micro push-in across the open hold so the static plate stays alive
-  // (record path only; preview untouched).
-  if (t > foldEnd && foldMotion.openHold > 0) {
-    const holdK = THREE.MathUtils.clamp((t - foldEnd) / foldMotion.openHold, 0, 1);
-    camera.zoom *= 1 + 0.015 * holdK * holdK * (3 - 2 * holdK);
-    camera.updateProjectionMatrix();
-  }
-
   // Experimental staged reveal follows normalized fold progress rather than
   // fixed wall-clock seconds, so motion timing can be edited without desync.
   const leakStart = foldStart + foldMotion.unfoldDuration * 0.55;
@@ -2003,9 +2049,12 @@ function driveRecord(nowMs) {
       * (1 - THREE.MathUtils.smoothstep(t, foldEnd, foldEnd + 0.12))
     : 0;
 
-  // Fold-only production baseline: no Tower FX or Bird FX event.
+  // Tokyo master keeps geometry untouched: a restrained screen-space tower
+  // lift completes the second beat, followed by one subtle hero pulse.
   uImpact.value = 0;
-  uPulse.value = 0;
+  const pulseCenter = 4.28;
+  const pulseDistance = Math.abs(t - pulseCenter);
+  uPulse.value = NO_FX || !tokyoTimeline ? 0 : Math.max(0, 1 - pulseDistance / 0.28) * 0.42;
 
   const rw = STAGED_REVEAL ? uTransActive.value : 0;
   if (STAGED_REVEAL) {
@@ -2120,6 +2169,11 @@ window.__duo = {
         preset: activeFoldPreset,
         motionBlur: document.documentElement.dataset.motionBlur || 'natural',
         total: foldSequenceDuration(),
+      },
+      recordTimeline: {
+        mode: activeFoldPreset === 'tokyo' || QUERY.get('timeline') === 'tokyo' ? 'tokyo-two-beat' : 'fold-only',
+        fixedCamera: true,
+        noFxDisablesScreenBlurAndDarken: NO_FX,
       },
       recordingMode: {
         active: recordingMode,
