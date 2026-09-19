@@ -143,7 +143,7 @@ function applyShellExposure() {
   scene.environmentIntensity = 0.92;
   hemi.intensity = 1.15;
   key.intensity = 1.7;
-  rim.intensity = 1.4;
+  rim.intensity = 0.85; // V6.12: 1.4 painted a bright band on the right rail
   rim.color.setHex(0xe8edf5);
 }
 applyShellExposure();
@@ -401,10 +401,11 @@ document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventLi
 // ---------------------------------------------------------------------------
 
 // V5.8 lock-screen chrome (?ui=1 or __duo.setScreenChrome): render-faithful Duo
-// lock screen painted into the RedBlack world canvas only (open state). Layout
-// follows the open-state reference: big light-weight 9:41 + date top-center,
+// lock screen painted into BOTH world canvases (V6.12): Reality = cover screen
+// (closed state, official parity) and RedBlack = open desktop. Layout follows
+// the open-state reference: big light-weight 9:41 + date top-center,
 // small Wi-Fi top-right, flashlight/camera frosted circles stacked bottom-right,
-// home indicator bottom-center. Reality/cover world stays pure wallpaper.
+// home indicator bottom-center.
 // V6.11: default ON per official render (user directive); ?ui=0 opts out.
 let screenChrome = QUERY.get('ui') !== '0';
 const worldImages = { reality: null, redblack: null };
@@ -422,13 +423,13 @@ function drawLockChrome(canvas) {
   ctx.shadowOffsetY = h * 0.002;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  // Date + big time (top-center)
-  ctx.font = `400 ${Math.round(h * 0.030)}px "Segoe UI Variable Display", "Segoe UI", -apple-system, sans-serif`;
-  ctx.fillText('Wed Apr 1', w / 2, h * 0.068);
-  ctx.font = `200 ${Math.round(h * 0.115)}px "Segoe UI Variable Display", "Segoe UI Light", "Segoe UI", -apple-system, sans-serif`;
-  ctx.fillText('9:41', w / 2, h * 0.155);
-  // Small Wi-Fi (top-right corner)
-  const wifiX = w - padX;
+  // Date + big time (top-center, official proportions: dominant 9:41)
+  ctx.font = `400 ${Math.round(h * 0.034)}px "Segoe UI Variable Display", "Segoe UI", -apple-system, sans-serif`;
+  ctx.fillText('Wed Apr 1', w / 2, h * 0.085);
+  ctx.font = `200 ${Math.round(h * 0.165)}px "Segoe UI Variable Display", "Segoe UI Light", "Segoe UI", -apple-system, sans-serif`;
+  ctx.fillText('9:41', w / 2, h * 0.215);
+  // Small Wi-Fi (top-right corner, fully inside the panel)
+  const wifiX = w - padX * 2.4;
   const wifiY = h * 0.055;
   ctx.lineWidth = Math.max(2, h * 0.004);
   ctx.lineCap = 'round';
@@ -625,7 +626,7 @@ realityInput.addEventListener('change', async () => {
   try {
     const img = await decodeFile(file);
     worldImages.reality = img;
-    drawWorld(img, worldCanvases.reality, worldTextures.reality);
+    drawWorld(img, worldCanvases.reality, worldTextures.reality, screenChrome);
     sourceMeta.reality = {
       name: file.name,
       width: img.naturalWidth || img.width,
@@ -1797,30 +1798,27 @@ try {
   document.querySelectorAll('.control-dock button, .control-dock input, .control-dock select').forEach(element => {
     if (element !== revealSettingsButton && !element.hasAttribute('data-future')) element.disabled = false;
   });
-  // V6.9 (record/cap path only): STOCK rendering — all v6.4-v6.9 shell color
-  // tweaks deleted per user directive ("可以直接全部删除"): they were the
-  // interference. Stock = the v5.1/plate look (natural Star White silver).
-  // Kept: side-button surfacing (real USDZ geometry) + inner-screen overscan.
-  if (QUERY.has('cap')) {
-    const btnSig = [];
+  // V6.12: shell geometry is baked into assets/iPhone_Duo_Render.usdc by
+  // scripts/patch-shell-asset.py (upper right-rail key cluster +0.12x, one
+  // elongated key like the official render). No runtime offsets: hinge seam
+  // tabs stay flush, lower key stays flush.
+  // Optional Night Sky variant (?shell=nightsky): dye the warm titanium frame
+  // family deep graphite; Star White remains the default/main.
+  if (QUERY.get('shell') === 'nightsky') {
     phone.traverse(o => {
       if (!o.isMesh) return;
-      o.geometry.computeBoundingBox();
-      const bb = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld);
-      const sx = bb.max.x - bb.min.x, sy = bb.max.y - bb.min.y;
-      const cx = (bb.max.x + bb.min.x) / 2, cy = (bb.max.y + bb.min.y) / 2;
-      if (cx > 4.4 && sx < 0.2 && sy > 1.4 && sy < 2.1 && cy > 1.2 && cy < 3.2) btnSig.push(o);
+      const list = Array.isArray(o.material) ? o.material : [o.material];
+      list.forEach(m => {
+        const c = m && m.color;
+        if (!c) return;
+        if (c.r > 0.25 && c.r >= c.g && c.g >= c.b && (c.r - c.b) > 0.03) {
+          c.setRGB(0.085, 0.088, 0.095);
+          if ('metalness' in m) m.metalness = Math.min(m.metalness, 0.85);
+          if ('roughness' in m) m.roughness = Math.max(m.roughness, 0.38);
+        }
+      });
     });
-    // V6.11: official render has ONE elongated key on the right rail — surface the
-    // upper key only; the lower key (y≈-2.62) stays flush per user annotation.
-    btnSig.forEach(o => { o.position.x += 0.12; });
   }
-  // V6.11 (preview+cap): hinge knuckles protrude subtly past the frame line like
-  // the official render. These seam tabs are static (bbox identical 0/90/180).
-  phone.traverse(o => {
-    if (o.name === 'FcJBPLgEScWGyXd') { o.position.y += 0.07; o.position.z += 0.03; }
-    if (o.name === 'WzRveeKjvQZVqRA') { o.position.y -= 0.07; o.position.z += 0.03; }
-  });
   ready = true;
   setPlaying(false);
   setAngle(0);
@@ -2046,6 +2044,7 @@ window.__duo = {
   // V5.7: toggle iOS-style status-bar chrome on custom worlds (redraws canvases).
   setScreenChrome: flag => {
     screenChrome = !!flag;
+    if (worldImages.reality) drawWorld(worldImages.reality, worldCanvases.reality, worldTextures.reality, screenChrome);
     if (worldImages.redblack) drawWorld(worldImages.redblack, worldCanvases.redblack, worldTextures.redblack, screenChrome);
     return screenChrome;
   },

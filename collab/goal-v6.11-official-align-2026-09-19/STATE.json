@@ -1,9 +1,13 @@
 {
   "goal": "V6.11 官方渲染对齐",
   "date": "2026-09-19",
-  "state": "in_progress",
-  "phase": "probe geometry",
+  "state": "done",
+  "phase": "production-verified + final delivered",
   "writer": "hermes-desktop-session",
   "branch": "work/v6.11-official-align",
-  "next_action": "dump hinge/button bboxes then patch"
+  "deliverables": [
+    "duo_v6.11_16x9_1080p_final.mp4 (2.43s 定格)"
+  ],
+  "verify": "像素量化（vision配额尽）: reveal右1/4红领先4x@t0.55收敛至t1.3=R→L; chrome clock/wifi/flash/cam/home全检出(成片末帧103px/row); 铰链顶tab凸~4px底tab同; 上键+10px下键0px; prod build.json=6.11",
+  "userVisual": "pending"
 }

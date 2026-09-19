@@ -29,3 +29,5 @@
 | V6.8 外壳颜色锁定（v6.8） | 2026-09-19 | done→production（暖rim+缎面钛+中灰族tint；定格剪辑v6.7配方） |
 | V6.9 外壳 stock 回归（v6.9） | 2026-09-19 | done→production（v6.4-6.9 色彩 tweak 全删;并行WIP已stash） | [goal-v6.9-cap-rim-hold-2026-09-19](./goal-v6.9-cap-rim-hold-2026-09-19/GOAL.md) |
 | V6.10 Star White 可读性（v6.10） | 2026-09-19 | done→production（曝光锁定 env0.92/hemi1.15/key1.7/rim1.4；预览不透明白+关假扫光；色号不动） | [goal-v6.10-shell-exposure-2026-09-19](./goal-v6.10-shell-exposure-2026-09-19/GOAL.md) |
+| V6.11 官方渲染对齐（v6.11） | 2026-09-19 | done→production（铰链凸出+下键收回；reveal R→L；锁屏 chrome 默认开） | [goal-v6.11-official-align-2026-09-19](./goal-v6.11-official-align-2026-09-19/GOAL.md) |
+| V6.12 外壳烘焙+Night Sky+close 对齐（v6.12） | 2026-09-19 | done→production（键/铰链入资产；rim 0.85 去右缘亮带；chrome 双世界+放大修正；?shell=nightsky） | [goal-v6.12-shell-bake-nightsky-2026-09-19](./goal-v6.12-shell-bake-nightsky-2026-09-19/GOAL.md) |

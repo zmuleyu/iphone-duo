@@ -1,16 +1,19 @@
 {
-  "build": "6.11",
-  "baseline": "6.10",
-  "milestone": "Official render alignment (hinge/buttons + R->L reveal + lock chrome default)",
-  "status": "RD_CANDIDATE",
+  "build": "6.12",
+  "baseline": "6.11",
+  "milestone": "Shell baked + Night Sky variant + lock chrome fixes (official alignment)",
+  "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "P1: hinge knuckle tabs protrude +0.07y/+0.03z (static seams, fold-safe); lower right key flush (upper key only +0.12)",
-    "P2: record reveal sweeps right->left with fold (seqR leads; front lu 1->0); preview crossfade unchanged",
-    "P3: lock-screen chrome default ON (?ui=0 opts out) — date+9:41+Wi-Fi+flashlight/camera+home bar on RedBlack world"
+    "asset: scripts/patch-shell-asset.py bakes upper right-rail key cluster +0.12x into iPhone_Duo_Render.usdc (idempotent); runtime key offsets deleted",
+    "hinge: v6.11 protrusion reverted — seam tabs flush like official",
+    "shell: ?shell=nightsky dyes titanium family deep graphite (0.085/0.088/0.095, satin); Star White stays main",
+    "light: rim 1.4->0.85 — kills the bright band on the right rail",
+    "chrome: Wi-Fi inset (no edge clip); 9:41 enlarged to official dominance (0.165h @ y 0.215, date 0.034h @ 0.085)",
+    "chrome: lock chrome now painted on BOTH worlds — Reality = closed cover (official parity), RedBlack = open desktop"
   ],
-  "lockedFromBaseline": "Fold architecture, staged dev path, geometry, motion, QA, recording clock, v6.10 exposure lock unchanged",
+  "lockedFromBaseline": "Fold architecture, reveal R->L (v6.11), geometry, motion, QA, recording clock, v6.10 exposure lock otherwise unchanged",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
   "timestamp": "2026-09-19",
-  "promotedFrom": null
+  "promotedFrom": "RD_CANDIDATE (goal auto closeout chain, user decisions: A主+B变体+烘焙/chrome修正/铰链回平/close态对齐)"
 }
