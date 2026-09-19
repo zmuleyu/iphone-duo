@@ -1,8 +1,9 @@
-"""Bake shell geometry into iPhone_Duo_Render.usdc (v6.12).
+"""Bake the reviewed right-rail key offset into iPhone_Duo_Render.usdc.
 
 Official render alignment, baked once so runtime carries zero offsets:
-- Upper right-rail key cluster (+0.12x): one elongated key like the official
-  render. Lower key stays stock (flush) per user annotation.
+- Upper and lower right-rail key clusters use a restrained +0.04x offset. This
+  keeps both official controls readable without the floating-edge look of the
+  earlier +0.12/+0.08 values.
 - Hinge seam tabs stay stock (flush) — v6.11 runtime protrusion reverted.
 
 three.js USDComposer only honors the DEFAULT op name `xformOp:translate`
@@ -23,7 +24,7 @@ ASSET = Path(__file__).resolve().parents[1] / "assets" / "iPhone_Duo_Render.usdc
 # and lower — onmyduo (same Apple USDZ) shows TWO keys on the right rail.
 UPPER_KEY = ("UXtkILReLwCJaov", "fbvEqfwjsAMSDkr", "tkSBzAjLTdhANqx")
 LOWER_KEY = ("AjfIgUpXxKaENDl", "VNIQJMrwFmXgrBf", "ejUvJHtjfcqjSvM")
-PUSH_X = 0.08
+PUSH_X = 0.04
 LEGACY_OP = "xformOp:translate:shellKey"
 
 

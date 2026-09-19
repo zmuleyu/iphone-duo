@@ -15,7 +15,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v6.14';
+const BUILD_VERSION = 'v6.15-review';
 const PRODUCTION_BASELINE_ID = 'v5.1-production-fold';
 
 const viewport = document.querySelector('#viewport');
@@ -320,7 +320,7 @@ if (stageBackground) stageBackground.style.background = '#f6f6f3';
 // World textures — ONE canvas per world, shared by both physical screens.
 // ---------------------------------------------------------------------------
 
-const defaultUIs = await loadDefaultUIs();
+const { themes: defaultUIs, lockChrome } = await loadDefaultUIs();
 
 const WORLD_WIDTH = 1600;
 const WORLD_HEIGHT = 1125;
@@ -410,12 +410,10 @@ document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventLi
 // Upload pipeline — one image fills ONE world canvas; no per-screen crops.
 // ---------------------------------------------------------------------------
 
-// V5.8 lock-screen chrome (?ui=1 or __duo.setScreenChrome): render-faithful Duo
-// lock screen painted into BOTH world canvases (V6.12): Reality = cover screen
-// (closed state, official parity) and RedBlack = open desktop. Layout follows
-// the open-state reference: big light-weight 9:41 + date top-center,
-// small Wi-Fi top-right, flashlight/camera frosted circles stacked bottom-right,
-// home indicator bottom-center.
+// V5.8 lock-screen chrome (?ui=1 or __duo.setScreenChrome): paint Apple's
+// prepared lock-screen overlays into BOTH world canvases. V6.15 removes the
+// hand-drawn approximation so clock hierarchy, Wi-Fi, utility controls and
+// home indicator share the exact authority already used by the default UI.
 // V6.11: default ON per official render (user directive); ?ui=0 opts out.
 let screenChrome = QUERY.get('ui') !== '0';
 const worldImages = { reality: null, redblack: null };
@@ -424,89 +422,9 @@ function drawLockChrome(canvas, region = 'inner') {
   const ctx = canvas.getContext('2d');
   const w = canvas.width;
   const h = canvas.height;
-  const padX = Math.round(w * 0.024);
   ctx.save();
-  if (region === 'cover') {
-    // V6.13: the closed cover displays the RIGHT HALF of the panorama stretched
-    // to full width. Compress the same lock layout 0.5x around u=0.75 so it
-    // lands with correct proportions on the cover (clock fully readable).
-    ctx.translate(w * 0.75, 0);
-    ctx.scale(0.5, 1);
-    ctx.translate(-w * 0.5, 0);
-  }
-  ctx.fillStyle = '#ffffff';
-  ctx.strokeStyle = '#ffffff';
-  ctx.shadowColor = 'rgba(0,0,0,0.45)';
-  ctx.shadowBlur = h * 0.006;
-  ctx.shadowOffsetY = h * 0.002;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  // Date + big time (top-center, official proportions: dominant 9:41)
-  ctx.font = `400 ${Math.round(h * 0.034)}px "Segoe UI Variable Display", "Segoe UI", -apple-system, sans-serif`;
-  ctx.fillText('Wed Apr 1', w / 2, h * 0.085);
-  ctx.font = `200 ${Math.round(h * 0.165)}px "Segoe UI Variable Display", "Segoe UI Light", "Segoe UI", -apple-system, sans-serif`;
-  ctx.fillText('9:41', w / 2, h * 0.215);
-  // Small Wi-Fi (top-right corner, fully inside the panel)
-  const wifiX = w - padX * 2.4;
-  const wifiY = h * 0.055;
-  ctx.lineWidth = Math.max(2, h * 0.004);
-  ctx.lineCap = 'round';
-  for (let k = 3; k >= 1; k--) {
-    ctx.beginPath();
-    ctx.arc(wifiX, wifiY, h * 0.007 * k + h * 0.004, Math.PI * 1.3, Math.PI * 1.7);
-    ctx.stroke();
-  }
-  ctx.beginPath();
-  ctx.arc(wifiX, wifiY, ctx.lineWidth * 0.7, 0, Math.PI * 2);
-  ctx.fill();
-  // Flashlight + camera frosted circles (stacked, bottom-right)
-  const r = h * 0.037;
-  const bx = w - padX - r;
-  const byTorch = h * 0.78;
-  const byCam = byTorch + r * 2.55;
-  for (const cy of [byTorch, byCam]) {
-    ctx.save();
-    ctx.shadowColor = 'transparent';
-    ctx.fillStyle = 'rgba(255,255,255,0.20)';
-    ctx.beginPath();
-    ctx.arc(bx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-  ctx.fillStyle = '#ffffff';
-  ctx.strokeStyle = '#ffffff';
-  // Flashlight glyph
-  ctx.lineWidth = Math.max(2, r * 0.11);
-  ctx.beginPath();
-  ctx.roundRect(bx - r * 0.20, byTorch - r * 0.42, r * 0.40, r * 0.30, r * 0.08);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(bx - r * 0.13, byTorch - r * 0.10);
-  ctx.lineTo(bx - r * 0.08, byTorch + r * 0.40);
-  ctx.lineTo(bx + r * 0.08, byTorch + r * 0.40);
-  ctx.lineTo(bx + r * 0.13, byTorch - r * 0.10);
-  ctx.closePath();
-  ctx.fill();
-  // Camera glyph
-  ctx.beginPath();
-  ctx.roundRect(bx - r * 0.46, byCam - r * 0.28, r * 0.92, r * 0.62, r * 0.14);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.roundRect(bx - r * 0.18, byCam - r * 0.40, r * 0.36, r * 0.14, r * 0.05);
-  ctx.fill();
-  ctx.save();
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.beginPath();
-  ctx.arc(bx, byCam + r * 0.03, r * 0.19, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-  // Home indicator (bottom center)
-  const hiW = w * 0.088;
-  const hiH = Math.max(3, h * 0.0048);
-  ctx.globalAlpha = 0.9;
-  ctx.beginPath();
-  ctx.roundRect((w - hiW) / 2, h - hiH * 2.6, hiW, hiH, hiH / 2);
-  ctx.fill();
+  if (region === 'cover') ctx.drawImage(lockChrome.cover, w / 2, 0, w / 2, h);
+  else ctx.drawImage(lockChrome.inner, 0, 0, w, h);
   ctx.restore();
 }
 
@@ -1858,10 +1776,9 @@ try {
   document.querySelectorAll('.control-dock button, .control-dock input, .control-dock select').forEach(element => {
     if (element !== revealSettingsButton && !element.hasAttribute('data-future')) element.disabled = false;
   });
-  // V6.12: shell geometry is baked into assets/iPhone_Duo_Render.usdc by
-  // scripts/patch-shell-asset.py (upper right-rail key cluster +0.12x, one
-  // elongated key like the official render). No runtime offsets: hinge seam
-  // tabs stay flush, lower key stays flush.
+  // Shell geometry is baked into assets/iPhone_Duo_Render.usdc by
+  // scripts/patch-shell-asset.py. V6.15 seats both official right-rail key
+  // clusters at +0.04x; stock hinge/panel geometry remains untouched.
   // Optional Night Sky variant (?shell=nightsky): dye the warm titanium frame
   // family deep graphite; Star White remains the default/main.
   if (QUERY.get('shell') === 'nightsky') {
