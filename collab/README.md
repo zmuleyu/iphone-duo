@@ -23,4 +23,5 @@
 | V6.1 Clean Hero（v6.1） | 2026-09-19 | done→production（母图v2压halo/纯天/灯减半+塔光收敛+轻晕影；含6.0.1 9:16居中） |
 | V6.2 空间化reveal+真实外壳（v6.2） | 2026-09-19 | done→production（左→右波前reveal/塔辉光关/扫光退出成片） |
 | V6.3 回归原始母版+逐面板reveal（v6.3） | 2026-09-19 | done→production（图形化过滤否决,回退原母版;接续reveal;1.25x捕获） |
-| V6.4 外壳保真（v6.4） | 2026-09-19 | done→production（侧键显现+暖钛框+去爆白） | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |
+| V6.4 外壳保真（v6.4） | 2026-09-19 | done→production（侧键显现+暖钛框+去爆白） |
+| V6.5 冷晕/白缝/节奏（v6.5） | 2026-09-19 | done→production（内容遮罩回退+overscan+3.73s剪辑） | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |
