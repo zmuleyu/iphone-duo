@@ -129,7 +129,8 @@ scene.environment = pmrem.fromScene(environment, .04).texture;
 environment.dispose();
 pmrem.dispose();
 scene.environmentIntensity = 1.35;
-scene.add(new THREE.HemisphereLight(0xffffff, 0xb5baa8, 1.8));
+const hemi = new THREE.HemisphereLight(0xffffff, 0xb5baa8, 1.8);
+scene.add(hemi);
 const key = new THREE.DirectionalLight(0xfffcf5, 2.6);
 key.position.set(-15, 25, 30);
 scene.add(key);
@@ -1798,14 +1799,27 @@ try {
       const m = o.material;
       if (m && m.color) {
         const c = m.color;
-        if (c.r > 0.75 && c.r >= c.g && c.g >= c.b && (c.r - c.b) < 0.25) {
-          c.r *= 0.935; c.g *= 0.895; c.b *= 0.82; // warm titanium, de-blown (deeper)
+        const brightWarm = c.r > 0.75 && c.r >= c.g && c.g >= c.b && (c.r - c.b) < 0.25;
+        const midNeutral = c.r > 0.4 && c.r <= 0.75 && c.r >= c.g && c.g >= c.b && (c.r - c.b) < 0.15;
+        if (brightWarm) {
+          c.r *= 0.95; c.g *= 0.87; c.b *= 0.74; // V6.8: champagne titanium albedo
+        } else if (midNeutral) {
+          c.r *= 0.97; c.g *= 0.90; c.b *= 0.78; // V6.8: warm the #807a73/#99938a frame family
+        }
+        if (brightWarm || midNeutral) {
+          // metalness=1 + polished roughness made the shell a pure env mirror
+          // (always cool); satin finish lets the warm albedo read.
+          if ('metalness' in m) m.metalness = Math.min(m.metalness, 0.9);
+          if ('roughness' in m) m.roughness = Math.max(m.roughness, 0.32);
+          if ('envMapIntensity' in m) m.envMapIntensity = 0.8;
         }
       }
     });
     btnSig.forEach(o => { o.position.x += 0.12; });
     scene.environmentIntensity = 1.0; // was 1.35 — frame read blown-white on white bg
     key.intensity = 1.7; // was 2.6 — left-edge frame highlight read as a light band (V6.6)
+    rim.intensity = 1.4; rim.color.set(0xf5e8d8); // V6.8: cool rim was washing the open-state shell to silver
+    hemi && (hemi.intensity = 1.5); // see note: keep room read, trim wash
   }
   ready = true;
   setPlaying(false);

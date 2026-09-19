@@ -1,11 +1,12 @@
 {
-  "build": "6.6",
-  "baseline": "6.5",
-  "milestone": "Left-Edge Light Band Fix",
+  "build": "6.8",
+  "baseline": "6.6",
+  "milestone": "Shell Color Lock (warm titanium, no end-state silver shift)",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "cap: key light 2.6->1.7 (left-front key was blowing the left-edge frame into a light band)"
+    "cap: rim 1.4 warm + hemi named/1.5 (cool-rim wash removed)",
+    "cap: bright+mid frame families champagne tint; satin finish (metalness<=0.9, roughness>=0.32, env 0.8) so warm albedo reads instead of cool env mirror"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
