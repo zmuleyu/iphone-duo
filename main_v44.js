@@ -405,7 +405,8 @@ document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventLi
 // follows the open-state reference: big light-weight 9:41 + date top-center,
 // small Wi-Fi top-right, flashlight/camera frosted circles stacked bottom-right,
 // home indicator bottom-center. Reality/cover world stays pure wallpaper.
-let screenChrome = QUERY.has('ui');
+// V6.11: default ON per official render (user directive); ?ui=0 opts out.
+let screenChrome = QUERY.get('ui') !== '0';
 const worldImages = { reality: null, redblack: null };
 
 function drawLockChrome(canvas) {
@@ -1484,16 +1485,17 @@ float activeReveal(vec2 uv, vec3 bCol) {
 float finalReveal(vec2 uv, vec3 bCol) {
   float r = activeReveal(uv, bCol);
   if (uUseStagedReveal < 0.5) {
-    // V6.2: spatial reveal — the world transforms left->right following the
-    // opening panel, replacing the global crossfade on the record path.
+    // V6.2: spatial reveal — the world transforms with the opening panels,
+    // replacing the global crossfade on the record path (V6.11: right->left).
     if (uRevealFront >= 0.0) {
-      // V6.3: per-panel sequential reveal — the left panel transforms as it
-      // opens, the right panel follows left->right; full coverage by fold end.
-      float seqL = clamp(uRevealFront / 0.55, 0.0, 1.0);
-      float seqR = clamp((uRevealFront - 0.45) / 0.55, 0.0, 1.0);
+      // V6.11: reveal sweeps RIGHT -> LEFT with the fold — the red world enters
+      // at the right edge and advances left as the device opens (user directive,
+      // matches the original right-anchored design).
+      float seqR = clamp(uRevealFront / 0.55, 0.0, 1.0);
+      float seqL = clamp((uRevealFront - 0.45) / 0.55, 0.0, 1.0);
       float panel = uv.x < 0.5 ? seqL : seqR;
       float lu = uv.x < 0.5 ? uv.x * 2.0 : (uv.x - 0.5) * 2.0;
-      r = 1.0 - smoothstep(panel * 1.25 - 0.25, panel * 1.25, lu);
+      r = smoothstep(1.0 - panel * 1.25, 1.0 - panel * 1.25 + 0.25, lu);
     }
     r = mix(r, uTowerMix, towerContentMask(uv, bCol));  // V6.5: lattice-only hold — no cold ellipse halo
   }
@@ -1807,10 +1809,18 @@ try {
       const bb = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld);
       const sx = bb.max.x - bb.min.x, sy = bb.max.y - bb.min.y;
       const cx = (bb.max.x + bb.min.x) / 2, cy = (bb.max.y + bb.min.y) / 2;
-      if (cx > 4.4 && sx < 0.2 && sy > 1.4 && sy < 2.1 && Math.abs(cy) > 1.2 && Math.abs(cy) < 3.2) btnSig.push(o);
+      if (cx > 4.4 && sx < 0.2 && sy > 1.4 && sy < 2.1 && cy > 1.2 && cy < 3.2) btnSig.push(o);
     });
+    // V6.11: official render has ONE elongated key on the right rail — surface the
+    // upper key only; the lower key (y≈-2.62) stays flush per user annotation.
     btnSig.forEach(o => { o.position.x += 0.12; });
   }
+  // V6.11 (preview+cap): hinge knuckles protrude subtly past the frame line like
+  // the official render. These seam tabs are static (bbox identical 0/90/180).
+  phone.traverse(o => {
+    if (o.name === 'FcJBPLgEScWGyXd') { o.position.y += 0.07; o.position.z += 0.03; }
+    if (o.name === 'WzRveeKjvQZVqRA') { o.position.y -= 0.07; o.position.z += 0.03; }
+  });
   ready = true;
   setPlaying(false);
   setAngle(0);

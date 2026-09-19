@@ -1,0 +1,9 @@
+{
+  "goal": "V6.11 官方渲染对齐",
+  "date": "2026-09-19",
+  "state": "in_progress",
+  "phase": "probe geometry",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v6.11-official-align",
+  "next_action": "dump hinge/button bboxes then patch"
+}
