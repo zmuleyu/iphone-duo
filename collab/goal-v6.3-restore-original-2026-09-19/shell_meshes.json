@@ -1,0 +1,1256 @@
+[
+ {
+  "name": "JnJdTkxbQgUtLwU",
+  "size": {
+   "x": 16.02,
+   "y": 11.33,
+   "z": 0
+  },
+  "ctr": {
+   "x": -3.55,
+   "y": 0,
+   "z": 0.25
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "MvKPXGSdYDVvSpk",
+  "size": {
+   "x": 0.82,
+   "y": 11.56,
+   "z": 0.29
+  },
+  "ctr": {
+   "x": -3.55,
+   "y": 0,
+   "z": 0.03
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3dbcc",
+  "metal": 1,
+  "rough": 1
+ },
+ {
+  "name": "UXtsBZYlaUvHoEh",
+  "size": {
+   "x": 15.8,
+   "y": 11.1,
+   "z": 0
+  },
+  "ctr": {
+   "x": -3.55,
+   "y": 0,
+   "z": 0.25
+  },
+  "mat": "MeshBasicMaterial",
+  "color": "ffffff"
+ },
+ {
+  "name": "xdyyaajWsatVNxN",
+  "size": {
+   "x": 2.38,
+   "y": 11.58,
+   "z": 0.17
+  },
+  "ctr": {
+   "x": -3.55,
+   "y": 0,
+   "z": 0.2
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "010101",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "NtYMsWnAcbWQvBP",
+  "size": {
+   "x": 0.77,
+   "y": 0.77,
+   "z": 0.07
+  },
+  "ctr": {
+   "x": 1.38,
+   "y": 4.37,
+   "z": -0.72
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "020203",
+  "metal": 0,
+  "rough": 0.6499999761581421
+ },
+ {
+  "name": "SxeyDDoPvaCZQxB",
+  "size": {
+   "x": 1.62,
+   "y": 1.62,
+   "z": 0.19
+  },
+  "ctr": {
+   "x": 1.38,
+   "y": 4.37,
+   "z": -0.55
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "f4efe5",
+  "metal": 1,
+  "rough": 1
+ },
+ {
+  "name": "TjnQASEQBIHreGe",
+  "size": {
+   "x": 1.62,
+   "y": 1.62,
+   "z": 0.19
+  },
+  "ctr": {
+   "x": 1.38,
+   "y": 4.37,
+   "z": -0.73
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3d9c8",
+  "metal": 1,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "BODTjtonsAnwGZC",
+  "size": {
+   "x": 0.34,
+   "y": 0.34,
+   "z": 0.03
+  },
+  "ctr": {
+   "x": 1.38,
+   "y": 4.37,
+   "z": -0.66
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "050708",
+  "metal": 1,
+  "rough": 0.5
+ },
+ {
+  "name": "JTfSVVYjoeeDWKv",
+  "size": {
+   "x": 0.41,
+   "y": 0.41,
+   "z": 0.07
+  },
+  "ctr": {
+   "x": 1.38,
+   "y": 4.37,
+   "z": -0.71
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 1,
+  "rough": 0.0010000000474974513
+ },
+ {
+  "name": "eMkYisZsxjfVsku",
+  "size": {
+   "x": 0.36,
+   "y": 0.36,
+   "z": 0.03
+  },
+  "ctr": {
+   "x": 1.38,
+   "y": 4.37,
+   "z": -0.69
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 1,
+  "rough": 0.0010000000474974513
+ },
+ {
+  "name": "eepRwbmxiYwsBNu",
+  "size": {
+   "x": 0.34,
+   "y": 0.34,
+   "z": 0.03
+  },
+  "ctr": {
+   "x": 1.38,
+   "y": 4.37,
+   "z": -0.66
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 1,
+  "rough": 0.0010000000474974513
+ },
+ {
+  "name": "iUykZAiNlEUXJDD",
+  "size": {
+   "x": 1.41,
+   "y": 1.41,
+   "z": 0.02
+  },
+  "ctr": {
+   "x": 1.38,
+   "y": 4.37,
+   "z": -0.84
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 1,
+  "rough": 0.10000000149011612
+ },
+ {
+  "name": "ieHYvKnnzuKBgyJ",
+  "size": {
+   "x": 1.33,
+   "y": 1.32,
+   "z": 0.03
+  },
+  "ctr": {
+   "x": 1.38,
+   "y": 4.37,
+   "z": -0.83
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 0.800000011920929
+ },
+ {
+  "name": "zukXlhkizWJIDav",
+  "size": {
+   "x": 1.33,
+   "y": 1.32,
+   "z": 0
+  },
+  "ctr": {
+   "x": 1.38,
+   "y": 4.37,
+   "z": -0.85
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "MeQNhtSdEDLOoXj",
+  "size": {
+   "x": 1.32,
+   "y": 1.32,
+   "z": 0
+  },
+  "ctr": {
+   "x": 3.16,
+   "y": 4.37,
+   "z": -0.85
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "MrGmthJDWvDlbwX",
+  "size": {
+   "x": 0.77,
+   "y": 0.77,
+   "z": 0.07
+  },
+  "ctr": {
+   "x": 3.16,
+   "y": 4.37,
+   "z": -0.64
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "020203",
+  "metal": 0,
+  "rough": 0.6499999761581421
+ },
+ {
+  "name": "PkkUoNvpaBExwuc",
+  "size": {
+   "x": 1.41,
+   "y": 1.41,
+   "z": 0.02
+  },
+  "ctr": {
+   "x": 3.16,
+   "y": 4.37,
+   "z": -0.84
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 1,
+  "rough": 0.10000000149011612
+ },
+ {
+  "name": "gCGRiYiWIxXRhXE",
+  "size": {
+   "x": 1.62,
+   "y": 1.62,
+   "z": 0.19
+  },
+  "ctr": {
+   "x": 3.16,
+   "y": 4.37,
+   "z": -0.55
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "f4efe5",
+  "metal": 1,
+  "rough": 1
+ },
+ {
+  "name": "pYcHgppzzKEphCf",
+  "size": {
+   "x": 1.32,
+   "y": 1.32,
+   "z": 0.03
+  },
+  "ctr": {
+   "x": 3.16,
+   "y": 4.37,
+   "z": -0.83
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 0.800000011920929
+ },
+ {
+  "name": "BwdEgNRIvxgoOrX",
+  "size": {
+   "x": 0.13,
+   "y": 0.13,
+   "z": 0.02
+  },
+  "ctr": {
+   "x": 3.16,
+   "y": 4.37,
+   "z": -0.61
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 1,
+  "rough": 0.0010000000474974513
+ },
+ {
+  "name": "MhDPaBaaHkLYESY",
+  "size": {
+   "x": 0.31,
+   "y": 0.31,
+   "z": 0.07
+  },
+  "ctr": {
+   "x": 3.16,
+   "y": 4.37,
+   "z": -0.64
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 1,
+  "rough": 0.0010000000474974513
+ },
+ {
+  "name": "RfedWPXoFcsOTjI",
+  "size": {
+   "x": 0.5,
+   "y": 0.5,
+   "z": 0.06
+  },
+  "ctr": {
+   "x": 3.16,
+   "y": 4.37,
+   "z": -0.68
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 1,
+  "rough": 0.0010000000474974513
+ },
+ {
+  "name": "pweTZuphtbJXJdM",
+  "size": {
+   "x": 0.13,
+   "y": 0.13,
+   "z": 0.02
+  },
+  "ctr": {
+   "x": 3.16,
+   "y": 4.37,
+   "z": -0.58
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "050708",
+  "metal": 1,
+  "rough": 0.5
+ },
+ {
+  "name": "xcCuAfHYtkJLwuT",
+  "size": {
+   "x": 1.06,
+   "y": 1.06,
+   "z": 0.02
+  },
+  "ctr": {
+   "x": 3.16,
+   "y": 4.37,
+   "z": -0.72
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "020203",
+  "metal": 0,
+  "rough": 0.6499999761581421
+ },
+ {
+  "name": "zKTkIrxcXzWwBYK",
+  "size": {
+   "x": 1.62,
+   "y": 1.62,
+   "z": 0.19
+  },
+  "ctr": {
+   "x": 3.16,
+   "y": 4.37,
+   "z": -0.73
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3d9c8",
+  "metal": 1,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "nrYKEbuMfByWbND",
+  "size": {
+   "x": 5.14,
+   "y": 0,
+   "z": 0.14
+  },
+  "ctr": {
+   "x": 0.55,
+   "y": -5.84,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 1,
+  "rough": 1
+ },
+ {
+  "name": "bsNHOLGaZbhIluH",
+  "size": {
+   "x": 6.72,
+   "y": 11.79,
+   "z": 0.34
+  },
+  "ctr": {
+   "x": 1.33,
+   "y": 0,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "99938a",
+  "metal": 1,
+  "rough": 1
+ },
+ {
+  "name": "jJermpgmctotTSe",
+  "size": {
+   "x": 8.25,
+   "y": 11.79,
+   "z": 0.5
+  },
+  "ctr": {
+   "x": 0.57,
+   "y": 0,
+   "z": -0.02
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3d9c8",
+  "metal": 1,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "jnMRBCmgCrfRBeG",
+  "size": {
+   "x": 6.76,
+   "y": 11.79,
+   "z": 0.49
+  },
+  "ctr": {
+   "x": 1.31,
+   "y": 0,
+   "z": -0.02
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "807a73",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "SCDZMtVjLrcxENj",
+  "size": {
+   "x": 8.14,
+   "y": 11.68,
+   "z": 1.02
+  },
+  "ctr": {
+   "x": 0.56,
+   "y": 0,
+   "z": -0.31
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "RwQzmCvUWHGlFfV",
+  "size": {
+   "x": 8.03,
+   "y": 11.58,
+   "z": 0.4
+  },
+  "ctr": {
+   "x": 0.46,
+   "y": 0,
+   "z": 0.05
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "gjdjMOcCfrwBMYH",
+  "size": {
+   "x": 8.12,
+   "y": 11.65,
+   "z": 0.08
+  },
+  "ctr": {
+   "x": 0.56,
+   "y": 0,
+   "z": 0.24
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "010101",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "YhaSRqOjDUQrQTc",
+  "size": {
+   "x": 1.09,
+   "y": 0.11,
+   "z": 0.24
+  },
+  "ctr": {
+   "x": 2.05,
+   "y": 5.89,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3d9c8",
+  "metal": 1,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "UXtkILReLwCJaov",
+  "size": {
+   "x": 0.11,
+   "y": 1.87,
+   "z": 0.31
+  },
+  "ctr": {
+   "x": 4.68,
+   "y": 1.6,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3d9c8",
+  "metal": 1,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "fbvEqfwjsAMSDkr",
+  "size": {
+   "x": 0.03,
+   "y": 1.83,
+   "z": 0.26
+  },
+  "ctr": {
+   "x": 4.72,
+   "y": 1.6,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e6e1da",
+  "metal": 0.800000011920929,
+  "rough": 1
+ },
+ {
+  "name": "tkSBzAjLTdhANqx",
+  "size": {
+   "x": 0.03,
+   "y": 1.83,
+   "z": 0.26
+  },
+  "ctr": {
+   "x": 4.72,
+   "y": 1.6,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3d8c8",
+  "metal": 1,
+  "rough": 0.009999999776482582
+ },
+ {
+  "name": "AjfIgUpXxKaENDl",
+  "size": {
+   "x": 0.12,
+   "y": 1.71,
+   "z": 0.25
+  },
+  "ctr": {
+   "x": 4.64,
+   "y": -2.62,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3d9c8",
+  "metal": 1,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "VNIQJMrwFmXgrBf",
+  "size": {
+   "x": 0.03,
+   "y": 1.67,
+   "z": 0.21
+  },
+  "ctr": {
+   "x": 4.69,
+   "y": -2.62,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3d8c8",
+  "metal": 1,
+  "rough": 0.009999999776482582
+ },
+ {
+  "name": "ejUvJHtjfcqjSvM",
+  "size": {
+   "x": 0.03,
+   "y": 1.67,
+   "z": 0.21
+  },
+  "ctr": {
+   "x": 4.69,
+   "y": -2.62,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e6e1da",
+  "metal": 0.800000011920929,
+  "rough": 1
+ },
+ {
+  "name": "FcJBPLgEScWGyXd",
+  "size": {
+   "x": 1.09,
+   "y": 0.11,
+   "z": 0.24
+  },
+  "ctr": {
+   "x": 0.71,
+   "y": 5.89,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3d9c8",
+  "metal": 1,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "mjecbCFnfurWWJV",
+  "size": {
+   "x": 7.61,
+   "y": 11.66,
+   "z": 0.41
+  },
+  "ctr": {
+   "x": 0.82,
+   "y": 0,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "WzRveeKjvQZVqRA",
+  "size": {
+   "x": 1.62,
+   "y": 0.04,
+   "z": 0.15
+  },
+  "ctr": {
+   "x": 0.55,
+   "y": -5.87,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3e1de",
+  "metal": 1,
+  "rough": 0.15000000596046448
+ },
+ {
+  "name": "ONfbMSsVikXcwwp",
+  "size": {
+   "x": 0.38,
+   "y": 0.37,
+   "z": 0.08
+  },
+  "ctr": {
+   "x": -0.28,
+   "y": 3.92,
+   "z": -0.55
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "eedfca",
+  "metal": 0.026799999177455902,
+  "rough": 0.75
+ },
+ {
+  "name": "msUTSJTbdlDoNLs",
+  "size": {
+   "x": 0.4,
+   "y": 0.4,
+   "z": 0.01
+  },
+  "ctr": {
+   "x": -0.28,
+   "y": 3.92,
+   "z": -0.59
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 0,
+  "rough": 0.25
+ },
+ {
+  "name": "zdStWfgHXiitQgl",
+  "size": {
+   "x": 0.4,
+   "y": 0.4,
+   "z": 0
+  },
+  "ctr": {
+   "x": -0.28,
+   "y": 3.92,
+   "z": -0.56
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 0,
+  "rough": 0.33000001311302185
+ },
+ {
+  "name": "FafuGBBSaHXLqhj",
+  "size": {
+   "x": 0.33,
+   "y": 0.15,
+   "z": 0
+  },
+  "ctr": {
+   "x": -0.28,
+   "y": 4.8,
+   "z": -0.62
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 1,
+  "rough": 1
+ },
+ {
+  "name": "XziVXUmXQoAudpp",
+  "size": {
+   "x": 5.58,
+   "y": 2.12,
+   "z": 0
+  },
+  "ctr": {
+   "x": 1.41,
+   "y": 4.37,
+   "z": -0.64
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 0.20000000298023224,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "hMQYrwNoNcNjoRj",
+  "size": {
+   "x": 0.34,
+   "y": 0.16,
+   "z": 0.04
+  },
+  "ctr": {
+   "x": -0.28,
+   "y": 4.8,
+   "z": -0.62
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "f9ead4",
+  "metal": 0.02500000037252903,
+  "rough": 0.5
+ },
+ {
+  "name": "itODWJLNRbBbHzD",
+  "size": {
+   "x": 0.34,
+   "y": 0.16,
+   "z": 0.04
+  },
+  "ctr": {
+   "x": -0.28,
+   "y": 4.8,
+   "z": -0.62
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "eedfca",
+  "metal": 0.026799999177455902,
+  "rough": 0.75
+ },
+ {
+  "name": "fapSTOypmavuPic",
+  "size": {
+   "x": 8.02,
+   "y": 11.53,
+   "z": 0.37
+  },
+  "ctr": {
+   "x": 0.55,
+   "y": 0,
+   "z": -0.45
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "fffaf0",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "MnPSgwdtGmrkVcg",
+  "size": {
+   "x": 6.39,
+   "y": 2.9,
+   "z": 0.37
+  },
+  "ctr": {
+   "x": 1.35,
+   "y": 4.3,
+   "z": -0.41
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 0.10000000149011612,
+  "rough": 1
+ },
+ {
+  "name": "UPeNpLgJbcWzHun",
+  "size": {
+   "x": 8.02,
+   "y": 11.53,
+   "z": 0.36
+  },
+  "ctr": {
+   "x": 0.55,
+   "y": 0,
+   "z": -0.4
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 0.10000000149011612,
+  "rough": 1
+ },
+ {
+  "name": "tLtsGCMtMAZfCYN",
+  "size": {
+   "x": 8.02,
+   "y": 11.53,
+   "z": 0.4
+  },
+  "ctr": {
+   "x": 0.55,
+   "y": 0,
+   "z": -0.44
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 0.10000000149011612,
+  "rough": 1
+ },
+ {
+  "name": "tYVfzVmYBKhfUhm",
+  "size": {
+   "x": 1.63,
+   "y": 2,
+   "z": 0
+  },
+  "ctr": {
+   "x": 0.54,
+   "y": -0.08,
+   "z": -0.27
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 0.20000000298023224,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "tnxsltexVWtEjsz",
+  "size": {
+   "x": 1.63,
+   "y": 2,
+   "z": 0
+  },
+  "ctr": {
+   "x": 0.54,
+   "y": -0.08,
+   "z": -0.25
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "fff8f0",
+  "metal": 0.10000000149011612,
+  "rough": 1
+ },
+ {
+  "name": "lJPfQMFXvvcmdtA",
+  "size": {
+   "x": 16.61,
+   "y": 11.84,
+   "z": 6.11
+  },
+  "ctr": {
+   "x": -3.56,
+   "y": 0.02,
+   "z": 0
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "PXwNjghIIgDPXsa",
+  "size": {
+   "x": 8.03,
+   "y": 11.58,
+   "z": 0.4
+  },
+  "ctr": {
+   "x": -7.57,
+   "y": 0,
+   "z": 0.05
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "svvOILdVxasRAOk",
+  "size": {
+   "x": 8.12,
+   "y": 11.65,
+   "z": 0.08
+  },
+  "ctr": {
+   "x": -7.67,
+   "y": 0,
+   "z": 0.24
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "010101",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "RsMYVEApMypWrpd",
+  "size": {
+   "x": 0.16,
+   "y": 0.16,
+   "z": 0.02
+  },
+  "ctr": {
+   "x": -10.73,
+   "y": 4.83,
+   "z": -0.23
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "050708",
+  "metal": 1,
+  "rough": 0.5
+ },
+ {
+  "name": "eTOVbDQVsswgAUz",
+  "size": {
+   "x": 0.16,
+   "y": 0.16,
+   "z": 0.01
+  },
+  "ctr": {
+   "x": -10.73,
+   "y": 4.83,
+   "z": -0.23
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 1,
+  "rough": 0.0010000000474974513
+ },
+ {
+  "name": "rqynQLtWLECDNtb",
+  "size": {
+   "x": 0.16,
+   "y": 0.16,
+   "z": 0.01
+  },
+  "ctr": {
+   "x": -10.73,
+   "y": 4.83,
+   "z": -0.25
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 1,
+  "rough": 0.0010000000474974513
+ },
+ {
+  "name": "ZcRVEBTagyUDrqj",
+  "size": {
+   "x": 0.36,
+   "y": 0.36,
+   "z": 0.02
+  },
+  "ctr": {
+   "x": -10.73,
+   "y": 4.83,
+   "z": -0.25
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 0.6499999761581421
+ },
+ {
+  "name": "aPxlVqZVqWStoGD",
+  "size": {
+   "x": 0.61,
+   "y": 0.61,
+   "z": 0
+  },
+  "ctr": {
+   "x": -10.73,
+   "y": 4.83,
+   "z": -0.27
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "vTcSkzvfyxWyWLx",
+  "size": {
+   "x": 0.32,
+   "y": 0.32,
+   "z": 0
+  },
+  "ctr": {
+   "x": -10.73,
+   "y": 4.83,
+   "z": -0.27
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "pmvwSuCeZpxeLmT",
+  "size": {
+   "x": 1.64,
+   "y": 11.79,
+   "z": 0.27
+  },
+  "ctr": {
+   "x": -7.66,
+   "y": 0,
+   "z": 0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "99938a",
+  "metal": 1,
+  "rough": 1
+ },
+ {
+  "name": "qyiwePzfWzVHIDO",
+  "size": {
+   "x": 8.25,
+   "y": 11.79,
+   "z": 0.5
+  },
+  "ctr": {
+   "x": -7.68,
+   "y": 0,
+   "z": -0.02
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3d9c8",
+  "metal": 1,
+  "rough": 0.05000000074505806
+ },
+ {
+  "name": "fdaipPEGAeomuPG",
+  "size": {
+   "x": 6.76,
+   "y": 11.79,
+   "z": 0.49
+  },
+  "ctr": {
+   "x": -8.42,
+   "y": 0,
+   "z": -0.02
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "807a73",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "hhgAIoCGsHXeDPY",
+  "size": {
+   "x": 7.74,
+   "y": 11.25,
+   "z": 0
+  },
+  "ctr": {
+   "x": -7.66,
+   "y": 0,
+   "z": -0.27
+  },
+  "mat": "MeshBasicMaterial",
+  "color": "ffffff"
+ },
+ {
+  "name": "xpVpaKuQKnXQhFj",
+  "size": {
+   "x": 8.02,
+   "y": 11.53,
+   "z": 0.04
+  },
+  "ctr": {
+   "x": -7.66,
+   "y": 0,
+   "z": -0.25
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "iKZSoAlRlDlkSEw",
+  "size": {
+   "x": 8.13,
+   "y": 11.68,
+   "z": 0.47
+  },
+  "ctr": {
+   "x": -7.67,
+   "y": -0.01,
+   "z": -0.04
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 1
+ },
+ {
+  "name": "EdsRvWYVMNVqBab",
+  "size": {
+   "x": 1.1,
+   "y": 0.52,
+   "z": 0.12
+  },
+  "ctr": {
+   "x": -7.66,
+   "y": -5.44,
+   "z": 0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "99938a",
+  "metal": 1,
+  "rough": 1
+ },
+ {
+  "name": "cIpbiCGlEcdljuC",
+  "size": {
+   "x": 1.62,
+   "y": 0.04,
+   "z": 0.15
+  },
+  "ctr": {
+   "x": -7.66,
+   "y": -5.87,
+   "z": 0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "e3e1de",
+  "metal": 1,
+  "rough": 0.15000000596046448
+ },
+ {
+  "name": "pbUtGkaSVSEWCbb",
+  "size": {
+   "x": 1.47,
+   "y": 0,
+   "z": 0.14
+  },
+  "ctr": {
+   "x": -7.66,
+   "y": 5.84,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "ffffff",
+  "metal": 1,
+  "rough": 1
+ },
+ {
+  "name": "uWPCbpPKzwJOmUY",
+  "size": {
+   "x": 7.61,
+   "y": 11.66,
+   "z": 0.41
+  },
+  "ctr": {
+   "x": -7.93,
+   "y": 0,
+   "z": -0.01
+  },
+  "mat": "MeshPhysicalMaterial",
+  "color": "000000",
+  "metal": 0,
+  "rough": 1
+ }
+]

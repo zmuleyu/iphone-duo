@@ -1,13 +1,13 @@
 {
-  "build": "6.3",
-  "baseline": "6.2",
-  "milestone": "Restore Original Master + Per-Panel Reveal",
+  "build": "6.4",
+  "baseline": "6.3",
+  "milestone": "Shell Fidelity (side buttons + warm titanium)",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "capture master reverted to original RedBlack_Final (graphic filter overshot, rejected)",
-    "reveal per-panel sequential (left completes as it opens, right follows; no right-edge residue)",
-    "capture 1.25x (VP9 encoder stall with photographic master at 1.5x)"
+    "cap: side buttons surfaced (+0.12 protrusion, USDZ built-in geometry)",
+    "cap: warm titanium frame + environmentIntensity 1.0 (de-blown on white bg)",
+    "debug: __duo._scene/_phone exposure"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",

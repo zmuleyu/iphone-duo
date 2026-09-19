@@ -1,0 +1,8 @@
+{
+  "goal": "V6.4 外壳保真+出片",
+  "date": "2026-09-19",
+  "state": "in-progress",
+  "phase": "verified, ready-for-merge",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v6.4-shell-fidelity"
+}

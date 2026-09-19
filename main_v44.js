@@ -1780,6 +1780,29 @@ try {
   document.querySelectorAll('.control-dock button, .control-dock input, .control-dock select').forEach(element => {
     if (element !== revealSettingsButton && !element.hasAttribute('data-future')) element.disabled = false;
   });
+  // V6.4 P1 (record/cap path only): shell fidelity — surface the real side
+  // buttons (they exist in the USDZ at x 4.64-4.72 but protrude sub-pixel),
+  // warm the titanium frame family, add a warm key light for edge glints.
+  if (QUERY.has('cap')) {
+    const btnSig = [];
+    phone.traverse(o => {
+      if (!o.isMesh) return;
+      o.geometry.computeBoundingBox();
+      const bb = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld);
+      const sx = bb.max.x - bb.min.x, sy = bb.max.y - bb.min.y;
+      const cx = (bb.max.x + bb.min.x) / 2, cy = (bb.max.y + bb.min.y) / 2;
+      if (cx > 4.4 && sx < 0.2 && sy > 1.4 && sy < 2.1 && Math.abs(cy) > 1.2 && Math.abs(cy) < 3.2) btnSig.push(o);
+      const m = o.material;
+      if (m && m.color) {
+        const c = m.color;
+        if (c.r > 0.75 && c.r >= c.g && c.g >= c.b && (c.r - c.b) < 0.25) {
+          c.r *= 0.935; c.g *= 0.895; c.b *= 0.82; // warm titanium, de-blown (deeper)
+        }
+      }
+    });
+    btnSig.forEach(o => { o.position.x += 0.12; });
+    scene.environmentIntensity = 1.0; // was 1.35 — frame read blown-white on white bg
+  }
   ready = true;
   setPlaying(false);
   setAngle(0);
@@ -1997,6 +2020,8 @@ function driveRecord(nowMs) {
 window.__duo = {
   setAngle: value => { setPlaying(false); playbackTime = 0; recording = false; setAngle(Number(value)); },
   _renderer: renderer,
+  _scene: scene,
+  _phone: phone,
   // V5.7: toggle iOS-style status-bar chrome on custom worlds (redraws canvases).
   setScreenChrome: flag => {
     screenChrome = !!flag;
