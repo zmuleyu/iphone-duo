@@ -21,4 +21,5 @@
 | G-G/H 叙事修复+白底成片（v5.9） | 2026-09-19 | done→production（红随展开25-150°+塔第二击+白底无音乐终出；母图mock目检中） |
 | V6.0 塔激活性叙事（v6.0） | 2026-09-19 | done→production（Reality口袋+0.3s激活+图形化母图+16:9居中） |
 | V6.1 Clean Hero（v6.1） | 2026-09-19 | done→production（母图v2压halo/纯天/灯减半+塔光收敛+轻晕影；含6.0.1 9:16居中） |
-| V6.2 空间化reveal+真实外壳（v6.2） | 2026-09-19 | done→production（左→右波前reveal/塔辉光关/扫光退出成片） | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |
+| V6.2 空间化reveal+真实外壳（v6.2） | 2026-09-19 | done→production（左→右波前reveal/塔辉光关/扫光退出成片） |
+| V6.3 回归原始母版+逐面板reveal（v6.3） | 2026-09-19 | done→production（图形化过滤否决,回退原母版;接续reveal;1.25x捕获） | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |
