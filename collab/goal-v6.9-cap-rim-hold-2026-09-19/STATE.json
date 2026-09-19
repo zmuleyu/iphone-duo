@@ -1,9 +1,12 @@
 {
   "goal": "V6.9 外壳 stock 回归",
   "date": "2026-09-19",
-  "state": "in-progress",
-  "phase": "verified, ready-for-merge",
+  "state": "done",
+  "phase": "production-verified + final delivered",
   "writer": "hermes-desktop-session",
   "branch": "work/v6.9-stock-restore",
-  "note": "parallel-lane WIP stashed; stock=A组对照一致"
+  "note": "parallel-lane WIP stashed; stock=A组对照一致",
+  "deliverables": [
+    "duo_v6.9_16x9_1080p_final.mp4 (2.44s 定格, stock 外壳)"
+  ]
 }
