@@ -1483,7 +1483,7 @@ float finalReveal(vec2 uv, vec3 bCol) {
       float lu = uv.x < 0.5 ? uv.x * 2.0 : (uv.x - 0.5) * 2.0;
       r = 1.0 - smoothstep(panel * 1.25 - 0.25, panel * 1.25, lu);
     }
-    r = mix(r, uTowerMix, towerMask(uv));  // V6.0: whole tower region holds Reality
+    r = mix(r, uTowerMix, towerContentMask(uv, bCol));  // V6.5: lattice-only hold — no cold ellipse halo
   }
   return r;
 }
@@ -1737,6 +1737,9 @@ try {
     mesh.name = object.name;
     mesh.frustumCulled = false;
     phone.add(mesh);
+    // V6.5: white bg makes the bezel seam read as a white border; tuck the
+    // inner screen slightly under the bezel (record/cap path only).
+    if (kind === 'inner' && QUERY.has('cap')) mesh.scale.set(1.012, 1.008, 1);
 
     if (moving && !kind && !flexible) {
       mesh.userData.isMovingShell = true;
