@@ -1,0 +1,9 @@
+{
+  "goal": "V6.13 模型全面修复",
+  "date": "2026-09-19",
+  "state": "in_progress",
+  "phase": "closeout",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v6.13-model-comprehensive",
+  "next_action": "commit + push + prod usdc hash verify"
+}

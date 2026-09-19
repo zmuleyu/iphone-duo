@@ -410,12 +410,20 @@ document.querySelectorAll('[data-ui-theme]').forEach(button => button.addEventLi
 let screenChrome = QUERY.get('ui') !== '0';
 const worldImages = { reality: null, redblack: null };
 
-function drawLockChrome(canvas) {
+function drawLockChrome(canvas, region = 'inner') {
   const ctx = canvas.getContext('2d');
   const w = canvas.width;
   const h = canvas.height;
   const padX = Math.round(w * 0.024);
   ctx.save();
+  if (region === 'cover') {
+    // V6.13: the closed cover displays the RIGHT HALF of the panorama stretched
+    // to full width. Compress the same lock layout 0.5x around u=0.75 so it
+    // lands with correct proportions on the cover (clock fully readable).
+    ctx.translate(w * 0.75, 0);
+    ctx.scale(0.5, 1);
+    ctx.translate(-w * 0.5, 0);
+  }
   ctx.fillStyle = '#ffffff';
   ctx.strokeStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.45)';
@@ -500,7 +508,7 @@ function drawWorld(img, canvas, texture, chrome = false) {
   const width = img.width * scale;
   const height = img.height * scale;
   context.drawImage(img, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
-  if (chrome) drawLockChrome(canvas);
+  if (chrome) drawLockChrome(canvas, chrome === true ? 'inner' : chrome);
   texture.needsUpdate = true;
 }
 
@@ -626,7 +634,7 @@ realityInput.addEventListener('change', async () => {
   try {
     const img = await decodeFile(file);
     worldImages.reality = img;
-    drawWorld(img, worldCanvases.reality, worldTextures.reality, screenChrome);
+    drawWorld(img, worldCanvases.reality, worldTextures.reality, screenChrome && 'cover');
     sourceMeta.reality = {
       name: file.name,
       width: img.naturalWidth || img.width,
@@ -657,7 +665,7 @@ redBlackInput.addEventListener('change', async () => {
   try {
     const img = await decodeFile(file);
     worldImages.redblack = img;
-    drawWorld(img, worldCanvases.redblack, worldTextures.redblack, screenChrome);
+    drawWorld(img, worldCanvases.redblack, worldTextures.redblack, screenChrome && 'inner');
     sourceMeta.redblack = {
       name: file.name,
       width: img.naturalWidth || img.width,
@@ -2044,8 +2052,8 @@ window.__duo = {
   // V5.7: toggle iOS-style status-bar chrome on custom worlds (redraws canvases).
   setScreenChrome: flag => {
     screenChrome = !!flag;
-    if (worldImages.reality) drawWorld(worldImages.reality, worldCanvases.reality, worldTextures.reality, screenChrome);
-    if (worldImages.redblack) drawWorld(worldImages.redblack, worldCanvases.redblack, worldTextures.redblack, screenChrome);
+    if (worldImages.reality) drawWorld(worldImages.reality, worldCanvases.reality, worldTextures.reality, screenChrome && 'cover');
+    if (worldImages.redblack) drawWorld(worldImages.redblack, worldCanvases.redblack, worldTextures.redblack, screenChrome && 'inner');
     return screenChrome;
   },
   // V5.6 debug: force bezel sweep/pop for deterministic verification.

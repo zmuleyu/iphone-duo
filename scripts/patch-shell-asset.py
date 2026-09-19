@@ -19,9 +19,11 @@ from pxr import Usd, UsdGeom, Gf, Sdf
 
 ASSET = Path(__file__).resolve().parents[1] / "assets" / "iPhone_Duo_Render.usdc"
 
-# Upper right-rail key cluster (main cap + its two side-wall/detail slices).
+# Right-rail key clusters: upper (main cap + its two side-wall/detail slices)
+# and lower — onmyduo (same Apple USDZ) shows TWO keys on the right rail.
 UPPER_KEY = ("UXtkILReLwCJaov", "fbvEqfwjsAMSDkr", "tkSBzAjLTdhANqx")
-PUSH_X = 0.12
+LOWER_KEY = ("AjfIgUpXxKaENDl", "VNIQJMrwFmXgrBf", "ejUvJHtjfcqjSvM")
+PUSH_X = 0.08
 LEGACY_OP = "xformOp:translate:shellKey"
 
 
@@ -29,7 +31,7 @@ def main():
     stage = Usd.Stage.Open(str(ASSET))
     moved = skipped = cleaned = missing = 0
     by_name = {p.GetName(): p for p in stage.Traverse()}
-    for name in UPPER_KEY:
+    for name in UPPER_KEY + LOWER_KEY:
         prim = by_name.get(name)
         if prim is None:
             print(f"MISSING {name}")

@@ -1,19 +1,17 @@
 {
-  "build": "6.12",
-  "baseline": "6.11",
-  "milestone": "Shell baked + Night Sky variant + lock chrome fixes (official alignment)",
+  "build": "6.13",
+  "baseline": "6.12",
+  "milestone": "Model comprehensive fix (cover chrome layout + two-key rail + asset bake into Vercel build)",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "asset: scripts/patch-shell-asset.py bakes upper right-rail key cluster +0.12x into iPhone_Duo_Render.usdc (idempotent); runtime key offsets deleted",
-    "hinge: v6.11 protrusion reverted — seam tabs flush like official",
-    "shell: ?shell=nightsky dyes titanium family deep graphite (0.085/0.088/0.095, satin); Star White stays main",
-    "light: rim 1.4->0.85 — kills the bright band on the right rail",
-    "chrome: Wi-Fi inset (no edge clip); 9:41 enlarged to official dominance (0.165h @ y 0.215, date 0.034h @ 0.085)",
-    "chrome: lock chrome now painted on BOTH worlds — Reality = closed cover (official parity), RedBlack = open desktop"
+    "chrome: cover-state layout defect fixed — cover displays panorama right half, so lock chrome is compressed 0.5x around u=0.75 (9:41 fully readable on closed cover; was cut to '41')",
+    "shell: two-key right rail per onmyduo (same Apple USDZ) — lower key cluster baked too; protrusion 0.12->0.08 (less floaty at 3/4 angles)",
+    "deploy: vercel.json buildCommand chains scripts/patch-shell-asset.py after prepare-assets.py so production model = baked model every deploy",
+    "audit: back/camera-island (white glass, dual-lens capsule) verified vs onmyduo; no Apple logo in stock asset (same as onmyduo)"
   ],
-  "lockedFromBaseline": "Fold architecture, reveal R->L (v6.11), geometry, motion, QA, recording clock, v6.10 exposure lock otherwise unchanged",
+  "lockedFromBaseline": "Fold architecture, reveal R->L, geometry, motion, QA, recording clock, v6.10 exposure lock unchanged; no video output per user directive",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
   "timestamp": "2026-09-19",
-  "promotedFrom": "RD_CANDIDATE (goal auto closeout chain, user decisions: A主+B变体+烘焙/chrome修正/铰链回平/close态对齐)"
+  "promotedFrom": "RD_CANDIDATE (goal auto closeout chain, user: 全面修复模型不用直接输出视频)"
 }
