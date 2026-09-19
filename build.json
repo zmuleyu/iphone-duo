@@ -2,15 +2,15 @@
   "build": "6.10",
   "baseline": "6.9",
   "milestone": "Star White readability (exposure lock, no color retint)",
-  "status": "RD_CANDIDATE",
+  "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "unified preview+cap exposure: env 0.72 / hemi 1.1 / key 1.7 / rim 1.25 cool — Star White albedo unchanged",
+    "unified preview+cap exposure: env 0.92 / hemi 1.15 / key 1.7 / rim 1.4 cool — Star White albedo unchanged",
     "preview opaque clear #f6f6f3 (no alpha punch-through on page white)",
     "production preview uBezel/uBezelPop=0 (same as record; unfold no longer paints a fake rim)"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",
   "timestamp": "2026-09-19",
-  "promotedFrom": null
+  "promotedFrom": "RD_CANDIDATE (goal auto closeout chain, user: 按照你的建议彻底解决)"
 }

@@ -1,9 +1,13 @@
 {
   "goal": "V6.10 Star White 可读性",
   "date": "2026-09-19",
-  "state": "in_progress",
-  "phase": "implement",
+  "state": "done",
+  "phase": "production-verified + final delivered",
   "writer": "hermes-desktop-session",
   "branch": "work/v6.10-shell-exposure",
-  "next_action": "patch exposure + preview clear + bezel off"
+  "deliverables": [
+    "duo_v6.10_16x9_1080p_final.mp4 (2.44s 定格)"
+  ],
+  "verify": "vision三轮迭代(env1.35→0.72暗→0.92过): 金属rim可读非纸白非石墨; QC成片末帧一致; prod build.json=6.10",
+  "userVisual": "pending"
 }
