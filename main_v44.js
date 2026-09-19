@@ -1805,6 +1805,7 @@ try {
     });
     btnSig.forEach(o => { o.position.x += 0.12; });
     scene.environmentIntensity = 1.0; // was 1.35 — frame read blown-white on white bg
+    key.intensity = 1.7; // was 2.6 — left-edge frame highlight read as a light band (V6.6)
   }
   ready = true;
   setPlaying(false);

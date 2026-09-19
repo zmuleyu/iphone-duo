@@ -1,13 +1,11 @@
 {
-  "build": "6.5",
-  "baseline": "6.4",
-  "milestone": "Halo/Seam Fix + Rhythm Cut",
+  "build": "6.6",
+  "baseline": "6.5",
+  "milestone": "Left-Edge Light Band Fix",
   "status": "PRODUCTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
-    "tower hold back to content mask (kills cold ellipse halo)",
-    "cap: inner screen overscan x1.012 (white-bg seam fix)",
-    "final re-timed: 0-0.6s x1.4, trim 3.0s, 3.73s total"
+    "cap: key light 2.6->1.7 (left-front key was blowing the left-edge frame into a light band)"
   ],
   "lockedFromBaseline": "Fold architecture, reveal, geometry, motion, QA, recording clock unchanged from V5.1",
   "mergePolicy": "Candidate only; merge to main requires user visual pass per V5.1 change policy",

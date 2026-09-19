@@ -1,0 +1,8 @@
+{
+  "goal": "V6.6 左缘亮带",
+  "date": "2026-09-19",
+  "state": "in-progress",
+  "phase": "verified, ready-for-merge",
+  "writer": "hermes-desktop-session",
+  "branch": "work/v6.6-edge-light"
+}
