@@ -25,4 +25,5 @@
 | V6.3 回归原始母版+逐面板reveal（v6.3） | 2026-09-19 | done→production（图形化过滤否决,回退原母版;接续reveal;1.25x捕获） |
 | V6.4 外壳保真（v6.4） | 2026-09-19 | done→production（侧键显现+暖钛框+去爆白） |
 | V6.5 冷晕/白缝/节奏（v6.5） | 2026-09-19 | done→production（内容遮罩回退+overscan+3.73s剪辑） |
-| V6.6 左缘亮带（v6.6） | 2026-09-19 | done→production（cap key 1.7） | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |
+| V6.6 左缘亮带（v6.6） | 2026-09-19 | done→production（cap key 1.7） |
+| V6.8 外壳颜色锁定（v6.8） | 2026-09-19 | done→production（暖rim+缎面钛+中灰族tint；定格剪辑v6.7配方） | [goal-t3-capture-2026-09-18](./goal-t3-capture-2026-09-18/GOAL.md) |
