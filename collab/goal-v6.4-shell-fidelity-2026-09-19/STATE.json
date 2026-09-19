@@ -1,8 +1,12 @@
 {
   "goal": "V6.4 外壳保真+出片",
   "date": "2026-09-19",
-  "state": "in-progress",
-  "phase": "verified, ready-for-merge",
+  "state": "done",
+  "phase": "production-verified + final delivered",
   "writer": "hermes-desktop-session",
-  "branch": "work/v6.4-shell-fidelity"
+  "branch": "work/v6.4-shell-fidelity",
+  "deliverables": [
+    "duo_v6.4_16x9_1080p_final.mp4"
+  ],
+  "verify": "QC PASS;vision三轮:暖钛可读+按键清晰+白底分离,终版候选通过"
 }
