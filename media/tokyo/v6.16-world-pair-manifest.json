@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 2,
+  "runId": "tokyo-v6.16-astra-static-pair-20260920",
+  "status": "local-qc-passed-awaiting-user-art-review",
+  "intent": "Reality and RedBlack static master pair",
+  "branch": "work/v6.16-tokyo-world-pair",
+  "baseCommit": "09f4224d52115001ae727673cdea647d54f5bdfc",
+  "resolution": [2670, 1878],
+  "mode": "RGB",
+  "execution": {
+    "author": "gpt-6-astra",
+    "route": "session tools -> local deterministic Python / OpenCV / Pillow composition",
+    "imageGenerationUsedInFinalMasters": false,
+    "chatgptBrowserUsed": false,
+    "script": "scripts/build_tokyo_v616_world_pair.py",
+    "command": "python scripts/build_tokyo_v616_world_pair.py",
+    "reproducibility": "deterministic recipe with recorded environment; repeat-byte equality verified for both final masters on 2026-09-20"
+  },
+  "inputs": {
+    "geometryAuthority": {
+      "path": "media/tokyo/reality-wikipedia.png",
+      "sha256": "FC096FABE3C1A822F41B977119EFA3E460F8E69952D5C60D0940E24B6C564EBD",
+      "overwritten": false
+    },
+    "styleReference": {
+      "path": "C:/Users/Admin/Downloads/duo/1-1 Tokyo_Tower_RedBlack_Final_2670x1878.png",
+      "authority": "visual language only; no geometric authority"
+    },
+    "previousBaseline": {
+      "path": "media/tokyo/redblack-wikipedia.png",
+      "overwritten": false
+    },
+    "earlierGeneratedSky": {
+      "path": "media/tokyo/inputs/session-redblack-noir-sky-01.png",
+      "sha256": "37C0A10E107F53A30D240206965615A87B01B962320349955757D622FEB4C09D",
+      "route": "built-in session imagegen preliminary attempt",
+      "usedInFinalMasters": false
+    }
+  },
+  "outputs": {
+    "reality": {
+      "path": "media/tokyo/candidates/reality-v6.16-astra-master.png",
+      "sha256": "73C49B072686D47795CFF0A2C3EF1290C4AC089450427E305E0CC2FFEFD1791F",
+      "towerEdgeRecall2px": 0.9990895295902883,
+      "edgeRegistrationShiftPx": [0, 0]
+    },
+    "redblack": {
+      "path": "media/tokyo/candidates/redblack-v6.16-astra-master.png",
+      "sha256": "F54A66D8BC1F3917BB95398677B9CF90C17F1BCADB175D1EF3ED12F7FCE4B011",
+      "towerEdgeRecall2px": 0.9575788231326926,
+      "edgeRegistrationShiftPx": [0, 0]
+    },
+    "redblackCompatibilityCopy": "media/tokyo/candidates/redblack-v6.16-cand-01.png",
+    "metrics": "artifacts/v6.16-tokyo-world-pair/metrics.json",
+    "overview": "artifacts/v6.16-tokyo-world-pair/source-reality-redblack-overview.png",
+    "ab": "artifacts/v6.16-tokyo-world-pair/ab-side-by-side.png",
+    "towerCrop": "artifacts/v6.16-tokyo-world-pair/tower-ab.png",
+    "audit": "docs/audits/2026-09-20-tokyo-v6-16-pixellock.md"
+  },
+  "geometry": {
+    "transform": "identity",
+    "sharedSourceDerivedMasks": true,
+    "note": "Shared mattes are a construction invariant, not independently measured segmentation IoU."
+  },
+  "runtimeIntegration": false,
+  "videoOrAudioWork": false,
+  "publicationAuthority": false,
+  "productionDeployment": false
+}
