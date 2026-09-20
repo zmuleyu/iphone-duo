@@ -8,6 +8,8 @@ import { loadDefaultUIs } from './ui.js';
 //
 // Single screen-shader authority, rebuilt from the original chuspeeism main.js:
 // - ONE Reality canvas/texture + ONE RedBlack canvas/texture (no inner/outer pairs)
+// - V6.18 Tokyo adds independent physical-screen UI and source-derived layer
+//   masks; the device mesh and the world's fixed-front projection stay intact.
 // - Both physical screens are viewports into the SAME panorama via the original
 //   fixed-front ray projection (vUIPosition -> sourceUV)
 // - worldMix blends Reality -> RedBlack at the shared sourceUV, then the original
@@ -15,7 +17,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v6.17-review-demo';
+const BUILD_VERSION = 'v6.18-review-demo';
 const PRODUCTION_BASELINE_ID = 'v5.1-production-fold';
 
 const viewport = document.querySelector('#viewport');
@@ -173,9 +175,10 @@ const HALF_DEVICE_WIDTH = 7.89935;
 const FIXED_PANEL_ANCHOR_X = -HALF_DEVICE_WIDTH * 0.5 * 0.90;
 const QUERY = new URLSearchParams(location.search);
 const REVIEW_DEMO = QUERY.get('motion') === 'tokyo-demo';
+const LAYERED_TOKYO = QUERY.get('tokyo') === 'v618';
 const PRODUCTION_BASELINE = true;
 const DEV_EXPERIMENTS = QUERY.has('dev');
-const NO_FX = QUERY.has('nofx');
+const NO_FX = QUERY.has('nofx') || LAYERED_TOKYO;
 // V5.1 production lock: clean crossfade is the only production reveal.
 // Historical staged reveal remains accessible only behind explicit ?dev=1.
 const STAGED_REVEAL = DEV_EXPERIMENTS
@@ -209,6 +212,7 @@ const uTowerMix = { value: 0 };
 const uFoldBlurScale = { value: 1 };
 const uTowerBoost = { value: 0 }; // V5.9: hero glow (V6.2: disabled in record — pocket flip IS the beat)
 const uRevealFront = { value: -1 }; // V6.2: spatial left->right wavefront (record drives; -1 = off)
+const uLayeredTokyo = { value: 0 };
 
 let angle = 0;
 let playing = false;
@@ -307,11 +311,11 @@ const FOLD_PRESETS = Object.freeze({
   }),
   'tokyo-demo': Object.freeze({
     label: 'Tokyo Review Demo',
-    closedHold: 0.65,
-    unfoldDuration: 4.15,
-    openHold: 1.00,
-    easing: 'editorial',
-    motionBlur: 'natural',
+    closedHold: 1.10,
+    unfoldDuration: 1.15,
+    openHold: 3.55,
+    easing: 'smooth',
+    motionBlur: 'off',
   }),
 });
 const requestedFoldPreset = QUERY.get('motion');
@@ -378,6 +382,12 @@ const worldTextures = {
   reality: createCanvasTexture(worldCanvases.reality),
   redblack: createCanvasTexture(worldCanvases.redblack),
 };
+const chromeCanvases = { inner: makeWorldCanvas(), cover: makeWorldCanvas() };
+const chromeTextures = {
+  inner: createCanvasTexture(chromeCanvases.inner),
+  cover: createCanvasTexture(chromeCanvases.cover),
+};
+const tokyoLayerMask = { value: createCanvasTexture(makeWorldCanvas()) };
 
 const uiReferenceEye = new THREE.Vector3(0, 0, 40);
 const innerUIFrame = new THREE.Vector4(-7.89935, .34562 - 5.8974, 15.7987, 11.1035);
@@ -404,6 +414,7 @@ function canvasesPixelWidth(canvas) {
 
 // Custom world: both screens become viewports into the SAME two panoramas.
 function applyCustomWorld() {
+  uLayeredTokyo.value = LAYERED_TOKYO ? 1 : 0;
   const target = customReady.redblack ? worldTextures.redblack : worldTextures.reality;
   for (const [kind, screen] of Object.entries(screens)) {
     screen.material.map = worldTextures.reality;
@@ -415,6 +426,7 @@ function applyCustomWorld() {
 }
 
 function showDefaultUI() {
+  uLayeredTokyo.value = 0;
   for (const [kind, screen] of Object.entries(screens)) {
     const texture = screen.defaultTextures[uiTheme];
     screen.material.map = texture;
@@ -540,6 +552,46 @@ function chromeFor(region) {
 function redrawChromeWorlds() {
   if (worldImages.reality) drawWorld(worldImages.reality, worldCanvases.reality, worldTextures.reality, chromeFor('cover'));
   if (worldImages.redblack) drawWorld(worldImages.redblack, worldCanvases.redblack, worldTextures.redblack, chromeFor('inner'));
+  redrawIndependentChrome();
+}
+
+function redrawIndependentChrome() {
+  for (const region of ['cover', 'inner']) {
+    const canvas = chromeCanvases[region];
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    if (chromeFor(region)) {
+      // Both endpoints use the same right-panel coordinates. The clock/date
+      // stays clear of the hinge and the x=.73 tower rather than spanning it.
+      const source = lockChrome.inner;
+      const sw = source.naturalWidth, sh = source.naturalHeight;
+      const clockWidth = w * 0.157 * chromeConfig.clockScale;
+      const clockHeight = clockWidth * (sh * 0.30) / (sw * 0.255);
+      const centerX = w * 0.883;
+      const y = h * (0.14 + chromeConfig.clockY);
+      ctx.drawImage(source, sw * 0.37, sh * 0.10, sw * 0.255, sh * 0.30,
+        centerX - clockWidth / 2, y, clockWidth, clockHeight);
+      ctx.fillStyle = '#fff';
+      ctx.font = `600 ${Math.round(h * 0.021)}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Fri Oct 23', centerX, y - h * 0.025);
+      ctx.drawImage(source, sw * 0.922, sh * 0.032, sw * 0.058, sh * 0.080,
+        w * 0.935, h * 0.085, w * 0.034, h * 0.048);
+      const radius = h * 0.026;
+      drawUtilityChrome(ctx, w * 0.955, h * 0.735, radius, 'torch');
+      drawUtilityChrome(ctx, w * 0.955, h * 0.835, radius, 'camera');
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = h * 0.006;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(w * 0.65, h * 0.975);
+      ctx.lineTo(w * 0.85, h * 0.975);
+      ctx.stroke();
+    }
+    chromeTextures[region].needsUpdate = true;
+  }
 }
 
 function updateChromeControls() {
@@ -575,7 +627,7 @@ function drawWorld(img, canvas, texture, chrome = false) {
   const width = img.width * scale;
   const height = img.height * scale;
   context.drawImage(img, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
-  if (chrome) drawLockChrome(canvas, chrome === true ? 'inner' : chrome);
+  if (chrome && !LAYERED_TOKYO) drawLockChrome(canvas, chrome === true ? 'inner' : chrome);
   texture.needsUpdate = true;
 }
 
@@ -596,10 +648,12 @@ async function decodeUrl(url) {
 
 async function loadBundledTokyoPair() {
   const useV616Pair = QUERY.get('tokyo') === 'v616';
-  const realityPath = useV616Pair
+  const realityPath = LAYERED_TOKYO
+    ? './media/tokyo/candidates/reality-v6.18-natural.png'
+    : useV616Pair
     ? './media/tokyo/candidates/reality-v6.16-astra-master.png'
     : './media/tokyo/reality-wikipedia.png';
-  const redblackPath = useV616Pair
+  const redblackPath = useV616Pair || LAYERED_TOKYO
     ? './media/tokyo/candidates/redblack-v6.16-astra-master.png'
     : './media/tokyo/redblack-wikipedia.png';
   const [reality, redblack] = await Promise.all([
@@ -608,6 +662,15 @@ async function loadBundledTokyoPair() {
   ]);
   worldImages.reality = reality;
   worldImages.redblack = redblack;
+  if (LAYERED_TOKYO) {
+    const maskImage = await decodeUrl('./media/tokyo/candidates/layers-v6.18-mask.png');
+    const mask = new THREE.Texture(maskImage);
+    mask.colorSpace = THREE.NoColorSpace;
+    mask.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    mask.needsUpdate = true;
+    tokyoLayerMask.value = mask;
+    redrawIndependentChrome();
+  }
   drawWorld(reality, worldCanvases.reality, worldTextures.reality, chromeFor('cover'));
   drawWorld(redblack, worldCanvases.redblack, worldTextures.redblack, chromeFor('inner'));
   sourceMeta.reality = {
@@ -1559,6 +1622,9 @@ uniform float uTowerMix;
 uniform float uFoldBlurScale;
 uniform float uTowerBoost;
 uniform float uRevealFront;
+uniform float uLayeredTokyo;
+uniform sampler2D tokyoLayerMask;
+uniform sampler2D screenChrome;
 varying vec3 vUIPosition;
 
 // V5.0.2 Reveal Direction Fix.
@@ -1693,6 +1759,33 @@ vec3 screenColor() {
   vec3 colB = textureLod(transitionTarget, uvC, baseLod).rgb;
   float revealAmount = finalReveal(sourceUV, colB);
   vec3 color = mix(colA, colB, revealAmount) * coverage.x * coverage.y;
+  if (uLayeredTokyo > 0.5) {
+    float opening = 1.0 - foldAngle / 3.141592654;
+    #ifdef INNER_UI
+      // Shared source-derived masks make the three narrative layers disjoint.
+      // Red advances from the hinge across the fixed/right inner panel, then
+      // follows the moving/left panel outward. The cover never samples B.
+      vec2 layer = textureLod(tokyoLayerMask, uvC, baseLod).rg;
+      float tower = layer.g;
+      float city = layer.r * (1.0 - tower);
+      float sky = (1.0 - layer.r) * (1.0 - tower);
+      float distanceFromHinge = uvC.x >= 0.5
+        ? (uvC.x - 0.5) * 2.0
+        : 0.38 + (0.5 - uvC.x) * 2.0;
+      float redProgress = smoothstep(0.18, 0.58, opening);
+      float red = 1.0 - smoothstep(redProgress * 1.60 - 0.12,
+        redProgress * 1.60, distanceFromHinge);
+      red *= smoothstep(0.18, 0.24, opening);
+      float black = smoothstep(0.58, 0.82, opening);
+      float yellow = smoothstep(0.84, 0.985, opening);
+      color = mix(colA, colB, clamp(red * sky + black * city + yellow * tower, 0.0, 1.0));
+    #else
+      // Swallow the photographic cover before it reaches 90 degrees. A
+      // second projected tower must not coexist with the fixed inner tower.
+      color = colA * (1.0 - smoothstep(0.10, 0.32, opening));
+    #endif
+    color *= coverage.x * coverage.y;
+  }
   if (radius > 0.0) {
     // Use the same mip level at zero blur, then increase it continuously.
     float lod = max(baseLod, log2(max(1.0, radius)));
@@ -1748,6 +1841,20 @@ vec3 screenColor() {
     color += vec3(1.0, 0.62, 0.25) * uPulse * (tw * 0.22 + warm * 0.10);
   }
 
+  if (uLayeredTokyo > 0.5) {
+    float opening = 1.0 - foldAngle / 3.141592654;
+    #ifdef INNER_UI
+      // UI is authored in the fixed screen's own UV, never in the blended or
+      // projected world. It appears only after the main unfold is complete.
+      vec4 chrome = texture2D(screenChrome, vMapUv);
+      float visibility = smoothstep(0.97, 1.0, opening) * step(0.55, vMapUv.x);
+    #else
+      vec2 coverUV = vec2(0.5 + vMapUv.x * 0.5, vMapUv.y);
+      vec4 chrome = texture2D(screenChrome, coverUV);
+      float visibility = 1.0 - smoothstep(0.02, 0.12, opening);
+    #endif
+    color = mix(color, chrome.rgb, chrome.a * visibility);
+  }
   return color;
 }
 `;
@@ -1829,7 +1936,10 @@ try {
           shader.uniforms.uTowerMix = uTowerMix;
           shader.uniforms.uFoldBlurScale = uFoldBlurScale;
           shader.uniforms.uTowerBoost = uTowerBoost;
-    shader.uniforms.uRevealFront = uRevealFront;
+          shader.uniforms.uRevealFront = uRevealFront;
+          shader.uniforms.uLayeredTokyo = uLayeredTokyo;
+          shader.uniforms.tokyoLayerMask = tokyoLayerMask;
+          shader.uniforms.screenChrome = { value: chromeTextures[kind === 'inner' ? 'inner' : 'cover'] };
 
           shader.vertexShader = `varying vec3 vUIPosition;\n${shader.vertexShader}`;
           shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
@@ -2112,7 +2222,7 @@ function driveRecord(nowMs) {
   uTowerMix.value = reviewDemo
     ? worldMix.value
     : smoothRange(t, towerStart, towerEnd);
-  // The v6.17 review demo deliberately omits the additive tower highlight.
+  // The silent review demo deliberately omits the additive tower highlight.
   uTowerBoost.value = NO_FX || !tokyoTimeline || reviewDemo
     ? 0
     : 0.65 * smoothRange(t, towerStart, towerEnd);
@@ -2186,6 +2296,14 @@ window.__duo = {
   _renderer: renderer,
   _scene: scene,
   _phone: phone,
+  setReviewFrame: frame => {
+    if (!REVIEW_DEMO) return false;
+    setPlaying(false);
+    recording = false;
+    recordT0 = 0;
+    driveRecord(THREE.MathUtils.clamp(Math.round(Number(frame)), 0, 347) / recordFps * 1000);
+    return true;
+  },
   setChromeConfig,
   // Backward-compatible master toggle for prior review automation.
   setScreenChrome: flag => {
@@ -2241,7 +2359,7 @@ window.__duo = {
         id: PRODUCTION_BASELINE_ID,
         locked: PRODUCTION_BASELINE,
         devExperiments: DEV_EXPERIMENTS,
-        productionReveal: 'clean-crossfade',
+        productionReveal: LAYERED_TOKYO ? 'inner-only source-masked layers' : 'clean-crossfade',
         excluded: ['tower-fx', 'bird-fx', 'displacement'],
       },
       stages: { leak: uLeak.value, collapse: uCollapse.value, lock: uLock.value },
@@ -2252,7 +2370,17 @@ window.__duo = {
         hingeLock: true,
         endpointSnap: true,
       },
-      revealMode: STAGED_REVEAL ? 'staged' : 'clean-crossfade',
+      revealMode: LAYERED_TOKYO ? 'inner-only red / black / yellow' : STAGED_REVEAL ? 'staged' : 'clean-crossfade',
+      layeredTokyo: LAYERED_TOKYO ? {
+        coverTarget: 'reality-only, swallowed at 18–57.6 degrees',
+        red: smoothRange(angle / 180, 0.18, 0.58),
+        black: smoothRange(angle / 180, 0.58, 0.82),
+        yellow: smoothRange(angle / 180, 0.84, 0.985),
+        innerChrome: smoothRange(angle / 180, 0.97, 1),
+        chromeDate: 'Fri Oct 23',
+        chromeCoordinates: 'right physical panel; independent texture',
+        mask: 'source-derived city R / tower G',
+      } : null,
       foldMotion: {
         ...foldMotion,
         preset: activeFoldPreset || (REVIEW_DEMO ? 'tokyo-demo' : null),
@@ -2261,7 +2389,7 @@ window.__duo = {
       },
       recordTimeline: {
         mode: REVIEW_DEMO
-          ? 'tokyo-v6.17-silent-review'
+          ? 'tokyo-v6.18-silent-review'
           : activeFoldPreset === 'tokyo' || QUERY.get('timeline') === 'tokyo'
             ? 'tokyo-two-beat'
             : 'fold-only',

@@ -36,3 +36,4 @@
 | V6.15.1 官方状态 chrome 复核 | 2026-09-20 | done→review（close 隐藏/open 显示；侧键与右下控制复核） | [review](../docs/v6.15-device-chrome-review.md) |
 | V6.16 Tokyo World Pair | 2026-09-20 | done→review（Reality/RedBlack 双母版 PixelLock） | [spec](../docs/specs/2026-09-20-tokyo-v6-16-world-pair.md) |
 | V6.17 无音乐最小 Demo | 2026-09-20 | local review ready（5.80s；四段开合节奏；无音乐/鸟/塔高亮/文字） | [review](../docs/tokyo-v6.17-silent-demo.md) |
+| V6.18 Feedback Repair | 2026-09-20 | local review ready（2.25s 前稳定 Open；内屏红/黑/黄分层；独立 UI；无模糊/音轨） | [review](../docs/audits/2026-09-20-tokyo-v6-18-feedback-review.md) |

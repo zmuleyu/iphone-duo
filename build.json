@@ -1,7 +1,7 @@
 {
-  "build": "6.17-review-demo",
+  "build": "6.18-review-demo",
   "baseline": "6.12",
-  "milestone": "Tokyo v6.17 silent review demo",
+  "milestone": "Tokyo v6.18 feedback repair and silent review demo",
   "status": "REVIEW",
   "basedOn": "v5.1-production-fold",
   "changes": [
@@ -15,9 +15,12 @@
     "nofx: disables external motion blur plus screen shader blur/darken",
     "assets: bundled Wikipedia-origin Reality/RedBlack pair available with ?tokyo=1",
     "demo-assets: PixelLock-approved v6.16 Reality/RedBlack pair available with ?tokyo=v616",
-    "demo-timeline: silent 5.80s review cut with a 0.65s hold, 4.15s four-beat editorial unfold, 1.00s poster finish, and no additive tower highlight or pulse"
+    "demo-timeline: silent 5.80s review cut with 1.10s hold, 1.15s smooth unfold, and 3.55s stable open hold; open complete at 2.25s",
+    "demo-layers: v6.18 inner-only source-masked red sky, black city, yellow tower; outer Reality cover swallowed before 90 degrees",
+    "demo-chrome: independent right-panel UV layer, Fri Oct 23, gated until 97 percent open",
+    "demo-quality: v6.18 natural warm-white A derivative; source geometry unchanged; motion and screen blur/darken off"
   ],
-  "lockedFromBaseline": "V6.14 fold geometry, hinge, panels, R->L world reveal, fixed camera, frame clock, device materials and Screen UV unchanged; v6.16 accepted world-pair files remain immutable inputs",
+  "lockedFromBaseline": "V6.14 fold geometry, hinge, panels, fixed camera, frame clock, device materials and Screen UV unchanged; v6.16 accepted world-pair files remain immutable inputs. V6.18 replaces only the world transition, UI composition, A grade and review timing.",
   "mergePolicy": "Exact candidate requires local capture/QC, source delivery, then explicit production activation",
   "timestamp": "2026-09-20",
   "promotedFrom": "V6.14 production baseline"
