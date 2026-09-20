@@ -17,7 +17,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v6.19-review-demo';
+const BUILD_VERSION = 'v6.20-review-demo';
 const PRODUCTION_BASELINE_ID = 'v5.1-production-fold';
 
 const viewport = document.querySelector('#viewport');
@@ -117,7 +117,7 @@ const bgFit = document.querySelector('#bg-fit');
 const bgColor = document.querySelector('#bg-color');
 
 const scene = new THREE.Scene();
-const FIXED_CAMERA_DISTANCE = new URLSearchParams(location.search).get('tokyo') === 'v619' ? 100 : 40;
+const FIXED_CAMERA_DISTANCE = ['v619', 'v620'].includes(new URLSearchParams(location.search).get('tokyo')) ? 100 : 40;
 const fixedFov = 2 * Math.atan(Math.tan(16 * Math.PI / 180)
   * (40 - .24948) / (FIXED_CAMERA_DISTANCE - .24948)) * 180 / Math.PI;
 const camera = new THREE.PerspectiveCamera(fixedFov, 1, .1, 250);
@@ -128,7 +128,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 // V5.9: 1.5x capture supersample (2x@60fps starved the frame clock, frozen
 // spans) + opaque white clear so captures land on Apple-white, not alpha-black.
 renderer.setPixelRatio(new URLSearchParams(location.search).has('cap')
-  ? (new URLSearchParams(location.search).get('tokyo') === 'v619' ? 2 : 1.25)
+  ? (['v619', 'v620'].includes(new URLSearchParams(location.search).get('tokyo')) ? 2 : 1.25)
   : Math.min(devicePixelRatio, 2)); // Fixed-step v6.19 can supersample without a real-time deadline.
 // V6.10: preview was alpha-0 over CSS #f6f6f3 so blown Star White punched through to paper.
 // Opaque page-color clear for preview; Apple-white for cap.
@@ -181,7 +181,9 @@ const FIXED_PANEL_ANCHOR_X = -HALF_DEVICE_WIDTH * 0.5 * 0.90;
 const QUERY = new URLSearchParams(location.search);
 const REVIEW_DEMO = QUERY.get('motion') === 'tokyo-demo';
 const TOKYO_619 = QUERY.get('tokyo') === 'v619';
-const LAYERED_TOKYO = TOKYO_619 || QUERY.get('tokyo') === 'v618';
+const TOKYO_620 = QUERY.get('tokyo') === 'v620';
+const TOKYO_FIXED = TOKYO_619 || TOKYO_620;
+const LAYERED_TOKYO = TOKYO_FIXED || QUERY.get('tokyo') === 'v618';
 const PRODUCTION_BASELINE = true;
 const DEV_EXPERIMENTS = QUERY.has('dev');
 const NO_FX = QUERY.has('nofx') || LAYERED_TOKYO;
@@ -219,7 +221,10 @@ const uFoldBlurScale = { value: 1 };
 const uTowerBoost = { value: 0 }; // V5.9: hero glow (V6.2: disabled in record — pocket flip IS the beat)
 const uRevealFront = { value: -1 }; // V6.2: spatial left->right wavefront (record drives; -1 = off)
 const uLayeredTokyo = { value: 0 };
-const uTokyo619 = { value: TOKYO_619 ? 1 : 0 };
+const uTokyo619 = { value: TOKYO_FIXED ? 1 : 0 };
+const uTokyo620 = { value: TOKYO_620 ? 1 : 0 };
+const uWindowLights = { value: 0 };
+const uTowerLights = { value: 0 };
 const uChromeOpacity = { value: new THREE.Vector2(1, 1) };
 const uTokyoPulse = { value: 0 };
 const uWindowBreath = { value: 0 };
@@ -277,7 +282,7 @@ const requestedClockScale = QUERY.has('clockScale') ? Number(QUERY.get('clockSca
 const requestedClockY = QUERY.has('clockY') ? Number(QUERY.get('clockY')) : Number.NaN;
 const legacyChrome = QUERY.get('ui');
 const chromeConfig = {
-  closed: legacyChrome === '1' || QUERY.get('closedUi') === '1' || (TOKYO_619 && QUERY.get('closedUi') !== '0'),
+  closed: !TOKYO_620 && (legacyChrome === '1' || QUERY.get('closedUi') === '1' || (TOKYO_619 && QUERY.get('closedUi') !== '0')),
   open: legacyChrome !== '0' && QUERY.get('openUi') !== '0',
   clockScale: Number.isFinite(requestedClockScale)
     ? THREE.MathUtils.clamp(requestedClockScale / 100, 0.70, 1.05)
@@ -322,9 +327,9 @@ const FOLD_PRESETS = Object.freeze({
   }),
   'tokyo-demo': Object.freeze({
     label: 'Tokyo Review Demo',
-    closedHold: TOKYO_619 ? 0.85 : 1.10,
-    unfoldDuration: TOKYO_619 ? 1.45 : 1.15,
-    openHold: TOKYO_619 ? 3.50 : 3.55,
+    closedHold: TOKYO_FIXED ? 0.85 : 1.10,
+    unfoldDuration: TOKYO_FIXED ? 1.45 : 1.15,
+    openHold: TOKYO_FIXED ? 3.50 : 3.55,
     easing: 'smooth',
     motionBlur: 'off',
   }),
@@ -399,6 +404,8 @@ const chromeTextures = {
   cover: createCanvasTexture(chromeCanvases.cover),
 };
 const tokyoLayerMask = { value: createCanvasTexture(makeWorldCanvas()) };
+const tokyoLitTarget = { value: worldTextures.redblack };
+const tokyoLightRank = { value: tokyoLayerMask.value };
 
 const uiReferenceEye = new THREE.Vector3(0, 0, FIXED_CAMERA_DISTANCE);
 const innerUIFrame = new THREE.Vector4(-7.89935, .34562 - 5.8974, 15.7987, 11.1035);
@@ -557,6 +564,7 @@ function drawLockChrome(canvas, region = 'inner') {
 }
 
 function chromeFor(region) {
+  if (TOKYO_620 && region === 'cover') return false;
   return region === 'cover' ? chromeConfig.closed && 'cover' : chromeConfig.open && 'inner';
 }
 
@@ -579,14 +587,14 @@ function redrawIndependentChrome() {
       const source = lockChrome.inner;
       const sw = source.naturalWidth, sh = source.naturalHeight;
       const isCover = region === 'cover';
-      const clockWidth = w * (TOKYO_619 ? (isCover ? 0.17 : 0.205) : 0.157) * chromeConfig.clockScale;
+      const clockWidth = w * (TOKYO_FIXED ? (isCover ? 0.17 : 0.205) : 0.157) * chromeConfig.clockScale * (TOKYO_620 ? .85 : 1);
       const clockHeight = clockWidth * (sh * 0.30) / (sw * 0.255);
-      const centerX = w * (TOKYO_619 ? (isCover ? 0.75 : 0.5) : 0.883);
-      const y = h * ((TOKYO_619 ? 0.105 : 0.14) + chromeConfig.clockY);
+      const centerX = w * (TOKYO_620 ? .46 : TOKYO_619 ? (isCover ? 0.75 : 0.5) : 0.883);
+      const y = h * ((TOKYO_620 ? .085 : TOKYO_619 ? 0.105 : 0.14) + chromeConfig.clockY);
       ctx.drawImage(source, sw * 0.37, sh * 0.10, sw * 0.255, sh * 0.30,
         centerX - clockWidth / 2, y, clockWidth, clockHeight);
       ctx.fillStyle = '#fff';
-      ctx.font = `600 ${Math.round(h * (TOKYO_619 ? 0.016 : 0.021))}px Arial, sans-serif`;
+      ctx.font = `600 ${Math.round(h * (TOKYO_620 ? .014 : TOKYO_619 ? 0.016 : 0.021))}px Arial, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('Fri Oct 23', centerX, y - h * 0.025);
@@ -601,7 +609,7 @@ function redrawIndependentChrome() {
       ctx.beginPath();
       ctx.moveTo(w * (TOKYO_619 && !isCover ? 0.37 : 0.65), h * 0.975);
       ctx.lineTo(w * (TOKYO_619 && !isCover ? 0.63 : 0.85), h * 0.975);
-      ctx.stroke();
+      if (!TOKYO_620) ctx.stroke();
     }
     chromeTextures[region].needsUpdate = true;
   }
@@ -618,6 +626,7 @@ function updateChromeControls() {
 
 function setChromeConfig(patch) {
   if (Object.hasOwn(patch, 'closed')) chromeConfig.closed = Boolean(patch.closed);
+  if (TOKYO_620) chromeConfig.closed = false;
   if (Object.hasOwn(patch, 'open')) chromeConfig.open = Boolean(patch.open);
   if (Object.hasOwn(patch, 'clockScale')) chromeConfig.clockScale = THREE.MathUtils.clamp(Number(patch.clockScale), 0.70, 1.05);
   if (Object.hasOwn(patch, 'clockY')) chromeConfig.clockY = THREE.MathUtils.clamp(Number(patch.clockY), -0.04, 0.10);
@@ -661,14 +670,18 @@ async function decodeUrl(url) {
 
 async function loadBundledTokyoPair() {
   const useV616Pair = QUERY.get('tokyo') === 'v616';
-  const realityPath = TOKYO_619
+  const realityPath = TOKYO_620
+    ? './media/tokyo/candidates/reality-v6.20-dormant.png'
+    : TOKYO_619
     ? './media/tokyo/candidates/reality-v6.19-natural.png'
     : LAYERED_TOKYO
     ? './media/tokyo/candidates/reality-v6.18-natural.png'
     : useV616Pair
     ? './media/tokyo/candidates/reality-v6.16-astra-master.png'
     : './media/tokyo/reality-wikipedia.png';
-  const redblackPath = TOKYO_619
+  const redblackPath = TOKYO_620
+    ? './media/tokyo/candidates/redblack-v6.20-dormant.png'
+    : TOKYO_619
     ? './media/tokyo/candidates/redblack-v6.19-gold.png'
     : useV616Pair || LAYERED_TOKYO
     ? './media/tokyo/candidates/redblack-v6.16-astra-master.png'
@@ -680,7 +693,9 @@ async function loadBundledTokyoPair() {
   worldImages.reality = reality;
   worldImages.redblack = redblack;
   if (LAYERED_TOKYO) {
-    const maskImage = await decodeUrl(TOKYO_619
+    const maskImage = await decodeUrl(TOKYO_620
+      ? './media/tokyo/candidates/layers-v6.20-mask.png'
+      : TOKYO_619
       ? './media/tokyo/candidates/layers-v6.19-mask.png'
       : './media/tokyo/candidates/layers-v6.18-mask.png');
     const mask = new THREE.Texture(maskImage);
@@ -688,6 +703,20 @@ async function loadBundledTokyoPair() {
     mask.anisotropy = renderer.capabilities.getMaxAnisotropy();
     mask.needsUpdate = true;
     tokyoLayerMask.value = mask;
+    if (TOKYO_620) {
+      const [litImage, rankImage] = await Promise.all([
+        decodeUrl('./media/tokyo/candidates/redblack-v6.20-lit.png'),
+        decodeUrl('./media/tokyo/candidates/light-rank-v6.20.png'),
+      ]);
+      const litCanvas = makeWorldCanvas();
+      tokyoLitTarget.value = createCanvasTexture(litCanvas);
+      drawWorld(litImage, litCanvas, tokyoLitTarget.value, false);
+      const rank = new THREE.Texture(rankImage);
+      rank.colorSpace = THREE.NoColorSpace;
+      rank.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      rank.needsUpdate = true;
+      tokyoLightRank.value = rank;
+    }
     redrawIndependentChrome();
   }
   drawWorld(reality, worldCanvases.reality, worldTextures.reality, chromeFor('cover'));
@@ -970,7 +999,7 @@ function updateFraming() {
 
 function foldEase(progress) {
   const p = THREE.MathUtils.clamp(progress, 0, 1);
-  if (TOKYO_619 && activeFoldPreset === 'tokyo-demo') {
+  if (TOKYO_FIXED && activeFoldPreset === 'tokyo-demo') {
     // The cover first turns away; most duration belongs to the visible left
     // panel travel after 90 degrees. Inverse projection gives a smooth visual
     // 10–90% travel near 0.75 s instead of a short burst at the midpoint.
@@ -1533,10 +1562,12 @@ function setAngle(value) {
   if (nextAngle < 0.1) nextAngle = 0;
   if (nextAngle > 179.9) nextAngle = 180;
   angle = nextAngle;
-  if (TOKYO_619 && !recording) {
-    uChromeOpacity.value.set(1, angle >= 180 ? 1 : 0);
+  if (TOKYO_FIXED && !recording) {
+    uChromeOpacity.value.set(TOKYO_620 ? 0 : 1, angle >= 180 ? 1 : 0);
     uTokyoPulse.value = 0;
     uWindowBreath.value = 0;
+    uWindowLights.value = TOKYO_620 && angle >= 180 ? 1 : 0;
+    uTowerLights.value = TOKYO_620 && angle >= 180 ? 1 : 0;
   }
   slider.value = angle;
   bend.value = (180 - angle) / 180 * Math.PI;
@@ -1662,6 +1693,11 @@ uniform vec2 uChromeOpacity;
 uniform float uTokyoPulse;
 uniform float uWindowBreath;
 uniform float uCalibrationA;
+uniform float uTokyo620;
+uniform float uWindowLights;
+uniform float uTowerLights;
+uniform sampler2D tokyoLitTarget;
+uniform sampler2D tokyoLightRank;
 varying vec3 vUIPosition;
 
 // V5.0.2 Reveal Direction Fix.
@@ -1827,6 +1863,15 @@ vec3 screenColor() {
         yellow = smoothstep(0.78, 0.94, opening);
       }
       color = mix(colA, colB, clamp(red * sky + black * city + yellow * tower, 0.0, 1.0));
+      if (uTokyo620 > 0.5) {
+        vec3 lit = textureLod(tokyoLitTarget, uvC, baseLod).rgb;
+        float rank = textureLod(tokyoLightRank, uvC, baseLod).r;
+        float windowsOn = smoothstep(rank, rank + 0.16, uWindowLights);
+        float towerHeight = clamp((uvC.y - 0.24) / 0.72, 0.0, 1.0);
+        float towerOn = smoothstep(towerHeight, towerHeight + 0.11, uTowerLights * 1.11);
+        float lightAlpha = clamp(layer.b * windowsOn + tower * towerOn, 0.0, 1.0);
+        color = mix(color, lit, lightAlpha);
+      }
       if (uTokyo619 > 0.5) {
         // Small masked luminance changes only; no halo, camera or geometry FX.
         color += colB * layer.b * uWindowBreath;
@@ -2002,6 +2047,11 @@ try {
           shader.uniforms.uTokyoPulse = uTokyoPulse;
           shader.uniforms.uWindowBreath = uWindowBreath;
           shader.uniforms.uCalibrationA = uCalibrationA;
+          shader.uniforms.uTokyo620 = uTokyo620;
+          shader.uniforms.uWindowLights = uWindowLights;
+          shader.uniforms.uTowerLights = uTowerLights;
+          shader.uniforms.tokyoLitTarget = tokyoLitTarget;
+          shader.uniforms.tokyoLightRank = tokyoLightRank;
 
           shader.vertexShader = `varying vec3 vUIPosition;\n${shader.vertexShader}`;
           shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
@@ -2324,6 +2374,7 @@ function driveRecord(nowMs) {
     const holdPhase = THREE.MathUtils.clamp((t - foldEnd) / foldMotion.openHold, 0, 1);
     uWindowBreath.value = 0.018 * Math.sin(Math.PI * holdPhase) ** 2;
   }
+  if (TOKYO_620) applyTokyo620Frame(recordFrameIndex / recordFps * 60);
 
   const rw = STAGED_REVEAL ? uTransActive.value : 0;
   if (STAGED_REVEAL) {
@@ -2366,6 +2417,16 @@ function driveRecord(nowMs) {
 const reviewFrameCanvas = document.createElement('canvas');
 reviewFrameCanvas.width = 1920;
 reviewFrameCanvas.height = 1080;
+
+function applyTokyo620Frame(frame) {
+  const openFrame = Math.round((foldMotion.closedHold + foldMotion.unfoldDuration) * 60);
+  uChromeOpacity.value.set(0, smoothRange(frame, openFrame, openFrame + 5));
+  uWindowLights.value = THREE.MathUtils.clamp((frame - openFrame - 9) / 33, 0, 1);
+  uTowerLights.value = THREE.MathUtils.clamp((frame - openFrame - 47) / 26, 0, 1);
+  // The base-to-tip tower light is the sole climax; no old pulse or breathing.
+  uTokyoPulse.value = 0;
+  uWindowBreath.value = 0;
+}
 
 window.__duo = {
   setAngle: value => { setPlaying(false); playbackTime = 0; recording = false; setAngle(Number(value)); },
@@ -2466,17 +2527,19 @@ window.__duo = {
       revealMode: LAYERED_TOKYO ? 'inner-only red / black / yellow' : STAGED_REVEAL ? 'staged' : 'clean-crossfade',
       layeredTokyo: LAYERED_TOKYO ? {
         coverTarget: 'reality-only, swallowed at 18–57.6 degrees',
-        red: smoothRange(angle / 180, TOKYO_619 ? 0.16 : 0.18, 0.58),
-        black: smoothRange(angle / 180, TOKYO_619 ? 0.52 : 0.58, TOKYO_619 ? 0.78 : 0.82),
-        yellow: smoothRange(angle / 180, TOKYO_619 ? 0.78 : 0.84, TOKYO_619 ? 0.94 : 0.985),
-        innerChrome: TOKYO_619 ? uChromeOpacity.value.y : smoothRange(angle / 180, 0.97, 1),
+        red: smoothRange(angle / 180, TOKYO_FIXED ? 0.16 : 0.18, 0.58),
+        black: smoothRange(angle / 180, TOKYO_FIXED ? 0.52 : 0.58, TOKYO_FIXED ? 0.78 : 0.82),
+        yellow: smoothRange(angle / 180, TOKYO_FIXED ? 0.78 : 0.84, TOKYO_FIXED ? 0.94 : 0.985),
+        innerChrome: TOKYO_FIXED ? uChromeOpacity.value.y : smoothRange(angle / 180, 0.97, 1),
         coverChrome: uChromeOpacity.value.x,
         projectedFoldProgress: (1 - Math.cos(angle * Math.PI / 180)) * 0.5,
         pulse: uTokyoPulse.value,
         windowBreath: uWindowBreath.value,
+        windowsLight: uWindowLights.value,
+        towerLight: uTowerLights.value,
         chromeDate: 'Fri Oct 23',
-        chromeCoordinates: TOKYO_619 ? 'independently centered per physical display; inner only when flat' : 'right physical panel; independent texture',
-        mask: TOKYO_619 ? 'source-derived city R / tower G / windows B' : 'source-derived city R / tower G',
+        chromeCoordinates: TOKYO_620 ? 'closed off; open clock 15 percent smaller and upper-left; no home indicator' : TOKYO_619 ? 'independently centered per physical display; inner only when flat' : 'right physical panel; independent texture',
+        mask: TOKYO_FIXED ? 'source-derived city R / tower G / windows B' : 'source-derived city R / tower G',
       } : null,
       foldMotion: {
         ...foldMotion,
@@ -2486,7 +2549,7 @@ window.__duo = {
       },
       recordTimeline: {
         mode: REVIEW_DEMO
-          ? (TOKYO_619 ? 'tokyo-v6.19-fixed-step-review' : 'tokyo-v6.18-silent-review')
+          ? (TOKYO_620 ? 'tokyo-v6.20-sequential-lighting' : TOKYO_619 ? 'tokyo-v6.19-fixed-step-review' : 'tokyo-v6.18-silent-review')
           : activeFoldPreset === 'tokyo' || QUERY.get('timeline') === 'tokyo'
             ? 'tokyo-two-beat'
             : 'fold-only',
@@ -2548,6 +2611,7 @@ renderer.setAnimationLoop(now => {
     }
   }
 
+  if (ready && playing && TOKYO_620) applyTokyo620Frame(playbackTime * 60);
   if (ready && recording) driveRecord(now);
 
   updateSequencePlayhead();

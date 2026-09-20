@@ -1,7 +1,7 @@
 {
-  "build": "6.19-review-demo",
+  "build": "6.20-review-demo",
   "baseline": "6.12",
-  "milestone": "Tokyo v6.19 centered chrome, official controls and fixed-step video",
+  "milestone": "Tokyo v6.20 dormant cover and sequential building-to-tower lighting",
   "status": "REVIEW",
   "basedOn": "v5.1-production-fold",
   "changes": [
@@ -22,7 +22,12 @@
     "v6.19: independent centered closed/open chrome with six-frame fade, global right-to-left inner-only reveal, new pixel-registered natural/gold A/B candidates",
     "v6.19-timing: 0.85s closed, 1.45s unfolding, 3.50s open; visible 10-90 percent travel 0.90s; fully open at 2.30s",
     "v6.19-camera: fixed distance 100 with matched FOV preserves Open framing and reduces visible overshoot to 1.04 percent; no camera motion",
-    "v6.19-render: 348 numbered PNGs at fixed 1/60 step; 3.183s restrained tower pulse and subtle window breathing, no audio or blur"
+    "v6.19-render: 348 numbered PNGs at fixed 1/60 step; 3.183s restrained tower pulse and subtle window breathing, no audio or blur",
+    "v6.20-cover: new graphite blue-grey dormant photograph; all Closed chrome removed; physical camera retained",
+    "v6.20-open-ui: clock 15 percent smaller and slightly upper-left, refined date, no home indicator; six-frame fade after full Open",
+    "v6.20-mattes: opaque tower decks repaired and tower/city ownership made exclusive before lighting",
+    "v6.20-lighting: dark through unfold; frame 147-180 far-to-near window cohorts, pause to 185, tower base-to-tip rise through 211, stable hero; old pulse disabled",
+    "v6.20-locks: v6.19 device, fixed camera, fold curve and UV unchanged; 348 fixed-step PNGs and five legacy-profile frames verified"
   ],
   "lockedFromBaseline": "Device mesh, hinge, panel dimensions, materials and authored Screen UV remain unchanged except the two officially referenced +0.05y top-cap translations. V6.19 uses a new constant camera distance/FOV, a calibrated cover sampling offset, independent chrome and numbered frame clock. Older accepted world-pair assets remain immutable.",
   "mergePolicy": "Exact candidate requires local capture/QC, source delivery, then explicit production activation",
