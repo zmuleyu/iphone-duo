@@ -108,6 +108,9 @@ const bgUpload = document.querySelector('#bg-upload');
 const bgFit = document.querySelector('#bg-fit');
 const bgColor = document.querySelector('#bg-color');
 const STORM_II_SHOT = new URLSearchParams(location.search).get('shot') === 'storm-ii';
+const STORM_MOTION_REFERENCE = STORM_II_SHOT && new URLSearchParams(location.search).get('timeline') === 'motion-reference';
+const STORM_REFERENCE_FPS = 60;
+const STORM_REFERENCE_FRAMES = 348;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(32, 1, .1, 250);
@@ -218,6 +221,7 @@ let angle = 0;
 let playing = false;
 let playbackTime = 0;
 let ready = false;
+let stormReferenceFrame = 0;
 let uiTheme = 'wallpaper';
 let worldMixOverride = null;
 let recording = false;
@@ -2110,8 +2114,41 @@ function driveRecord(nowMs) {
   }
 }
 
+function stormReferenceState(frameIndex) {
+  const frame = THREE.MathUtils.clamp(Math.round(Number(frameIndex) || 0), 0, STORM_REFERENCE_FRAMES - 1);
+  if (frame < 45) return { frame, phase: 'closed-hold', angle: 0, pulse: 0, plate: 'closed' };
+  if (frame < 99) return { frame, phase: 'pull-early-opening', angle: ((frame - 45) / 54) * 45, pulse: 0, plate: 'opening' };
+  if (frame < 180) return { frame, phase: 'formation-unfold', angle: 45 + ((frame - 99) / 81) * 135, pulse: 0, plate: 'formation' };
+  if (frame < 207) return { frame, phase: 'full-open-hold', angle: 180, pulse: 0, plate: 'formation' };
+  if (frame < 273) {
+    const t = (frame - 207) / 65;
+    return { frame, phase: 'single-pulse', angle: 180, pulse: Math.sin(Math.PI * t), plate: 'freeze' };
+  }
+  if (frame < 318) return { frame, phase: 'poster-freeze', angle: 180, pulse: 0, plate: 'freeze' };
+  return { frame, phase: 'compression-loop', angle: 180 * (1 - ((frame - 318) / 29)), pulse: 0, plate: 'closed' };
+}
+
+function renderStormReferenceFrame(frameIndex) {
+  if (!STORM_MOTION_REFERENCE) return false;
+  const state = stormReferenceState(frameIndex);
+  setPlaying(false);
+  recording = false;
+  playbackTime = state.frame / STORM_REFERENCE_FPS;
+  stormReferenceFrame = state.frame;
+  setAngle(state.angle);
+  uFoldBlurScale.value = 0;
+  uPulse.value = Math.max(0, state.pulse) * 0.42;
+  uBezelPop.value = Math.max(0, state.pulse) * 0.08;
+  uBezelPopHold = state.pulse > 0;
+  document.documentElement.dataset.stormFrame = String(state.frame);
+  document.documentElement.dataset.stormPhase = state.phase;
+  return state;
+}
+
 window.__duo = {
   setAngle: value => { setPlaying(false); playbackTime = 0; recording = false; setAngle(Number(value)); },
+  stormFrameState: frameIndex => stormReferenceState(frameIndex),
+  renderStormFrame: frameIndex => renderStormReferenceFrame(frameIndex),
   _renderer: renderer,
   _scene: scene,
   _phone: phone,
@@ -2198,6 +2235,13 @@ window.__duo = {
         mode: activeFoldPreset === 'tokyo' || QUERY.get('timeline') === 'tokyo' ? 'tokyo-two-beat' : 'fold-only',
         fixedCamera: true,
         noFxDisablesScreenBlurAndDarken: NO_FX,
+      },
+      stormMotionReference: {
+        enabled: STORM_MOTION_REFERENCE,
+        fps: STORM_REFERENCE_FPS,
+        frameCount: STORM_REFERENCE_FRAMES,
+        frameIndex: stormReferenceFrame,
+        state: stormReferenceState(stormReferenceFrame),
       },
       recordingMode: {
         active: recordingMode,
