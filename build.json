@@ -1,8 +1,8 @@
 {
-  "build": "6.20-review-demo",
+  "build": "6.22-focus-still-candidate",
   "baseline": "6.12",
-  "milestone": "Tokyo v6.20 dormant cover and sequential building-to-tower lighting",
-  "status": "REVIEW",
+  "milestone": "Tokyo v6.22 focus-only static screen candidates and repaired independent tower plates; no video",
+  "status": "STILL_CANDIDATE_PENDING_USER_SELECTION",
   "basedOn": "v5.1-production-fold",
   "changes": [
     "chrome: Closed UI defaults hidden, Open UI defaults visible, and direct controls adjust state, clock scale and clock vertical position",
@@ -27,7 +27,9 @@
     "v6.20-open-ui: clock 15 percent smaller and slightly upper-left, refined date, no home indicator; six-frame fade after full Open",
     "v6.20-mattes: opaque tower decks repaired and tower/city ownership made exclusive before lighting",
     "v6.20-lighting: dark through unfold; frame 147-180 far-to-near window cohorts, pause to 185, tower base-to-tip rise through 211, stable hero; old pulse disabled",
-    "v6.20-locks: v6.19 device, fixed camera, fold curve and UV unchanged; 348 fixed-step PNGs and five legacy-profile frames verified"
+    "v6.20-locks: v6.19 device, fixed camera, fold curve and UV unchanged; 348 fixed-step PNGs and five legacy-profile frames verified",
+    "v6.22: no colour reveal, wipe, A/B mixing or title; stable inner RedBlack world with angle-driven left-screen-only optical defocus; fixed right remains sharp",
+    "v6.22-plates: source-aligned repaired tower RGBA in natural white, near-black dark-copper outline and independent warm-gold grades; no city/window ownership inside tower support"
   ],
   "lockedFromBaseline": "Device mesh, hinge, panel dimensions, materials and authored Screen UV remain unchanged except the two officially referenced +0.05y top-cap translations. V6.19 uses a new constant camera distance/FOV, a calibrated cover sampling offset, independent chrome and numbered frame clock. Older accepted world-pair assets remain immutable.",
   "mergePolicy": "Exact candidate requires local capture/QC, source delivery, then explicit production activation",

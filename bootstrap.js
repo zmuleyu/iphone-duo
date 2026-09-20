@@ -1,4 +1,4 @@
-const BUILD_ID = '6.20-review-demo';
+const BUILD_ID = '6.22-focus-still-candidate';
 
 globalThis.__IPHONE_DUO_BUILD__ = BUILD_ID;
 document.documentElement.dataset.build = BUILD_ID;
