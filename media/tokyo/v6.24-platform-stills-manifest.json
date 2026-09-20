@@ -1,0 +1,27 @@
+{
+  "version": "6.24",
+  "status": "user-approved-2026-09-20",
+  "scope": "Approved static state screenshots; unlocks same-camera local master capture only, not upload or publication",
+  "userApproved": true,
+  "baseCommit": "ba7a6c1a9ff66bcac67e0e41e61ae583fb12b2bc",
+  "timeline": {
+    "fps": 60,
+    "closedHold": [0, 137],
+    "unfold": [138, 221],
+    "openUnlit": [222, 249],
+    "towerActivation": [250, 287],
+    "heroGold": [288, 359]
+  },
+  "aspects": {
+    "authority4k": [3840, 2160],
+    "downsample1080": [1920, 1080],
+    "relationship": "Every 1080p review image is a deterministic Lanczos downsample of its corresponding native 4K source."
+  },
+  "safeArea": "Internal review overlay only; not a claimed X or Xiaohongshu official safe area.",
+  "states": [
+    [60, "closed-hold"], [148, "first-visible-motion"], [180, "fold-090deg"], [186, "fold-110deg"],
+    [200, "fold-150deg"], [222, "open-unlit"], [268, "activation-mid"], [359, "hero-gold"]
+  ],
+  "camera": "v6.24 16:9 platform-stills framing; physical shell, hinge, fold motion and Screen UV remain v6.23 authority",
+  "outputDirectory": "artifacts/v6.24-tokyo-platform-stills"
+}

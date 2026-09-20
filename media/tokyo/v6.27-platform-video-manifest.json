@@ -1,0 +1,39 @@
+{
+  "version": "6.27",
+  "status": "local-candidates-encoded-pending-user-playback-review",
+  "sourceCommit": "e4490c55f871f08ed00ad50f15a990ff705c4294",
+  "userApprovedTitlePreview": "media/tokyo/v6.26-bold-title-preview-manifest.json",
+  "userApprovedStatePack": "media/tokyo/v6.24-platform-stills-manifest.json",
+  "timeline": {"fps": 60, "frameStart": 0, "frameEndExclusive": 360, "durationSeconds": 6.0},
+  "title": {
+    "text": "TOKYO TOWER",
+    "weight": 850,
+    "entrance": "right-to-left reveal with 104-to-100-percent compression",
+    "startSeconds": 4.8,
+    "durationSeconds": 0.22
+  },
+  "composition": "Approved shared 16:9 v6.24 camera plus approved v6.26 bold title and v6.27 title entrance; physical device, hinge, Screen UV and Tokyo world lighting remain unchanged.",
+  "soundPolicy": "silent local masters and silent platform files; Xiaohongshu music is added only through the in-platform catalog after upload, outside this local delivery lane",
+  "master": {"resolution": [3840, 2160], "fps": 60, "frames": 360, "durationSeconds": 6.0, "format": "numbered PNG frames", "status": "captured-and-qc-passed"},
+  "derivatives": {
+    "xiaohongshuQuality": {
+      "file": "iphone-duo-tokyo-tower-v6.27-xiaohongshu-4k60-silent.mp4",
+      "resolution": [3840, 2160], "fps": 60, "frames": 360, "durationSeconds": 6.0,
+      "codec": "H.264 High level 5.2", "pixelFormat": "yuv420p", "color": "limited BT.709",
+      "audioStreams": 0, "bitrateMbps": 24.13, "sizeBytes": 18094495,
+      "sha256": "EBFC1AC246F6CDE9588D77F72DD3CC433365D43B9562DD0BCDF16F1141B23172",
+      "status": "local-upload-candidate-only"
+    },
+    "xOrganic": {
+      "file": "iphone-duo-tokyo-tower-v6.27-x-1080p40-silent.mp4",
+      "resolution": [1920, 1080], "fps": 40, "frames": 240, "durationSeconds": 6.0,
+      "codec": "H.264 High level 4.2", "pixelFormat": "yuv420p", "color": "limited BT.709",
+      "audioStreams": 0, "bitrateMbps": 6.97, "sizeBytes": 5224495,
+      "sha256": "E3733517DF71ADEC28FB7BE8E03C1BAFB564245C4EC487F479A6CC77CBDE284D",
+      "status": "local-upload-candidate-only", "source": "same 4K60 numbered-PNG master"
+    }
+  },
+  "publicationAuthority": false,
+  "uploadAuthority": false,
+  "outputDirectory": "artifacts/v6.27-tokyo-platform-master"
+}

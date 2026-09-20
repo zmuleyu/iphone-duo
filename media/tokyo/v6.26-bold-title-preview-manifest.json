@@ -1,0 +1,22 @@
+{
+  "version": "6.26",
+  "status": "user-approved-2026-09-20",
+  "userApproved": true,
+  "scope": "Bold English title preview only; v6.24 camera, fold, Screen UV, world and tower remain unchanged.",
+  "title": {
+    "text": "TOKYO TOWER",
+    "weight": 850,
+    "sizePercentOfScreenHeight": 7.2,
+    "trackingPercentOfFontSize": 2,
+    "horizontalAlignment": "center",
+    "verticalPositionPercent": 18,
+    "color": "#f3ede5"
+  },
+  "previewFrame": 359,
+  "outputDirectory": "artifacts/v6.26-tokyo-bold-title-preview",
+  "videoGenerated": false,
+  "audioGenerated": false,
+  "soundPolicy": "silent local master; Xiaohongshu music added through the platform catalog only",
+  "publicationAuthority": false,
+  "uploadAuthority": false
+}

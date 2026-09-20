@@ -82,6 +82,17 @@ button:focus-visible,.github-link:focus-visible,input:focus-visible{outline:2px 
 .source-buttons button{border:0;border-radius:7px;padding:8px 4px;font-size:9px;color:#7f8776;background:transparent;white-space:nowrap}
 .source-buttons button[aria-selected=true],.source-buttons button.is-loaded{background:#fff;color:#3f4e38;box-shadow:0 1px 4px #53624716;font-weight:650}
 .chrome-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:8px;border:1px solid #e8ebe4;border-radius:10px;background:#fafbf9}
+.title-controls{display:grid;grid-template-columns:minmax(0,.75fr) minmax(150px,1fr);gap:8px;padding:8px;border:1px solid #e8ebe4;border-radius:10px;background:#fafbf9}
+.title-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.title-toggle-row span{display:grid;gap:2px;min-width:0}
+.title-toggle-row strong{font-size:11px;color:#3e463a}
+.title-toggle-row small{font-size:11px;color:#515b4e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title-text-field{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;min-width:0}
+.title-text-field>span{font-size:11px;color:#4f594b}
+.title-text-field input{width:100%;height:32px;padding:0 9px;border:1px solid #dfe4dc;border-radius:8px;background:#fff;color:#30362e;font:650 11px/1 -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;letter-spacing:.08em;text-transform:uppercase;outline:none}
+.title-text-field input:focus-visible{border-color:#899580;box-shadow:0 0 0 2px rgba(91,105,82,.16)}
+.title-tuning{grid-column:1/-1;grid-template-columns:repeat(5,minmax(0,1fr))}
+.title-tuning label>span{font-size:11px;color:#4f594b}
 .chrome-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
 .chrome-toggle-row>span{display:flex;flex-direction:column;gap:1px;min-width:0}
 .chrome-toggle-row strong{font-size:8.4px;font-weight:650;color:#4d5848}
@@ -227,6 +238,8 @@ html[data-recording-mode="1"] #viewport{inset:0!important}
   .motion-presets{grid-template-columns:1fr}
   .motion-grid{grid-template-columns:1fr}
   .chrome-tuning.motion-grid{grid-template-columns:1fr 1fr}
+  .title-controls{grid-template-columns:1fr}
+  .title-tuning{grid-column:1;grid-template-columns:1fr 1fr}
   .motion-row{grid-template-columns:1fr}
   .qa-assets{grid-template-columns:1fr}
   .qa-angle-row{grid-template-columns:minmax(0,1fr) 48px 48px}

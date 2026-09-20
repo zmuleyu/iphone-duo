@@ -1,8 +1,8 @@
 {
-  "build": "6.23-motion-video-candidate",
+  "build": "6.28-loop-preview",
   "baseline": "6.12",
-  "milestone": "Tokyo v6.23 six-second fixed-frame motion candidate with clean recording chrome",
-  "status": "VIDEO_CANDIDATE_PENDING_USER_REVIEW",
+  "milestone": "Tokyo v6.28 shorter loop and tighter-framing screenshot gate",
+  "status": "V6_28_LOCAL_FINAL_DELIVERY_COMPLETE",
   "basedOn": "v5.1-production-fold",
   "changes": [
     "chrome: Closed UI defaults hidden, Open UI defaults visible, and direct controls adjust state, clock scale and clock vertical position",
@@ -32,7 +32,18 @@
     "v6.22-plates: source-aligned repaired tower RGBA in natural white, near-black dark-copper outline and independent warm-gold grades; no city/window ownership inside tower support",
     "v6.23-motion: 6.00s / 360-frame / 60fps deterministic timeline — 2.30s Closed, 1.40s unfold, 0.45s open pause, 0.65s tower activation, 1.20s clean hero hold",
     "v6.23-continuity: no authored left-screen blur, one fixed panorama UV/filtering path for both panels, no reveal/wipe, and no tower light before full Open",
-    "v6.23-clean-record: all screen chrome is disabled for the final-video profile while physical device controls and camera hardware remain unchanged"
+    "v6.23-clean-record: all screen chrome is disabled for the final-video profile while physical device controls and camera hardware remain unchanged",
+    "v6.24-platform-stills: same 16:9 camera and safe-area semantics at native 3840x2160 and deterministic 1920x1080 Lanczos downsample; no vertical derivative",
+    "v6.24-gate: user approved the shared 16:9 state pack; local numbered 4K master capture is authorized, but upload, deployment and publication remain out of scope",
+    "v6.25-title: independent editable inner-screen title layer, centered at the former clock region by default, with text, size, Y, tracking and entrance controls; no lock-screen chrome restored",
+    "v6.25-sound: local masters and both platform derivatives remain silent; Xiaohongshu music is intentionally deferred to its in-platform licensed catalog",
+    "v6.26-title-preview: TOKYO TOWER in 850 weight, 7.2 percent screen-height size and 2 percent tracking; user approved the static preview",
+    "v6.27-title-motion: independent title reveals right-to-left over 220ms with a restrained 104-to-100-percent compression after the world and tower animation are complete",
+    "v6.27-export: one deterministic 3840x2160 60fps numbered-PNG master produces silent Xiaohongshu 4K60 and X 1080p40 H.264 derivatives",
+    "v6.28-preview: 4.65s candidate loop, 0.65s Closed, 1.25s unfold, 0.35s pause, 0.55s tower activation and 0.30s close ending at the identical Closed state",
+    "v6.28-framing: native 4608x2592 fixed-camera capture directly crops 3840x2160 tight 16:9 and 2880x2160 4:3 test frames; no source upscale or camera/UV changes",
+    "v6.28-title: clean no-text default plus external TOKYO, UNFOLDED. Closed-negative-space comparison; accepted editable screen title retained as optional",
+    "v6.28-gate: static review only; neither platform video is authorized before user screenshot confirmation"
   ],
   "lockedFromBaseline": "Device mesh, hinge, panel dimensions, materials and authored Screen UV remain unchanged except the two officially referenced +0.05y top-cap translations. V6.19 uses a new constant camera distance/FOV, a calibrated cover sampling offset, independent chrome and numbered frame clock. Older accepted world-pair assets remain immutable.",
   "mergePolicy": "Exact candidate requires local capture/QC, source delivery, then explicit production activation",
