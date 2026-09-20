@@ -1,0 +1,124 @@
+{
+  "manifest_version": "elon-storm-character-v1.0-calibration",
+  "updated": "2026-09-20",
+  "style_lane": "real-elon-editorial-caricature-internal-only",
+  "phase": "elon-protagonist-calibration",
+  "human_review": "required-after-calibration-window",
+  "repair_budget_per_generated_id": {
+    "whole_image": 1,
+    "local_edit_followup": 1
+  },
+  "rights_status": "internal-calibration-only; source and likeness rights unresolved; no publication or endorsement",
+  "ordered_asset_ids": [
+    "ELON-REF-001",
+    "ELON-REF-002",
+    "ELON-CAL-001",
+    "ELON-CAL-002",
+    "JENSEN-SUP-001",
+    "SAM-SUP-001",
+    "DARIO-MID-001",
+    "GWYNNE-MID-001"
+  ],
+  "assets": [
+    {
+      "id": "ELON-REF-001",
+      "character_name": "Elon Musk",
+      "representation_lane": "real-person-experimental",
+      "shot_use": "full-open hold/pulse visual baseline; optional later cutout after approval",
+      "pose_orientation": "front-facing, compact right-hand cue, waist-to-upper-leg crop",
+      "composition": "1122x1402 RGB PNG with baked dark background; no alpha",
+      "must_have": ["recognizable simplified Elon likeness", "black tee", "small readable hand cue", "cyan-left and amber-right rim light"],
+      "must_not_have": ["regeneration during calibration", "claim of production-ready transparency", "public or endorsement use"],
+      "reference_source": "C:/Users/Admin/Downloads/duo/人物库/ChatGPT Image 2026年9月19日 12_43_10.png",
+      "sha256": "BC4319FF96209427B2DD49081817CA09E3D6D34951934C7BD990BB0B0A99E210",
+      "status": "retained-candidate"
+    },
+    {
+      "id": "ELON-REF-002",
+      "character_name": "Elon Musk",
+      "representation_lane": "real-person-experimental",
+      "shot_use": "full-body proportion and neutral stance reference",
+      "pose_orientation": "front-facing full body, arms quiet, feet visible",
+      "composition": "784x1168 RGB JPEG with baked dark environment; no alpha",
+      "must_have": ["complete body", "simple dark wardrobe", "head and shoe margin"],
+      "must_not_have": ["regeneration during calibration", "use as transparent cutout", "decorative background entering the composite"],
+      "reference_source": "C:/Users/Admin/Downloads/duo/人物库/Te8Tr.jpg",
+      "sha256": "A6FCCF6D9CCDFDDBA1AD80485CDD47D45CC691C4E1B37E8189339F0C60D4DE4D",
+      "status": "retained-candidate"
+    },
+    {
+      "id": "ELON-CAL-001",
+      "character_name": "Elon Musk",
+      "representation_lane": "real-person-experimental",
+      "shot_use": "Closed/RUMOR source for screen-right placement and later face/shoulder crop",
+      "pose_orientation": "full body; profile to three-quarter facing screen-left toward the hinge; restrained neutral stance",
+      "composition": "single subject, vertical 4:5 preferred, genuinely transparent PNG, complete body and 10-15% clear padding",
+      "must_have": ["recognizable editorial Elon likeness", "profile or three-quarter head silhouette readable small", "both hands and all fingers visible", "both shoes visible", "black tee or short dark jacket", "consistent cyan-left and amber-right rim lighting", "clean non-glowing alpha edge"],
+      "must_not_have": ["cropped anatomy", "baked background or floor", "device", "logo", "text", "other person", "robot", "scene", "collage", "multiple poses", "endorsement gesture"],
+      "reference_source": ["ELON-REF-001", "ELON-REF-002"],
+      "status": "pending-browser"
+    },
+    {
+      "id": "ELON-CAL-002",
+      "character_name": "Elon Musk",
+      "representation_lane": "real-person-experimental",
+      "shot_use": "Opening/FORMATION source for the hinge-ward move and half-turn",
+      "pose_orientation": "full body; torso three-quarter toward screen-left, head settling nearer front, one small step toward screen-left, hands contained and readable",
+      "composition": "single subject, vertical 4:5 preferred, genuinely transparent PNG, complete body and 10-15% clear padding",
+      "must_have": ["same face, proportions, wardrobe, and lighting as ELON-CAL-001", "clear weight shift without action exaggeration", "both hands and all fingers visible", "both shoes visible", "silhouette readable at thumbnail size", "clean non-glowing alpha edge"],
+      "must_not_have": ["large wave or product-hold gesture", "cropped anatomy", "baked background or floor", "device", "logo", "text", "other person", "robot", "scene", "collage", "multiple poses"],
+      "reference_source": ["ELON-REF-001", "ELON-REF-002"],
+      "status": "pending-browser"
+    },
+    {
+      "id": "JENSEN-SUP-001",
+      "character_name": "Jensen Huang",
+      "representation_lane": "real-person-experimental",
+      "shot_use": "compute counter-anchor, opposite-side reveal behind Elon",
+      "pose_orientation": "full body, broad presentation stance, one open-palm gesture",
+      "composition": "single transparent subject",
+      "must_have": ["leather-jacket silhouette", "distinct stance at thumbnail size"],
+      "must_not_have": ["Elon", "Sam", "other people", "brand logo", "text", "device", "collage"],
+      "reference_source": "4o0Ga.jpg, identity mapping not provenance-confirmed",
+      "status": "deferred-after-elon-calibration"
+    },
+    {
+      "id": "SAM-SUP-001",
+      "character_name": "Sam Altman",
+      "representation_lane": "real-person-experimental",
+      "shot_use": "conversation counter-anchor, later diagonal reveal behind Elon",
+      "pose_orientation": "full body, relaxed conversational lean, small calm gesture",
+      "composition": "single transparent subject",
+      "must_have": ["soft dark knit layer", "calm compact rhythm and readable silhouette"],
+      "must_not_have": ["Elon", "Jensen", "other people", "brand logo", "text", "device", "collage"],
+      "reference_source": "4o0Ga.jpg, identity mapping not provenance-confirmed",
+      "status": "deferred-after-elon-calibration"
+    },
+    {
+      "id": "DARIO-MID-001",
+      "character_name": "Dario Amodei",
+      "representation_lane": "real-person-experimental",
+      "shot_use": "optional single midground safety/lab counterweight",
+      "pose_orientation": "full body, quiet posture, minimal movement",
+      "composition": "single transparent subject",
+      "must_have": ["muted darker wardrobe", "quiet readable silhouette"],
+      "must_not_have": ["other people", "brand logo", "text", "device", "collage"],
+      "reference_source": "qfFrT.jpg may contain a relevant bearded figure but identity is not provenance-confirmed",
+      "choice_group": "MIDGROUND-001",
+      "status": "blocked-user-selection"
+    },
+    {
+      "id": "GWYNNE-MID-001",
+      "character_name": "Gwynne Shotwell",
+      "representation_lane": "real-person-experimental",
+      "shot_use": "optional single midground operations counterweight",
+      "pose_orientation": "full body, composed executive stance, clipped compact gesture",
+      "composition": "single transparent subject",
+      "must_have": ["composed operations silhouette", "minimal readable movement"],
+      "must_not_have": ["other people", "brand logo", "text", "device", "collage"],
+      "reference_source": "no confirmed single-person local reference",
+      "choice_group": "MIDGROUND-001",
+      "status": "blocked-user-selection"
+    }
+  ]
+}
