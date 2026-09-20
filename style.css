@@ -91,7 +91,7 @@ button:focus-visible,.github-link:focus-visible,input:focus-visible{outline:2px 
 .title-text-field>span{font-size:11px;color:#4f594b}
 .title-text-field input{width:100%;height:32px;padding:0 9px;border:1px solid #dfe4dc;border-radius:8px;background:#fff;color:#30362e;font:650 11px/1 -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;letter-spacing:.08em;text-transform:uppercase;outline:none}
 .title-text-field input:focus-visible{border-color:#899580;box-shadow:0 0 0 2px rgba(91,105,82,.16)}
-.title-tuning{grid-column:1/-1;grid-template-columns:repeat(4,minmax(0,1fr))}
+.title-tuning{grid-column:1/-1;grid-template-columns:repeat(5,minmax(0,1fr))}
 .title-tuning label>span{font-size:11px;color:#4f594b}
 .chrome-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
 .chrome-toggle-row>span{display:flex;flex-direction:column;gap:1px;min-width:0}

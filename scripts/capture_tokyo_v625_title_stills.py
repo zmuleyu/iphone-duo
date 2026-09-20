@@ -12,11 +12,16 @@ import websockets
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'artifacts/v6.25-tokyo-title-stills-r3'
 WS_URL = sys.argv[1]
 BASE = sys.argv[2] if len(sys.argv) > 2 else 'http://127.0.0.1:8775/'
-URL = BASE + '?cap=1&tokyo=v625&nofx=1&motion=tokyo-final&format=16x9&closedUi=0&openUi=0'
-STATES = [('pre-title', 287), ('title-entry', 294), ('hero-title', 330), ('final-title', 359)]
+REVISION = sys.argv[3] if len(sys.argv) > 3 else 'v625'
+IS_BOLD_PREVIEW = REVISION == 'v626'
+VERSION_LABEL = {'v625': 'v6.25', 'v626': 'v6.26'}.get(REVISION, REVISION)
+OUT = ROOT / ('artifacts/v6.26-tokyo-bold-title-preview' if IS_BOLD_PREVIEW else 'artifacts/v6.25-tokyo-title-stills-r3')
+URL = BASE + f'?cap=1&tokyo={REVISION}&nofx=1&motion=tokyo-final&format=16x9&closedUi=0&openUi=0'
+STATES = [('hero-bold-title', 359)] if IS_BOLD_PREVIEW else [
+    ('pre-title', 287), ('title-entry', 294), ('hero-title', 330), ('final-title', 359),
+]
 SAFE = (.05, .06, .95, .94)
 
 
@@ -118,7 +123,7 @@ async def main():
         if (payload['width'], payload['height']) != (3840, 2160):
             raise RuntimeError(f'Unexpected canvas: {payload["width"]}x{payload["height"]}')
         image = Image.open(io.BytesIO(decode(payload['png']))).convert('RGB')
-        prefix = f'frame_{frame:06d}_{label}_v6.25_16x9'
+        prefix = f'frame_{frame:06d}_{label}_{VERSION_LABEL}_16x9'
         clean = OUT / f'{prefix}_3840x2160-clean.png'
         safe = OUT / f'{prefix}_3840x2160-safe-review.png'
         image.save(clean, optimize=True)
@@ -132,13 +137,17 @@ async def main():
     make_contact(items, OUT / 'contact-sheet-title-authority.png')
     if errors:
         raise RuntimeError(f'console/runtime errors: {errors[:3]}')
-    if states[0]['title']['opacity'] != 0 or any(state['title']['opacity'] <= 0 for state in states[1:]):
+    if IS_BOLD_PREVIEW:
+        title = states[0]['title']
+        if title['opacity'] != 1 or title['text'] != 'TOKYO TOWER' or title['weight'] < 800:
+            raise RuntimeError('Bold title preview invariant failed')
+    elif states[0]['title']['opacity'] != 0 or any(state['title']['opacity'] <= 0 for state in states[1:]):
         raise RuntimeError('Title timing invariant failed')
     manifest = {
-        'version': 'v6.25', 'status': 'pending-user-review', 'videoGenerated': False,
+        'version': VERSION_LABEL, 'status': 'pending-user-review', 'videoGenerated': False,
         'audioGenerated': False, 'sourceBaseCommit': '4bf30a09f9e1cd2eeb047c41cfc371f588165576',
         'capture': {'canvas': [3840, 2160], 'url': URL}, 'states': states,
-        'titleContract': {'surface': 'inner-display-only', 'defaultText': 'TOKYO',
+        'titleContract': {'surface': 'inner-display-only', 'defaultText': 'TOKYO TOWER' if IS_BOLD_PREVIEW else 'TOKYO',
                           'defaultPosition': 'horizontal-center, y=18%', 'lockScreenChrome': False},
         'consoleErrors': errors,
     }

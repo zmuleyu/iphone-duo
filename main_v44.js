@@ -17,7 +17,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v6.25-independent-title-review';
+const BUILD_VERSION = 'v6.26-bold-title-preview';
 const PRODUCTION_BASELINE_ID = 'v5.1-production-fold';
 
 const viewport = document.querySelector('#viewport');
@@ -62,10 +62,12 @@ const titleLayerText = document.querySelector('#title-layer-text');
 const titleSizeInput = document.querySelector('#title-size');
 const titleYInput = document.querySelector('#title-y');
 const titleTrackingInput = document.querySelector('#title-tracking');
+const titleWeightInput = document.querySelector('#title-weight');
 const titleInInput = document.querySelector('#title-in');
 const titleSizeValue = document.querySelector('#title-size-value');
 const titleYValue = document.querySelector('#title-y-value');
 const titleTrackingValue = document.querySelector('#title-tracking-value');
+const titleWeightValue = document.querySelector('#title-weight-value');
 const titleInValue = document.querySelector('#title-in-value');
 const qaPanel = document.querySelector('#master-pair-qa-panel');
 const qaSummary = document.querySelector('#qa-summary');
@@ -127,7 +129,7 @@ const bgFit = document.querySelector('#bg-fit');
 const bgColor = document.querySelector('#bg-color');
 
 const scene = new THREE.Scene();
-const FIXED_CAMERA_DISTANCE = ['v619', 'v620', 'v622', 'v623', 'v624', 'v625'].includes(new URLSearchParams(location.search).get('tokyo')) ? 100 : 40;
+const FIXED_CAMERA_DISTANCE = ['v619', 'v620', 'v622', 'v623', 'v624', 'v625', 'v626'].includes(new URLSearchParams(location.search).get('tokyo')) ? 100 : 40;
 const fixedFov = 2 * Math.atan(Math.tan(16 * Math.PI / 180)
   * (40 - .24948) / (FIXED_CAMERA_DISTANCE - .24948)) * 180 / Math.PI;
 const camera = new THREE.PerspectiveCamera(fixedFov, 1, .1, 250);
@@ -138,7 +140,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 // V5.9: 1.5x capture supersample (2x@60fps starved the frame clock, frozen
 // spans) + opaque white clear so captures land on Apple-white, not alpha-black.
 renderer.setPixelRatio(new URLSearchParams(location.search).has('cap')
-  ? (['v619', 'v620', 'v622', 'v623', 'v624', 'v625'].includes(new URLSearchParams(location.search).get('tokyo')) ? 2 : 1.25)
+  ? (['v619', 'v620', 'v622', 'v623', 'v624', 'v625', 'v626'].includes(new URLSearchParams(location.search).get('tokyo')) ? 2 : 1.25)
   : Math.min(devicePixelRatio, 2)); // Fixed-step v6.19 can supersample without a real-time deadline.
 // V6.10: preview was alpha-0 over CSS #f6f6f3 so blown Star White punched through to paper.
 // Opaque page-color clear for preview; Apple-white for cap.
@@ -196,7 +198,8 @@ const TOKYO_622 = QUERY.get('tokyo') === 'v622';
 const TOKYO_623 = QUERY.get('tokyo') === 'v623';
 const TOKYO_624 = QUERY.get('tokyo') === 'v624';
 const TOKYO_625 = QUERY.get('tokyo') === 'v625';
-const TOKYO_PLATFORM_FINAL = TOKYO_623 || TOKYO_624 || TOKYO_625;
+const TOKYO_626 = QUERY.get('tokyo') === 'v626';
+const TOKYO_PLATFORM_FINAL = TOKYO_623 || TOKYO_624 || TOKYO_625 || TOKYO_626;
 const TOKYO_FIXED = TOKYO_619 || TOKYO_620 || TOKYO_622 || TOKYO_PLATFORM_FINAL;
 const LAYERED_TOKYO = TOKYO_FIXED || QUERY.get('tokyo') === 'v618';
 const PRODUCTION_BASELINE = true;
@@ -313,13 +316,15 @@ const chromeConfig = {
 const requestedTitleSize = QUERY.has('titleSize') ? Number(QUERY.get('titleSize')) : Number.NaN;
 const requestedTitleY = QUERY.has('titleY') ? Number(QUERY.get('titleY')) : Number.NaN;
 const requestedTitleTracking = QUERY.has('titleTracking') ? Number(QUERY.get('titleTracking')) : Number.NaN;
+const requestedTitleWeight = QUERY.has('titleWeight') ? Number(QUERY.get('titleWeight')) : Number.NaN;
 const requestedTitleIn = QUERY.has('titleIn') ? Number(QUERY.get('titleIn')) : Number.NaN;
 const titleConfig = {
-  enabled: QUERY.get('title') === '1' || (TOKYO_625 && QUERY.get('title') !== '0'),
-  text: (QUERY.get('titleText') || 'TOKYO').slice(0, 32),
-  size: Number.isFinite(requestedTitleSize) ? THREE.MathUtils.clamp(requestedTitleSize / 100, .035, .10) : .062,
+  enabled: QUERY.get('title') === '1' || ((TOKYO_625 || TOKYO_626) && QUERY.get('title') !== '0'),
+  text: (QUERY.get('titleText') || (TOKYO_626 ? 'TOKYO TOWER' : 'TOKYO')).slice(0, 32),
+  size: Number.isFinite(requestedTitleSize) ? THREE.MathUtils.clamp(requestedTitleSize / 100, .035, .10) : TOKYO_626 ? .072 : .062,
   y: Number.isFinite(requestedTitleY) ? THREE.MathUtils.clamp(requestedTitleY / 100, .08, .35) : .18,
-  tracking: Number.isFinite(requestedTitleTracking) ? THREE.MathUtils.clamp(requestedTitleTracking / 100, 0, .16) : .08,
+  tracking: Number.isFinite(requestedTitleTracking) ? THREE.MathUtils.clamp(requestedTitleTracking / 100, 0, .16) : TOKYO_626 ? .02 : .08,
+  weight: Number.isFinite(requestedTitleWeight) ? THREE.MathUtils.clamp(requestedTitleWeight, 600, 900) : TOKYO_626 ? 850 : 600,
   inTime: Number.isFinite(requestedTitleIn) ? THREE.MathUtils.clamp(requestedTitleIn, 3.70, 5.40) : 4.80,
   fadeDuration: .22,
   color: '#f3ede5',
@@ -683,7 +688,7 @@ function redrawTitleLayer() {
     const fontSize = h * titleConfig.size;
     ctx.save();
     ctx.fillStyle = titleConfig.color;
-    ctx.font = `600 ${Math.round(fontSize)}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+    ctx.font = `${Math.round(titleConfig.weight)} ${Math.round(fontSize)}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     drawTrackedTitle(ctx, text, w * .5, h * titleConfig.y, fontSize * titleConfig.tracking);
@@ -698,10 +703,12 @@ function updateTitleControls() {
   if (titleSizeInput) titleSizeInput.value = String((titleConfig.size * 100).toFixed(1));
   if (titleYInput) titleYInput.value = String(Math.round(titleConfig.y * 100));
   if (titleTrackingInput) titleTrackingInput.value = String(Math.round(titleConfig.tracking * 100));
+  if (titleWeightInput) titleWeightInput.value = String(Math.round(titleConfig.weight));
   if (titleInInput) titleInInput.value = titleConfig.inTime.toFixed(2);
   if (titleSizeValue) titleSizeValue.value = `${(titleConfig.size * 100).toFixed(1)}%`;
   if (titleYValue) titleYValue.value = `${Math.round(titleConfig.y * 100)}%`;
   if (titleTrackingValue) titleTrackingValue.value = `${Math.round(titleConfig.tracking * 100)}%`;
+  if (titleWeightValue) titleWeightValue.value = String(Math.round(titleConfig.weight));
   if (titleInValue) titleInValue.value = `${titleConfig.inTime.toFixed(2)}s`;
 }
 
@@ -711,6 +718,7 @@ function setTitleConfig(patch = {}) {
   if (Object.hasOwn(patch, 'size')) titleConfig.size = THREE.MathUtils.clamp(Number(patch.size), .035, .10);
   if (Object.hasOwn(patch, 'y')) titleConfig.y = THREE.MathUtils.clamp(Number(patch.y), .08, .35);
   if (Object.hasOwn(patch, 'tracking')) titleConfig.tracking = THREE.MathUtils.clamp(Number(patch.tracking), 0, .16);
+  if (Object.hasOwn(patch, 'weight')) titleConfig.weight = THREE.MathUtils.clamp(Number(patch.weight), 600, 900);
   if (Object.hasOwn(patch, 'inTime')) titleConfig.inTime = THREE.MathUtils.clamp(Number(patch.inTime), 3.70, 5.40);
   if (!recording) uTitleOpacity.value = titleConfig.enabled && angle >= 180 ? 1 : 0;
   redrawTitleLayer();
@@ -749,6 +757,7 @@ titleLayerText?.addEventListener('input', () => setTitleConfig({ text: titleLaye
 titleSizeInput?.addEventListener('input', () => setTitleConfig({ size: Number(titleSizeInput.value) / 100 }));
 titleYInput?.addEventListener('input', () => setTitleConfig({ y: Number(titleYInput.value) / 100 }));
 titleTrackingInput?.addEventListener('input', () => setTitleConfig({ tracking: Number(titleTrackingInput.value) / 100 }));
+titleWeightInput?.addEventListener('input', () => setTitleConfig({ weight: Number(titleWeightInput.value) }));
 titleInInput?.addEventListener('input', () => setTitleConfig({ inTime: Number(titleInInput.value) }));
 redrawTitleLayer();
 updateTitleControls();
@@ -2467,7 +2476,7 @@ function startRecord() {
 const RECORD_FRAMING = {
   // V6.24 is a platform-stills crop: enough scale to make the physical device
   // the subject, with every shell edge, key and hinge retained in 16:9.
-  '16x9': { zoom: (TOKYO_624 || TOKYO_625) ? 1.70 : 1.25, panX: -167 },
+  '16x9': { zoom: (TOKYO_624 || TOKYO_625 || TOKYO_626) ? 1.70 : 1.25, panX: -167 },
   '1x1': { zoom: 1.0, panX: -132 },
   '9x16': { zoom: 0.62, panX: -83 }, // V6.0.1: horizontal centering
 };
@@ -2676,7 +2685,7 @@ window.__duo = {
     return png;
   },
   renderTokyoPlatformStill: frame => {
-    if (!TOKYO_624 && !TOKYO_625) throw new Error('Platform stills require ?tokyo=v624 or ?tokyo=v625');
+    if (!TOKYO_624 && !TOKYO_625 && !TOKYO_626) throw new Error('Platform stills require ?tokyo=v624, ?tokyo=v625 or ?tokyo=v626');
     window.__duo.setReviewFrame(frame);
     renderer.render(scene, camera);
     const c = renderer.domElement;
