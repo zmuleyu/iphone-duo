@@ -1,0 +1,121 @@
+{
+  "runId": "tokyo-v6.19-astra-fixed-step-20260920",
+  "status": "ready-for-user-visual-review",
+  "author": "gpt-6-astra",
+  "sourceBaseCommit": "cf4f3c99b463e437c17beb2fa06adb11ade3dc62",
+  "branch": "work/v6.16-tokyo-world-pair",
+  "capture": {
+    "method": "synchronous WebGL render and PNG readback for every integer frame index",
+    "temporalDeterminism": "one ordered source PNG per authored frame; no captureStream or FPS resampling",
+    "byteReproducibility": "not claimed across renderer or driver versions",
+    "resolution": [1920, 1080],
+    "fps": 60,
+    "frameStart": 0,
+    "frameEndExclusive": 348,
+    "durationSeconds": 5.8,
+    "supersample": 2,
+    "frameLedger": "artifacts/v6.19-tokyo-silent-demo/frame-ledger.json",
+    "frameLedgerSha256": "127D829388DCF06C16BB2682E49A488E8CD1DD14757CB9F704D4BEFB6741CE6A"
+  },
+  "timeline": {
+    "closedHold": [0, 51],
+    "unfold": [51, 138],
+    "openHold": [138, 348],
+    "closedUiFade": [0, 5],
+    "openUiFade": [138, 143],
+    "pulseSupport": [175, 207],
+    "pulsePeak": 191,
+    "windowBreath": "1.8 percent slow masked modulation during open hold; 2.5 percent pulse response",
+    "stageDriver": "normalized physical opening angle",
+    "red": [0.16, 0.58],
+    "black": [0.52, 0.78],
+    "yellow": [0.78, 0.94],
+    "redDirection": "global inner-screen right edge toward left edge",
+    "coverExitDegrees": [18, 57.6]
+  },
+  "geometry": {
+    "engine": "existing Fold Engine",
+    "meshHingePanelUvChanges": "none except the two explicitly scoped top-cap translations",
+    "topCapWorldDelta": [0, 0.05, 0],
+    "topCapSourceLocalDelta": [0, 0, -0.05],
+    "topCapMinY": [5.887323379516602, 5.887323379516602],
+    "topCapMaxY": [5.992546081542969, 5.992546081542969],
+    "lowerRightKey": "unchanged zero offset",
+    "fixedCameraDistance": 100,
+    "fixedCameraFovAtCapture": 13.817172327235198,
+    "cameraMotion": false,
+    "openFraming": "matched to previous Open composition by FOV projection ratio",
+    "coverSamplingOffset": [0.0085, 0.00025],
+    "screenBlur": false,
+    "motionBlur": false
+  },
+  "officialReferences": [
+    "https://www.apple.com/iphone-duo/",
+    "https://www.apple.com/v/iphone-duo/b/images/overview/product-viewer/display__bx48n0ntsgvm_large.jpg",
+    "https://www.apple.com/v/iphone-duo/b/images/overview/product-viewer/foldable__iybtpzlhgj6u_large.jpg",
+    "https://www.apple.com/105/media/us/iphone-duo/2026/9305e4b9-72d9-4c05-9381-b572adadd5e5/ar/iPhone_Duo_e-sim_Star-White_Variant.usdz"
+  ],
+  "inputs": [
+    {
+      "path": "media/tokyo/candidates/reality-v6.19-natural.png",
+      "sha256": "B1CC0BBD77447BA619E398CF535F26E1B24C8183F719E3F87A6D646C4284C5AB",
+      "role": "new neutral photographic A, identity geometry"
+    },
+    {
+      "path": "media/tokyo/candidates/redblack-v6.19-gold.png",
+      "sha256": "3BC391588CEF19A7BE1E6C6355697B96C01F03185B55258485CED6C3AC8A2287",
+      "role": "new dark-gold B with source-shaped windows and continuous depth tones"
+    },
+    {
+      "path": "media/tokyo/candidates/layers-v6.19-mask.png",
+      "sha256": "3646233742F682CB53AEF3BE2636DDFE3F406D6A0BFE92F23116589268A55415",
+      "role": "city R / tower G / windows B; old city and tower support preserved"
+    }
+  ],
+  "tools": {
+    "browser": "Chrome 153 headless",
+    "renderer": "ANGLE NVIDIA RTX 3070 Direct3D11",
+    "anisotropy": 16,
+    "python": "3.11.9",
+    "usdBuildRuntime": "Python 3.12 / usd-core 26.8",
+    "ffmpeg": "8.1.1-full_build-www.gyan.dev",
+    "ditherSeed": 619
+  },
+  "scripts": [
+    "scripts/build_tokyo_v619_layers.py",
+    "scripts/prepare-assets.py",
+    "scripts/patch-shell-asset.py",
+    "scripts/capture_tokyo_v619_frames.py",
+    "scripts/review_tokyo_v619.py",
+    "scripts/encode_tokyo_v619.py"
+  ],
+  "qc": {
+    "encodedFrames": 348,
+    "encodedFps": 60,
+    "encodedDurationSeconds": 5.8,
+    "encodedAudioStreams": 0,
+    "sourceMotionDuplicateFrames": 0,
+    "decodedMotionDuplicateFrames": 0,
+    "projected10To90Seconds": 0.9,
+    "maxVisibleStepPercent": 3.1141868512110733,
+    "visibleOvershootPercent": 1.0380622837370241,
+    "angleOvershootPercent": 0,
+    "openCompleteSeconds": 2.3,
+    "coverInnerTowerResidualPx": [2, 0],
+    "coverInnerCorrelation": 0.9469148516654968,
+    "assetTowerEdgeShiftA": [0, 0],
+    "assetTowerEdgeShiftB": [0, 0],
+    "consoleErrors": 0,
+    "userVisualAcceptance": "pending"
+  },
+  "output": {
+    "path": "artifacts/v6.19-tokyo-silent-demo/iphone-duo-tokyo-v6.19-silent-review.mp4",
+    "sha256": "FF54C14C07F93D3E7363A7990083DB270E5805F01D45CD9B22121BD7FB211051"
+  },
+  "rejectedEvidence": [
+    "artifacts/v6.19-rejected-depth-bands",
+    "artifacts/v6.19-rejected-resize-fov",
+    "artifacts/v6.19-rejected-cap-local-axis"
+  ],
+  "rights": "Wikipedia source assertion retained from the user-confirmed photographic authority. Apple references are used for bounded device/UI matching. No new publication, deployment, sound, likeness, or licensing claim."
+}

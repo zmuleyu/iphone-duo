@@ -9,7 +9,7 @@ import * as THREE from 'three';
 const originalRender = THREE.WebGLRenderer.prototype.render;
 const rendererState = new WeakMap();
 const motionQuery = new URLSearchParams(location.search);
-const NO_FX = motionQuery.has('nofx') || motionQuery.get('tokyo') === 'v618';
+const NO_FX = motionQuery.has('nofx') || ['v618', 'v619'].includes(motionQuery.get('tokyo'));
 let motionBlurMode = NO_FX ? 'off' : 'natural';
 
 // If the visual trail is reversed for the current hinge motion, flip to -1.
