@@ -1,6 +1,6 @@
 ---
 title: Elon STORM II ChatGPT Calibration Prompt
-status: window-3-ready-authorized
+status: window-3-complete
 updated: 2026-09-20
 scope: ChatGPT Chat character generator windows
 ---
@@ -114,3 +114,7 @@ DARIO-MID-001 — Selected single midground counterweight
 
 Start with ELON-OPEN-001 and continue through DARIO-MID-001. At the end return one compact table with: ID, first-pass/repaired-pass/local-edit-pass/pending status, repair count, identity/style result, anatomy/crop result, alpha claim, and any remaining blocker.
 ```
+
+### Window 3 recovery outcome
+
+The generator rejected the combined four-person master prompt before producing an image. Recovery preserved the frozen style and asset rules but dispatched one concise single-character prompt per ID in the same durable chat. All four IDs produced one first-pass transparent PNG; no generative repair was required. The controller retained the originals, cleared alpha below 16, uniformly scaled/recentered complete subjects to the 10–15% safe-padding target, ran local mechanical and original-resolution visual QC, and built the consolidated phase contact sheet.

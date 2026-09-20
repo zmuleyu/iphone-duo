@@ -4,8 +4,10 @@
   "style_lane": "real-elon-editorial-caricature-internal-only",
   "character_lane_scope": "all current character roles are assets for STORM II-style iPhone Duo video generation; not generic character-library or Tokyo assets",
   "style_lock_status": "user-accepted-2026-09-20",
-  "phase": "continuous-character-support-batch",
-  "human_review": "one-consolidated-review-after-local-qc",
+  "phase": "character-phase-complete-pending-consolidated-review",
+  "human_review": "pending-one-consolidated-character-phase-review",
+  "local_qc": "artifacts/elon-storm-ii-character-prep/generated-character-phase-mechanical-qc-v3.json",
+  "contact_sheet": "artifacts/elon-storm-ii-character-prep/review/character-phase-contact-sheet-v3.jpg",
   "repair_budget_per_generated_id": {
     "whole_image": 1,
     "local_edit_followup": 1
@@ -93,7 +95,12 @@
       "must_have": ["same recognizable editorial Elon lane as accepted calibration", "black tee or short dark jacket", "small readable downbeat cue", "both hands and all fingers visible", "both shoes visible", "consistent cyan-left and amber-right rim lighting", "clean non-glowing alpha edge"],
       "must_not_have": ["wave", "product-hold or endorsement gesture", "cropped anatomy", "baked background or floor", "device", "logo", "text", "other person", "robot", "scene", "collage", "multiple poses"],
       "reference_source": ["ELON-REF-001", "ELON-CAL-001", "ELON-CAL-002"],
-      "status": "pending-generator-window-3"
+      "generated_source": "artifacts/elon-storm-ii-character-prep/staging/ELON-OPEN-001.png",
+      "sha256": "E47FE2787492A5906E2E4C8DCC922C0AAC70E89D30609AFD822EBDF5D5715312",
+      "selected_pass": "first-pass-plus-local-framing-normalization",
+      "repair_count": 0,
+      "qc_result": "visual pass; real RGBA alpha; complete body and hands; no forbidden object; top/bottom padding 12.41%/12.48%; edges clear",
+      "status": "local-qc-pass-pending-human-review"
     },
     {
       "id": "JENSEN-SUP-001",
@@ -105,7 +112,12 @@
       "must_have": ["leather-jacket silhouette", "distinct stance at thumbnail size"],
       "must_not_have": ["Elon", "Sam", "other people", "brand logo", "text", "device", "collage"],
       "reference_source": "4o0Ga.jpg, identity mapping not provenance-confirmed",
-      "status": "pending-generator-window-3"
+      "generated_source": "artifacts/elon-storm-ii-character-prep/staging/JENSEN-SUP-001.png",
+      "sha256": "FD929B13B470D5227240CC4FB80244D277C6C22DA67FF2124D682DF7E506412A",
+      "selected_pass": "first-pass-plus-local-framing-normalization",
+      "repair_count": 0,
+      "qc_result": "visual pass; recognizable editorial likeness; leather-jacket/open-palm silhouette; real RGBA alpha; top/bottom padding 12.48%/12.48%; edges clear",
+      "status": "local-qc-pass-pending-human-review"
     },
     {
       "id": "SAM-SUP-001",
@@ -117,7 +129,12 @@
       "must_have": ["soft dark knit layer", "calm compact rhythm and readable silhouette"],
       "must_not_have": ["Elon", "Jensen", "other people", "brand logo", "text", "device", "collage"],
       "reference_source": "4o0Ga.jpg, identity mapping not provenance-confirmed",
-      "status": "pending-generator-window-3"
+      "generated_source": "artifacts/elon-storm-ii-character-prep/staging/SAM-SUP-001.png",
+      "sha256": "9917B2587087603DFA6F5A8603C36B7109958F28B058404D56F83839E1112527",
+      "selected_pass": "first-pass-plus-local-framing-normalization",
+      "repair_count": 0,
+      "qc_result": "visual pass; recognizable editorial likeness; relaxed calm hand cue; real RGBA alpha; top/bottom padding 12.55%/12.48%; edges clear",
+      "status": "local-qc-pass-pending-human-review"
     },
     {
       "id": "DARIO-MID-001",
@@ -130,7 +147,12 @@
       "must_not_have": ["other people", "brand logo", "text", "device", "collage"],
       "reference_source": "qfFrT.jpg may contain a relevant bearded figure but identity is not provenance-confirmed",
       "choice_group": "MIDGROUND-001",
-      "status": "selected-pending-generator-window-3"
+      "generated_source": "artifacts/elon-storm-ii-character-prep/staging/DARIO-MID-001.png",
+      "sha256": "6D63530DD06D3F19B10F8694E2B6387815A757C49204A3AF2605081C851D1F8F",
+      "selected_pass": "first-pass-plus-local-framing-normalization",
+      "repair_count": 0,
+      "qc_result": "visual pass; recognizable editorial likeness; quiet lower-energy posture; real RGBA alpha; top/bottom padding 12.48%/12.48%; edges clear",
+      "status": "local-qc-pass-pending-human-review"
     },
     {
       "id": "GWYNNE-MID-001",
