@@ -17,7 +17,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v6.27-platform-video-master';
+const BUILD_VERSION = 'v6.28-loop-preview';
 const PRODUCTION_BASELINE_ID = 'v5.1-production-fold';
 
 const viewport = document.querySelector('#viewport');
@@ -129,7 +129,7 @@ const bgFit = document.querySelector('#bg-fit');
 const bgColor = document.querySelector('#bg-color');
 
 const scene = new THREE.Scene();
-const FIXED_CAMERA_DISTANCE = ['v619', 'v620', 'v622', 'v623', 'v624', 'v625', 'v626', 'v627'].includes(new URLSearchParams(location.search).get('tokyo')) ? 100 : 40;
+const FIXED_CAMERA_DISTANCE = ['v619', 'v620', 'v622', 'v623', 'v624', 'v625', 'v626', 'v627', 'v628'].includes(new URLSearchParams(location.search).get('tokyo')) ? 100 : 40;
 const fixedFov = 2 * Math.atan(Math.tan(16 * Math.PI / 180)
   * (40 - .24948) / (FIXED_CAMERA_DISTANCE - .24948)) * 180 / Math.PI;
 const camera = new THREE.PerspectiveCamera(fixedFov, 1, .1, 250);
@@ -140,7 +140,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 // V5.9: 1.5x capture supersample (2x@60fps starved the frame clock, frozen
 // spans) + opaque white clear so captures land on Apple-white, not alpha-black.
 renderer.setPixelRatio(new URLSearchParams(location.search).has('cap')
-  ? (['v619', 'v620', 'v622', 'v623', 'v624', 'v625', 'v626', 'v627'].includes(new URLSearchParams(location.search).get('tokyo')) ? 2 : 1.25)
+  ? (['v619', 'v620', 'v622', 'v623', 'v624', 'v625', 'v626', 'v627', 'v628'].includes(new URLSearchParams(location.search).get('tokyo')) ? 2 : 1.25)
   : Math.min(devicePixelRatio, 2)); // Fixed-step v6.19 can supersample without a real-time deadline.
 // V6.10: preview was alpha-0 over CSS #f6f6f3 so blown Star White punched through to paper.
 // Opaque page-color clear for preview; Apple-white for cap.
@@ -200,7 +200,8 @@ const TOKYO_624 = QUERY.get('tokyo') === 'v624';
 const TOKYO_625 = QUERY.get('tokyo') === 'v625';
 const TOKYO_626 = QUERY.get('tokyo') === 'v626';
 const TOKYO_627 = QUERY.get('tokyo') === 'v627';
-const TOKYO_PLATFORM_FINAL = TOKYO_623 || TOKYO_624 || TOKYO_625 || TOKYO_626 || TOKYO_627;
+const TOKYO_628 = QUERY.get('tokyo') === 'v628';
+const TOKYO_PLATFORM_FINAL = TOKYO_623 || TOKYO_624 || TOKYO_625 || TOKYO_626 || TOKYO_627 || TOKYO_628;
 const TOKYO_FIXED = TOKYO_619 || TOKYO_620 || TOKYO_622 || TOKYO_PLATFORM_FINAL;
 const LAYERED_TOKYO = TOKYO_FIXED || QUERY.get('tokyo') === 'v618';
 const PRODUCTION_BASELINE = true;
@@ -244,6 +245,7 @@ const uTokyo619 = { value: TOKYO_FIXED ? 1 : 0 };
 const uTokyo620 = { value: TOKYO_620 ? 1 : 0 };
 const uTokyo622 = { value: TOKYO_622 ? 1 : 0 };
 const uTokyo623 = { value: TOKYO_PLATFORM_FINAL ? 1 : 0 };
+const uTokyo628 = { value: TOKYO_628 ? 1 : 0 };
 const uWindowLights = { value: 0 };
 const uTowerLights = { value: 0 };
 const uChromeOpacity = { value: new THREE.Vector2(1, 1) };
@@ -323,12 +325,12 @@ const requestedTitleWeight = QUERY.has('titleWeight') ? Number(QUERY.get('titleW
 const requestedTitleIn = QUERY.has('titleIn') ? Number(QUERY.get('titleIn')) : Number.NaN;
 const titleConfig = {
   enabled: QUERY.get('title') === '1' || ((TOKYO_625 || TOKYO_626 || TOKYO_627) && QUERY.get('title') !== '0'),
-  text: (QUERY.get('titleText') || ((TOKYO_626 || TOKYO_627) ? 'TOKYO TOWER' : 'TOKYO')).slice(0, 32),
-  size: Number.isFinite(requestedTitleSize) ? THREE.MathUtils.clamp(requestedTitleSize / 100, .035, .10) : (TOKYO_626 || TOKYO_627) ? .072 : .062,
+  text: (QUERY.get('titleText') || ((TOKYO_626 || TOKYO_627 || TOKYO_628) ? 'TOKYO TOWER' : 'TOKYO')).slice(0, 32),
+  size: Number.isFinite(requestedTitleSize) ? THREE.MathUtils.clamp(requestedTitleSize / 100, .035, .10) : (TOKYO_626 || TOKYO_627 || TOKYO_628) ? .072 : .062,
   y: Number.isFinite(requestedTitleY) ? THREE.MathUtils.clamp(requestedTitleY / 100, .08, .35) : .18,
-  tracking: Number.isFinite(requestedTitleTracking) ? THREE.MathUtils.clamp(requestedTitleTracking / 100, 0, .16) : (TOKYO_626 || TOKYO_627) ? .02 : .08,
-  weight: Number.isFinite(requestedTitleWeight) ? THREE.MathUtils.clamp(requestedTitleWeight, 600, 900) : (TOKYO_626 || TOKYO_627) ? 850 : 600,
-  inTime: Number.isFinite(requestedTitleIn) ? THREE.MathUtils.clamp(requestedTitleIn, 3.70, 5.40) : 4.80,
+  tracking: Number.isFinite(requestedTitleTracking) ? THREE.MathUtils.clamp(requestedTitleTracking / 100, 0, .16) : (TOKYO_626 || TOKYO_627 || TOKYO_628) ? .02 : .08,
+  weight: Number.isFinite(requestedTitleWeight) ? THREE.MathUtils.clamp(requestedTitleWeight, 600, 900) : (TOKYO_626 || TOKYO_627 || TOKYO_628) ? 850 : 600,
+  inTime: Number.isFinite(requestedTitleIn) ? THREE.MathUtils.clamp(requestedTitleIn, TOKYO_628 ? 1.90 : 3.70, TOKYO_628 ? 4.0 : 5.40) : TOKYO_628 ? 2.85 : 4.80,
   fadeDuration: .22,
   color: '#f3ede5',
 };
@@ -375,10 +377,10 @@ const FOLD_PRESETS = Object.freeze({
     motionBlur: 'off',
   }),
   'tokyo-final': Object.freeze({
-    label: 'Tokyo Final 6s',
-    closedHold: 2.30,
-    unfoldDuration: 1.40,
-    openHold: 2.30,
+    label: TOKYO_628 ? 'Tokyo Loop 4.65s' : 'Tokyo Final 6s',
+    closedHold: TOKYO_628 ? 0.65 : 2.30,
+    unfoldDuration: TOKYO_628 ? 1.25 : 1.40,
+    openHold: TOKYO_628 ? 2.75 : 2.30,
     easing: 'smooth',
     motionBlur: 'off',
   }),
@@ -707,7 +709,11 @@ function updateTitleControls() {
   if (titleYInput) titleYInput.value = String(Math.round(titleConfig.y * 100));
   if (titleTrackingInput) titleTrackingInput.value = String(Math.round(titleConfig.tracking * 100));
   if (titleWeightInput) titleWeightInput.value = String(Math.round(titleConfig.weight));
-  if (titleInInput) titleInInput.value = titleConfig.inTime.toFixed(2);
+  if (titleInInput) {
+    titleInInput.min = TOKYO_628 ? '1.90' : '3.70';
+    titleInInput.max = TOKYO_628 ? '4.00' : '5.40';
+    titleInInput.value = titleConfig.inTime.toFixed(2);
+  }
   if (titleSizeValue) titleSizeValue.value = `${(titleConfig.size * 100).toFixed(1)}%`;
   if (titleYValue) titleYValue.value = `${Math.round(titleConfig.y * 100)}%`;
   if (titleTrackingValue) titleTrackingValue.value = `${Math.round(titleConfig.tracking * 100)}%`;
@@ -722,7 +728,7 @@ function setTitleConfig(patch = {}) {
   if (Object.hasOwn(patch, 'y')) titleConfig.y = THREE.MathUtils.clamp(Number(patch.y), .08, .35);
   if (Object.hasOwn(patch, 'tracking')) titleConfig.tracking = THREE.MathUtils.clamp(Number(patch.tracking), 0, .16);
   if (Object.hasOwn(patch, 'weight')) titleConfig.weight = THREE.MathUtils.clamp(Number(patch.weight), 600, 900);
-  if (Object.hasOwn(patch, 'inTime')) titleConfig.inTime = THREE.MathUtils.clamp(Number(patch.inTime), 3.70, 5.40);
+  if (Object.hasOwn(patch, 'inTime')) titleConfig.inTime = THREE.MathUtils.clamp(Number(patch.inTime), TOKYO_628 ? 1.90 : 3.70, TOKYO_628 ? 4.0 : 5.40);
   if (!recording) {
     uTitleOpacity.value = titleConfig.enabled && angle >= 180 ? 1 : 0;
     uTitleReveal.value = 1;
@@ -1857,6 +1863,7 @@ uniform float uCalibrationA;
 uniform float uTokyo620;
 uniform float uTokyo622;
 uniform float uTokyo623;
+uniform float uTokyo628;
 uniform float uWindowLights;
 uniform float uTowerLights;
 uniform sampler2D tokyoLitTarget;
@@ -2075,6 +2082,13 @@ vec3 screenColor() {
       // Swallow the photographic cover before it reaches 90 degrees. A
       // second projected tower must not coexist with the fixed inner tower.
       color = colA * (1.0 - smoothstep(0.10, 0.32, opening));
+      if (uTokyo628 > 0.5) {
+        // Preserve a faint photographic surface while it turns edge-on.
+        // At 90 degrees the physical cover faces away and remains dark.
+        float coverTower = textureLod(tokyoTowerPlate, uvC, baseLod).a;
+        float residual = 0.08 * (1.0 - smoothstep(0.42, 0.50, opening)) * (1.0 - coverTower);
+        color = colA * max(1.0 - smoothstep(0.10, 0.32, opening), residual);
+      }
     #endif
     color *= coverage.x * coverage.y;
     if (uCalibrationA > 0.5) color = colA * coverage.x * coverage.y;
@@ -2260,6 +2274,7 @@ try {
           shader.uniforms.uTokyo620 = uTokyo620;
           shader.uniforms.uTokyo622 = uTokyo622;
           shader.uniforms.uTokyo623 = uTokyo623;
+          shader.uniforms.uTokyo628 = uTokyo628;
           shader.uniforms.uWindowLights = uWindowLights;
           shader.uniforms.uTowerLights = uTowerLights;
           shader.uniforms.tokyoLitTarget = tokyoLitTarget;
@@ -2492,7 +2507,7 @@ function startRecord() {
 const RECORD_FRAMING = {
   // V6.24 is a platform-stills crop: enough scale to make the physical device
   // the subject, with every shell edge, key and hinge retained in 16:9.
-  '16x9': { zoom: (TOKYO_624 || TOKYO_625 || TOKYO_626 || TOKYO_627) ? 1.70 : 1.25, panX: -167 },
+  '16x9': { zoom: (TOKYO_624 || TOKYO_625 || TOKYO_626 || TOKYO_627 || TOKYO_628) ? 1.70 : 1.25, panX: -167 },
   '1x1': { zoom: 1.0, panX: -132 },
   '9x16': { zoom: 0.62, panX: -83 }, // V6.0.1: horizontal centering
 };
@@ -2643,6 +2658,8 @@ function driveRecord(nowMs) {
 const reviewFrameCanvas = document.createElement('canvas');
 reviewFrameCanvas.width = 1920;
 reviewFrameCanvas.height = 1080;
+const loopClosedRaster = document.createElement('canvas');
+let loopClosedRasterKey = '';
 
 function applyTokyo620Frame(frame) {
   const openFrame = Math.round((foldMotion.closedHold + foldMotion.unfoldDuration) * 60);
@@ -2656,6 +2673,23 @@ function applyTokyo620Frame(frame) {
 
 function applyTokyo623Frame(frame) {
   const t = frame / 60;
+  if (TOKYO_628) {
+    const rawFold = THREE.MathUtils.clamp((t - .65) / 1.25, 0, 1);
+    const close = smoothRange(t, 4.35, 278 / 60);
+    const openAngle = rawFold < 1 ? Math.min(foldEase(rawFold) * 180, 179.89) : 180;
+    setAngle(t >= 4.35 ? 180 * (1 - close) : openAngle);
+    uWindowLights.value = smoothRange(rawFold, .30, .92) * (1 - close);
+    uTowerLights.value = smoothRange(t, 2.25, 2.80) * (1 - smoothRange(t, 4.35, 4.35 + 5 / 60));
+    uChromeOpacity.value.set(0, 0);
+    // Keep the accepted screen-title editor available; the new default cut is text-free.
+    const titleProgress = titleConfig.enabled ? smoothRange(t, titleConfig.inTime, titleConfig.inTime + titleConfig.fadeDuration) * (1 - smoothRange(t, 4.30, 4.35)) : 0;
+    uTitleOpacity.value = titleProgress > 0 ? 1 : 0;
+    uTitleReveal.value = titleProgress;
+    uTitleScale.value = 1.04 - .04 * titleProgress;
+    uTokyoPulse.value = 0;
+    uWindowBreath.value = 0;
+    return;
+  }
   const foldStart = 2.30;
   const foldEnd = 3.70;
   const rawFold = THREE.MathUtils.clamp((t - foldStart) / (foldEnd - foldStart), 0, 1);
@@ -2710,7 +2744,7 @@ window.__duo = {
     return png;
   },
   renderTokyoPlatformStill: frame => {
-    if (!TOKYO_624 && !TOKYO_625 && !TOKYO_626 && !TOKYO_627) throw new Error('Platform stills require ?tokyo=v624, ?tokyo=v625, ?tokyo=v626 or ?tokyo=v627');
+    if (!TOKYO_624 && !TOKYO_625 && !TOKYO_626 && !TOKYO_627 && !TOKYO_628) throw new Error('Platform stills require a v624-v628 profile');
     window.__duo.setReviewFrame(frame);
     renderer.render(scene, camera);
     const c = renderer.domElement;
@@ -2721,6 +2755,50 @@ window.__duo = {
       frame: Number(frame),
       state: JSON.parse(JSON.stringify(window.__duo.state)),
     };
+  },
+  renderTokyoLoopStill: (frame, { framing = '16x9', conceptTitle = '' } = {}) => {
+    if (!TOKYO_628) throw new Error('Loop preview requires ?tokyo=v628');
+    window.__duo.setReviewFrame(frame);
+    renderer.render(scene, camera);
+    const source = renderer.domElement;
+    const rasterKey = JSON.stringify([source.width, source.height, camera.projectionMatrix.elements]);
+    if (Number(frame) === 0) {
+      loopClosedRaster.width = source.width;
+      loopClosedRaster.height = source.height;
+      loopClosedRaster.getContext('2d').drawImage(source, 0, 0);
+      loopClosedRasterKey = rasterKey;
+    }
+    // Both endpoints are the same authored Closed state. Reuse its accepted
+    // raster to remove one-code-value GPU multisample noise at the loop seam.
+    const closedRasterReused = Number(frame) === 278 && loopClosedRasterKey === rasterKey
+      && angle === 0 && uWindowLights.value === 0 && uTowerLights.value === 0;
+    const frameSource = closedRasterReused ? loopClosedRaster : source;
+    // Fixed post-render window from the feedback guide. Capture at 2.4x so
+    // the 1600x900 review window contains native 3840x2160 pixels, not an upscale.
+    const crop = framing === '4x3' ? [302, 90, 1200, 900] : [102, 90, 1600, 900];
+    const scale = source.width / 1920;
+    const output = document.createElement('canvas');
+    output.width = Math.round(crop[2] * scale);
+    output.height = Math.round(crop[3] * scale);
+    const ctx = output.getContext('2d');
+    ctx.drawImage(frameSource, Math.round(crop[0] * scale), Math.round(crop[1] * scale),
+      output.width, output.height, 0, 0, output.width, output.height);
+    const t = Number(frame) / 60;
+    const conceptOpacity = conceptTitle
+      ? Math.max(1 - smoothRange(t, .95, 1.20), smoothRange(t, 4.55, 278 / 60)) : 0;
+    if (conceptOpacity > 0) {
+      ctx.save();
+      ctx.globalAlpha = conceptOpacity;
+      ctx.fillStyle = '#171717';
+      ctx.font = `850 ${54 * scale}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(conceptTitle).slice(0, 32), (470 - crop[0]) * scale, (540 - crop[1]) * scale);
+      ctx.restore();
+    }
+    return { png: output.toDataURL('image/png'), width: output.width, height: output.height,
+      frame: Number(frame), cropSource1920: crop, conceptTitle, conceptOpacity, closedRasterReused,
+      state: JSON.parse(JSON.stringify(window.__duo.state)) };
   },
   setTitleConfig,
   renderTokyoFocusStill: ({ angle: stillAngle = 180, lights = 'weak' } = {}) => {
@@ -2906,7 +2984,7 @@ renderer.setAnimationLoop(now => {
     } else if (playbackTime < sequenceEnd) {
       setAngle(180);
     } else {
-      setAngle(180);
+      setAngle(TOKYO_628 ? 0 : 180);
       setPlaying(false);
     }
   }
