@@ -2,7 +2,7 @@
   "build": "6.27-platform-video-master",
   "baseline": "6.12",
   "milestone": "Tokyo v6.27 two-platform silent video master",
-  "status": "PLATFORM_MASTER_CAPTURE_IN_PROGRESS",
+  "status": "LOCAL_PLATFORM_CANDIDATES_ENCODED",
   "basedOn": "v5.1-production-fold",
   "changes": [
     "chrome: Closed UI defaults hidden, Open UI defaults visible, and direct controls adjust state, clock scale and clock vertical position",
