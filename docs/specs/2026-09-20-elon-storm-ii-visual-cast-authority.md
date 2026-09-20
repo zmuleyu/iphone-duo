@@ -9,7 +9,7 @@ scope: iphone-duo / Elon STORM II internal experimental branch
 
 ## 1. 目的
 
-本文档把 `C:\Users\Admin\Downloads\duo\马斯克版本` 中仍有效的讨论，连同 2026-09-20 的用户纠正，归档为当前项目的角色、服装、人物关系和关键帧依据。
+本文档把 `local-archive/source-materials-2026-09-20/马斯克版本` 中仍有效的讨论，连同 2026-09-20 的用户纠正，归档为当前项目的角色、服装、人物关系和关键帧依据。
 
 它不是对旧文档的全文复制。发生冲突时，按以下顺序处理：
 
@@ -97,7 +97,7 @@ Mark Zuckerberg、Demis Hassabis、Satya Nadella、Sundar Pichai、John Ternus�
 
 ## 6. 本地人物库登记
 
-本地来源目录：`C:\Users\Admin\Downloads\duo\人物库`
+本地来源目录：`local-archive/source-materials-2026-09-20/人物库`
 
 | 文件 | 已确认用途 |
 | --- | --- |
@@ -135,11 +135,11 @@ Mark Zuckerberg、Demis Hassabis、Satya Nadella、Sundar Pichai、John Ternus�
 
 本次参考：
 
-- `C:\Users\Admin\Downloads\duo\马斯克版本\Elon_iPhone_Duo_STORM_Hybrid_Clean_Plan_v2.md`
-- `C:\Users\Admin\Downloads\duo\马斯克版本\Elon_iPhone_Duo_STORM_Hybrid_Clean_Plan.md`
-- `C:\Users\Admin\Downloads\duo\马斯克版本\iPhone_Duo_STORM_Fold_Choreography_Plan_v4.md`
-- `C:\Users\Admin\Downloads\duo\马斯克版本\iPhone_Duo_STORM_Archetype_Plan_v3.md`
-- `C:\Users\Admin\Downloads\duo\iPhone_Duo_Tokyo_Tower_Elon_STORM_Consolidated_Handoff_v1.0.md`
+- `local-archive/source-materials-2026-09-20/马斯克版本/Elon_iPhone_Duo_STORM_Hybrid_Clean_Plan_v2.md`
+- `local-archive/source-materials-2026-09-20/马斯克版本/Elon_iPhone_Duo_STORM_Hybrid_Clean_Plan.md`
+- `local-archive/source-materials-2026-09-20/马斯克版本/iPhone_Duo_STORM_Fold_Choreography_Plan_v4.md`
+- `local-archive/source-materials-2026-09-20/马斯克版本/iPhone_Duo_STORM_Archetype_Plan_v3.md`
+- `local-archive/source-materials-2026-09-20/马斯克版本/iPhone_Duo_Tokyo_Tower_Elon_STORM_Consolidated_Handoff_v1.0.md`
 - 2026-09-20 用户关于衬衫、热门人物关系和资料归档的纠正。
 
 后续同类资料使用同一处理方式：

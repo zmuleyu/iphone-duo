@@ -5,3 +5,7 @@
 .venv
 __pycache__
 collab/
+artifacts/
+deliverables/
+local-archive/
+tools/

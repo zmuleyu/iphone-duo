@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PixelLock v0.2.2</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111827;background:#f4f6f8}
+*{box-sizing:border-box}body{margin:0}.shell{max-width:1380px;margin:auto;padding:26px}.top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;gap:16px}.brand h1{margin:0;font-size:28px}.brand p{margin:6px 0 0;color:#6b7280}.pill{padding:7px 10px;border-radius:999px;background:#fff;border:1px solid #e5e7eb;font-size:12px;white-space:nowrap}.grid{display:grid;grid-template-columns:360px 1fr;gap:18px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin:0 0 12px}.field{margin:12px 0}.field label{display:block;font-size:12px;color:#6b7280;margin-bottom:6px}input,select,textarea,button{font:inherit}input,select,textarea{width:100%;border:1px solid #d1d5db;border-radius:9px;padding:9px 10px;background:#fff}textarea{min-height:142px;resize:vertical;font-size:12px;line-height:1.5}.workflow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.workflow button{background:#eef2f7;color:#111827}.workflow button.active{background:#111827;color:#fff}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}button{border:0;border-radius:9px;padding:10px 12px;background:#111827;color:#fff;cursor:pointer}button.secondary{background:#eef2f7;color:#111827}button:disabled{opacity:.4;cursor:not-allowed}.note{font-size:11px;line-height:1.5;color:#6b7280;background:#f8fafc;border:1px solid #eef2f7;padding:9px 10px;border-radius:9px;margin-top:10px}.previews{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.preview{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#0d1117}.preview .label{background:#fff;padding:8px 10px;font-size:12px;color:#6b7280}.preview img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;background:#111827}.qc{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:14px}.metric{padding:12px;border:1px solid #e5e7eb;border-radius:10px;min-height:64px}.metric b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em}.metric span{font-size:12px;color:#6b7280}.ok{color:#059669!important}.bad{color:#dc2626!important}.log{margin-top:14px;padding:12px;background:#0d1117;color:#cbd5e1;border-radius:10px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;min-height:90px;white-space:pre-wrap;max-height:300px;overflow:auto}.artifact-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.artifact-links a{font-size:12px;color:#111827;background:#eef2f7;padding:7px 9px;border-radius:8px;text-decoration:none}.mode-title{font-size:13px;font-weight:700;margin:0 0 4px}.mode-sub{font-size:12px;color:#6b7280;margin:0 0 12px}@media(max-width:960px){.grid{grid-template-columns:1fr}.previews{grid-template-columns:1fr}.qc{grid-template-columns:1fr 1fr}.top{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="top">
+    <div class="brand"><h1>PixelLock Image Pipeline <small style="font-size:13px;color:#9ca3af">v0.2.2</small></h1><p>Pixel-Locked Outpaint + Geometry-Locked A → B Restyle.</p></div>
+    <div id="health" class="pill">checking…</div>
+  </div>
+  <div class="grid">
+    <aside class="card">
+      <h3>Workflow</h3>
+      <div class="workflow"><button id="modeOutpaint" class="active">Outpaint</button><button id="modeRestyle">A → B Restyle</button></div>
+      <p id="modeTitle" class="mode-title">Pixel-Locked Outpaint</p>
+      <p id="modeSub" class="mode-sub">AI only fills extension; original A is force-restored to 0 changed pixels.</p>
+      <div class="field"><label>Source image</label><input id="file" type="file" accept="image/png,image/jpeg,image/webp" /></div>
+      <div class="field"><label>Preset</label><select id="preset"></select></div>
+      <button id="create" style="width:100%">Create Project</button>
+      <div id="modeNote" class="note"></div>
+      <hr style="border:0;border-top:1px solid #eee;margin:18px 0">
+      <h3>Generation</h3>
+      <div class="field"><label>Provider</label><select id="provider"></select></div>
+      <div class="field"><label>Model</label><select id="model"><option>gpt-image-2.5-sunburst</option><option>gpt-image-2.5-flare</option><option>gpt-image-2</option></select></div>
+      <div class="field"><label>Quality</label><select id="quality"><option>high</option><option>medium</option><option>low</option><option>xhigh</option><option>max</option></select></div>
+      <div class="field"><label>Prompt</label><textarea id="prompt"></textarea></div>
+      <div class="buttons">
+        <button class="secondary" id="prepare">1. Prepare</button><button id="generate">2. Generate</button>
+        <button class="secondary" id="lock">3. Pixel Lock</button><button id="validate">4. Validate</button>
+        <button class="secondary" id="export">5. Export</button><button class="secondary" id="refresh">Refresh</button>
+      </div>
+    </aside>
+    <main>
+      <section class="card">
+        <h3 id="previewHeading">Original / AI Candidate / Final Locked</h3>
+        <div class="previews">
+          <div class="preview"><div id="labelA" class="label">ORIGINAL A</div><img id="imgOriginal"></div>
+          <div class="preview"><div id="labelB" class="label">AI CANDIDATE</div><img id="imgCandidate"></div>
+          <div class="preview"><div id="labelC" class="label">FINAL LOCKED</div><img id="imgLocked"></div>
+        </div>
+        <div class="qc">
+          <div class="metric"><b id="m1Label">Dimensions</b><span id="m1">—</span></div>
+          <div class="metric"><b id="m2Label">Pixel Lock</b><span id="m2">—</span></div>
+          <div class="metric"><b id="m3Label">Seam</b><span id="m3">—</span></div>
+          <div class="metric"><b id="m4Label">Geometry</b><span id="m4">—</span></div>
+          <div class="metric"><b>Status</b><span id="qStatus">—</span></div>
+        </div>
+        <div id="links" class="artifact-links"></div>
+        <div id="log" class="log">Create a project to begin.</div>
+      </section>
+    </main>
+  </div>
+</div>
+<script>
+let pid=null,state=null,workflow='outpaint';
+const $=id=>document.getElementById(id);
+const prompts={
+ outpaint:'Fill only the newly extended transparent area. Continue the existing Tokyo blue-hour skyline naturally. Match the sky gradient, cloud formations, atmospheric depth, building scale, perspective, window-light density and color temperature. Do not add a landmark or dominant building. Keep the extension visually quiet and seamless. Preserve all existing content.',
+ restyle:'Restyle image A into image B while preserving geometry. CRITICAL: do not move, resize, rotate, crop, regenerate, or reinterpret the camera view, Tokyo Tower, skyline silhouette, horizon, or any building outline. Keep Tokyo Tower pixel-locked near 73% frame width / 45% frame height and preserve its silhouette and proportions. Preserve the full building geometry across the frame. Change only rendering and color language: flat blood-red sky, pure black multi-layer city silhouettes, Tokyo Tower as the single warm yellow-orange luminous anchor, sparse warm window dots, high-contrast screen-print / graphic-noir look. No text, logos, people, or vehicles. The output must remain exactly aligned with image A for an A↔B transition.'
+};
+const log=t=>{$('log').textContent=typeof t==='string'?t:JSON.stringify(t,null,2)};
+async function health(){const r=await fetch('/api/health');const j=await r.json();$('health').textContent=`OpenAI key: ${j.openai_key_configured?'configured':'not configured'} · ${j.version}`}
+function setMode(mode){workflow=mode;$('modeOutpaint').classList.toggle('active',mode==='outpaint');$('modeRestyle').classList.toggle('active',mode==='restyle');
+ if(mode==='outpaint'){$('modeTitle').textContent='Pixel-Locked Outpaint';$('modeSub').textContent='AI only fills extension; original A is force-restored to 0 changed pixels.';$('preset').innerHTML='<option value="iphone_duo">iPhone Duo Landscape A/B</option>';$('provider').innerHTML='<option value="local_reflect">Local Reflect — free / deterministic</option><option value="openai">GPT Image — precision edit</option>';$('prompt').value=prompts.outpaint;$('modeNote').textContent='Input: 1448×1086. Output: locked 1544×1086 → Open 2670×1878 → right Closed 1335×1878.';$('lock').disabled=false;$('lock').textContent='3. Pixel Lock';$('validate').textContent='4. Validate';$('export').textContent='5. Export Duo';$('previewHeading').textContent='Original / AI Candidate / Final Locked';$('labelC').textContent='FINAL LOCKED';}
+ else{$('modeTitle').textContent='Geometry-Locked A → B Restyle';$('modeSub').textContent='A supplies geometry. Tower ROI Lock + global structure QC hard-FAIL drift and auto-repair it.';$('preset').innerHTML='<option value="tokyo_ab_restyle">Tokyo A→B Geometry-Locked Restyle</option>';$('provider').innerHTML='<option value="local_posterize">Local Posterize — free smoke test</option><option value="openai">GPT Image — Red / Black / Yellow B</option>';$('prompt').value=prompts.restyle;$('modeNote').textContent='Use the locked Reality master A at 1544×1086. Tower ROI is frozen from A. |dx|/|dy| ≤4 px, hard limit 8 px; shape drift or skyline drift = FAIL → automatic repair.';$('lock').disabled=true;$('lock').textContent='3. No Pixel Lock';$('validate').textContent='4. Validate Geometry';$('export').textContent='5. Export A + B';$('previewHeading').textContent='Reality A / Restyled B / Geometry QC';$('labelC').textContent='GEOMETRY OVERLAY';}
+ pid=null;state=null;clearRender();}
+function clearRender(){for(const id of ['imgOriginal','imgCandidate','imgLocked'])$(id).removeAttribute('src');for(const id of ['m1','m2','m3','m4','qStatus']){$(id).textContent='—';$(id).className=''}$('links').innerHTML='';}
+function url(rel){return pid?`/api/projects/${pid}/file/${rel}?t=${Date.now()}`:''}
+function fmtPass(pass,text){return `${pass?'PASS':'FAIL'} · ${text}`}
+function setMetric(id,pass,text){$(id).textContent=text;$(id).className=pass===null?'':(pass?'ok':'bad')}
+function render(s){state=s;pid=s.id;workflow=s.workflow||'outpaint';$('qStatus').textContent=s.status;$('imgOriginal').src=url(s.source.path);const a=s.artifacts||{};if(a.candidate_target)$('imgCandidate').src=url(a.candidate_target);
+ const qc=s.qc||{};
+ if(workflow==='restyle'){
+   $('m1Label').textContent='Dimensions';$('m2Label').textContent='Tokyo Tower';$('m3Label').textContent='Building Contours';$('m4Label').textContent='Anchor Shift';
+   if(a.geometry_overlay)$('imgLocked').src=url(a.geometry_overlay); else if(a.geometry_guide)$('imgLocked').src=url(a.geometry_guide);
+   const d=qc.dimensions,an=qc.anchor,bc=qc.building_contours,sh=qc.anchor_shift;
+   setMetric('m1',d?d.pass:null,d?fmtPass(d.pass,`${d.candidate[0]}×${d.candidate[1]}`):'—');
+   setMetric('m2',an?an.pass:null,an?fmtPass(an.pass,`F1 ${an.f1} / ≥${an.minimum_f1}`):'—');
+   setMetric('m3',bc?bc.pass:null,bc?fmtPass(bc.pass,`F1 ${bc.f1} / ≥${bc.minimum_f1}`):'—');
+   setMetric('m4',sh?sh.pass:null,sh?fmtPass(sh.pass,`${sh.distance_px}px / ≤${sh.maximum_px}`):'—');
+ }else{
+   $('m1Label').textContent='Dimensions';$('m2Label').textContent='Pixel Lock';$('m3Label').textContent='Seam';$('m4Label').textContent='Geometry';
+   if(a.master_locked)$('imgLocked').src=url(a.master_locked);
+   const d=qc.dimensions,p=qc.pixel_lock,se=qc.seam;
+   setMetric('m1',d?d.pass:null,d?fmtPass(d.pass,d.actual.join('×')):'—');
+   setMetric('m2',p?p.pass:null,p?fmtPass(p.pass,`${p.changed_pixels} changed`):'—');
+   setMetric('m3',se?se.pass:null,se?`${se.pass?'PASS':'WARN'} · ratio ${se.ratio}`:'—');
+   setMetric('m4',null,'—');
+ }
+ const visible=['open_final','closed_final','a_open_final','a_closed_final','b_open_final','b_closed_final','geometry_guide','geometry_overlay','anchor_preview','pixel_diff','seam_preview','qc_report','api_mask'];
+ const links=[];for(const [k,v] of Object.entries(a)){if(visible.includes(k))links.push(`<a target="_blank" href="${url(v)}">${k}</a>`)}$('links').innerHTML=links.join('');
+ log({project:s.id,workflow:s.workflow,status:s.status,source:`${s.source.width}×${s.source.height}`,api_working_size:s.api_working_size||null,generation:s.generation||null,qc:s.qc||null});}
+async function call(path,opts={}){if(!pid)throw new Error('Create project first');const r=await fetch(`/api/projects/${pid}${path}`,opts);const j=await r.json();if(!r.ok)throw new Error(j.detail||JSON.stringify(j));render(j);return j}
+$('modeOutpaint').onclick=()=>setMode('outpaint');$('modeRestyle').onclick=()=>setMode('restyle');
+$('create').onclick=async()=>{try{const f=$('file').files[0];if(!f)throw new Error('Choose an image');const fd=new FormData();fd.append('file',f);fd.append('preset_id',$('preset').value);fd.append('workflow',workflow);const r=await fetch('/api/projects',{method:'POST',body:fd});const j=await r.json();if(!r.ok)throw new Error(j.detail);render(j)}catch(e){log('ERROR: '+e.message)}};
+$('prepare').onclick=()=>call('/prepare',{method:'POST'}).catch(e=>log('ERROR: '+e.message));
+$('generate').onclick=()=>call('/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:$('provider').value,model:$('model').value,quality:$('quality').value,prompt:$('prompt').value,auto_qc:workflow==='restyle',auto_repair:workflow==='restyle',max_attempts:3})}).catch(e=>log('ERROR: '+e.message));
+$('lock').onclick=()=>call('/lock',{method:'POST'}).catch(e=>log('ERROR: '+e.message));
+$('validate').onclick=()=>call('/validate',{method:'POST'}).catch(e=>log('ERROR: '+e.message));
+$('export').onclick=()=>call('/export',{method:'POST'}).catch(e=>log('ERROR: '+e.message));
+$('refresh').onclick=()=>call('',{}).catch(e=>log('ERROR: '+e.message));
+setMode('outpaint');health();
+</script>
+</body></html>

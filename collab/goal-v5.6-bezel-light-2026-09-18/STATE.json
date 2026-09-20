@@ -1,9 +1,0 @@
-{
-  "goal": "v5.6 边框光亮过渡（G-B）",
-  "date": "2026-09-18",
-  "state": "done",
-  "phase": "production-verified",
-  "writer": "hermes-desktop-session",
-  "branch": "work/v5.6-bezel-light",
-  "production": "v5.6 PRODUCTION live (badge + setBezel + 0 errors)"
-}

@@ -69,7 +69,7 @@ Prototype 01 also requires Jensen Huang and Sam Altman as separate counter-ancho
 | `qfFrT.jpg` | JPEG, 1168×784, RGB, no alpha | Three recognizable public-figure likenesses, chest crop, dark background. One bearded figure may be relevant to the midground option, but the filename/source does not prove identity. | Reference only pending user/source confirmation; not used for calibration. |
 | `Te8Tr.jpg` | JPEG, 784×1168, RGB, no alpha | Single full-body Elon likeness, neutral front stance, black clothing, adequate head/foot margin, but baked dark environment and decorative circuitry. Hands are small and one arm is visually quiet. | `ELON-REF-002`, retained-candidate for proportion/stance only; do not regenerate. |
 
-Reference files remain read-only under `C:/Users/Admin/Downloads/duo/人物库/`. Hashes are recorded in the manifest.
+Reference files remain read-only under `local-archive/source-materials-2026-09-20/人物库/`. Hashes are recorded in the manifest.
 
 ## Calibration window
 
