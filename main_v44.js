@@ -17,7 +17,7 @@ import { loadDefaultUIs } from './ui.js';
 // - External cover follows the original logic exactly (black at fully open),
 //   no hand-made fade curves, no wrappers, no renderer monkey-patches.
 
-const BUILD_VERSION = 'v6.20-review-demo';
+const BUILD_VERSION = 'v6.25-independent-title-review';
 const PRODUCTION_BASELINE_ID = 'v5.1-production-fold';
 
 const viewport = document.querySelector('#viewport');
@@ -57,6 +57,16 @@ const clockScaleInput = document.querySelector('#clock-scale');
 const clockYInput = document.querySelector('#clock-y');
 const clockScaleValue = document.querySelector('#clock-scale-value');
 const clockYValue = document.querySelector('#clock-y-value');
+const titleLayerToggle = document.querySelector('#title-layer-toggle');
+const titleLayerText = document.querySelector('#title-layer-text');
+const titleSizeInput = document.querySelector('#title-size');
+const titleYInput = document.querySelector('#title-y');
+const titleTrackingInput = document.querySelector('#title-tracking');
+const titleInInput = document.querySelector('#title-in');
+const titleSizeValue = document.querySelector('#title-size-value');
+const titleYValue = document.querySelector('#title-y-value');
+const titleTrackingValue = document.querySelector('#title-tracking-value');
+const titleInValue = document.querySelector('#title-in-value');
 const qaPanel = document.querySelector('#master-pair-qa-panel');
 const qaSummary = document.querySelector('#qa-summary');
 const qaRealityMeta = document.querySelector('#qa-reality-meta');
@@ -117,7 +127,7 @@ const bgFit = document.querySelector('#bg-fit');
 const bgColor = document.querySelector('#bg-color');
 
 const scene = new THREE.Scene();
-const FIXED_CAMERA_DISTANCE = ['v619', 'v620', 'v622', 'v623', 'v624'].includes(new URLSearchParams(location.search).get('tokyo')) ? 100 : 40;
+const FIXED_CAMERA_DISTANCE = ['v619', 'v620', 'v622', 'v623', 'v624', 'v625'].includes(new URLSearchParams(location.search).get('tokyo')) ? 100 : 40;
 const fixedFov = 2 * Math.atan(Math.tan(16 * Math.PI / 180)
   * (40 - .24948) / (FIXED_CAMERA_DISTANCE - .24948)) * 180 / Math.PI;
 const camera = new THREE.PerspectiveCamera(fixedFov, 1, .1, 250);
@@ -128,7 +138,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 // V5.9: 1.5x capture supersample (2x@60fps starved the frame clock, frozen
 // spans) + opaque white clear so captures land on Apple-white, not alpha-black.
 renderer.setPixelRatio(new URLSearchParams(location.search).has('cap')
-  ? (['v619', 'v620', 'v622', 'v623', 'v624'].includes(new URLSearchParams(location.search).get('tokyo')) ? 2 : 1.25)
+  ? (['v619', 'v620', 'v622', 'v623', 'v624', 'v625'].includes(new URLSearchParams(location.search).get('tokyo')) ? 2 : 1.25)
   : Math.min(devicePixelRatio, 2)); // Fixed-step v6.19 can supersample without a real-time deadline.
 // V6.10: preview was alpha-0 over CSS #f6f6f3 so blown Star White punched through to paper.
 // Opaque page-color clear for preview; Apple-white for cap.
@@ -185,7 +195,8 @@ const TOKYO_620 = QUERY.get('tokyo') === 'v620';
 const TOKYO_622 = QUERY.get('tokyo') === 'v622';
 const TOKYO_623 = QUERY.get('tokyo') === 'v623';
 const TOKYO_624 = QUERY.get('tokyo') === 'v624';
-const TOKYO_PLATFORM_FINAL = TOKYO_623 || TOKYO_624;
+const TOKYO_625 = QUERY.get('tokyo') === 'v625';
+const TOKYO_PLATFORM_FINAL = TOKYO_623 || TOKYO_624 || TOKYO_625;
 const TOKYO_FIXED = TOKYO_619 || TOKYO_620 || TOKYO_622 || TOKYO_PLATFORM_FINAL;
 const LAYERED_TOKYO = TOKYO_FIXED || QUERY.get('tokyo') === 'v618';
 const PRODUCTION_BASELINE = true;
@@ -232,6 +243,7 @@ const uTokyo623 = { value: TOKYO_PLATFORM_FINAL ? 1 : 0 };
 const uWindowLights = { value: 0 };
 const uTowerLights = { value: 0 };
 const uChromeOpacity = { value: new THREE.Vector2(1, 1) };
+const uTitleOpacity = { value: 0 };
 const uTokyoPulse = { value: 0 };
 const uWindowBreath = { value: 0 };
 const uCalibrationA = { value: 0 };
@@ -296,6 +308,21 @@ const chromeConfig = {
   clockY: Number.isFinite(requestedClockY)
     ? THREE.MathUtils.clamp(requestedClockY / 100, -0.04, 0.10)
     : 0.02,
+};
+
+const requestedTitleSize = QUERY.has('titleSize') ? Number(QUERY.get('titleSize')) : Number.NaN;
+const requestedTitleY = QUERY.has('titleY') ? Number(QUERY.get('titleY')) : Number.NaN;
+const requestedTitleTracking = QUERY.has('titleTracking') ? Number(QUERY.get('titleTracking')) : Number.NaN;
+const requestedTitleIn = QUERY.has('titleIn') ? Number(QUERY.get('titleIn')) : Number.NaN;
+const titleConfig = {
+  enabled: QUERY.get('title') === '1' || (TOKYO_625 && QUERY.get('title') !== '0'),
+  text: (QUERY.get('titleText') || 'TOKYO').slice(0, 32),
+  size: Number.isFinite(requestedTitleSize) ? THREE.MathUtils.clamp(requestedTitleSize / 100, .035, .10) : .062,
+  y: Number.isFinite(requestedTitleY) ? THREE.MathUtils.clamp(requestedTitleY / 100, .08, .35) : .18,
+  tracking: Number.isFinite(requestedTitleTracking) ? THREE.MathUtils.clamp(requestedTitleTracking / 100, 0, .16) : .08,
+  inTime: Number.isFinite(requestedTitleIn) ? THREE.MathUtils.clamp(requestedTitleIn, 3.70, 5.40) : 4.80,
+  fadeDuration: .22,
+  color: '#f3ede5',
 };
 
 const FOLD_PRESETS = Object.freeze({
@@ -417,6 +444,8 @@ const chromeTextures = {
   inner: createCanvasTexture(chromeCanvases.inner),
   cover: createCanvasTexture(chromeCanvases.cover),
 };
+const titleCanvas = makeWorldCanvas();
+const titleTexture = createCanvasTexture(titleCanvas);
 const tokyoLayerMask = { value: createCanvasTexture(makeWorldCanvas()) };
 const tokyoLitTarget = { value: worldTextures.redblack };
 const tokyoTowerPlate = { value: worldTextures.redblack };
@@ -633,6 +662,62 @@ function redrawIndependentChrome() {
   }
 }
 
+function drawTrackedTitle(ctx, text, centerX, baselineY, tracking) {
+  const glyphs = [...text];
+  const widths = glyphs.map(glyph => ctx.measureText(glyph).width);
+  const total = widths.reduce((sum, width) => sum + width, 0) + Math.max(0, glyphs.length - 1) * tracking;
+  let x = centerX - total / 2;
+  for (let index = 0; index < glyphs.length; index += 1) {
+    ctx.fillText(glyphs[index], x, baselineY);
+    x += widths[index] + tracking;
+  }
+}
+
+function redrawTitleLayer() {
+  const ctx = titleCanvas.getContext('2d');
+  const w = titleCanvas.width;
+  const h = titleCanvas.height;
+  ctx.clearRect(0, 0, w, h);
+  const text = titleConfig.text.trim();
+  if (text) {
+    const fontSize = h * titleConfig.size;
+    ctx.save();
+    ctx.fillStyle = titleConfig.color;
+    ctx.font = `600 ${Math.round(fontSize)}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    drawTrackedTitle(ctx, text, w * .5, h * titleConfig.y, fontSize * titleConfig.tracking);
+    ctx.restore();
+  }
+  titleTexture.needsUpdate = true;
+}
+
+function updateTitleControls() {
+  titleLayerToggle?.setAttribute('aria-checked', String(titleConfig.enabled));
+  if (titleLayerText) titleLayerText.value = titleConfig.text;
+  if (titleSizeInput) titleSizeInput.value = String((titleConfig.size * 100).toFixed(1));
+  if (titleYInput) titleYInput.value = String(Math.round(titleConfig.y * 100));
+  if (titleTrackingInput) titleTrackingInput.value = String(Math.round(titleConfig.tracking * 100));
+  if (titleInInput) titleInInput.value = titleConfig.inTime.toFixed(2);
+  if (titleSizeValue) titleSizeValue.value = `${(titleConfig.size * 100).toFixed(1)}%`;
+  if (titleYValue) titleYValue.value = `${Math.round(titleConfig.y * 100)}%`;
+  if (titleTrackingValue) titleTrackingValue.value = `${Math.round(titleConfig.tracking * 100)}%`;
+  if (titleInValue) titleInValue.value = `${titleConfig.inTime.toFixed(2)}s`;
+}
+
+function setTitleConfig(patch = {}) {
+  if (Object.hasOwn(patch, 'enabled')) titleConfig.enabled = Boolean(patch.enabled);
+  if (Object.hasOwn(patch, 'text')) titleConfig.text = String(patch.text).slice(0, 32);
+  if (Object.hasOwn(patch, 'size')) titleConfig.size = THREE.MathUtils.clamp(Number(patch.size), .035, .10);
+  if (Object.hasOwn(patch, 'y')) titleConfig.y = THREE.MathUtils.clamp(Number(patch.y), .08, .35);
+  if (Object.hasOwn(patch, 'tracking')) titleConfig.tracking = THREE.MathUtils.clamp(Number(patch.tracking), 0, .16);
+  if (Object.hasOwn(patch, 'inTime')) titleConfig.inTime = THREE.MathUtils.clamp(Number(patch.inTime), 3.70, 5.40);
+  if (!recording) uTitleOpacity.value = titleConfig.enabled && angle >= 180 ? 1 : 0;
+  redrawTitleLayer();
+  updateTitleControls();
+  return { ...titleConfig, opacity: uTitleOpacity.value };
+}
+
 function updateChromeControls() {
   closedChromeToggle?.setAttribute('aria-checked', String(chromeConfig.closed));
   openChromeToggle?.setAttribute('aria-checked', String(chromeConfig.open));
@@ -659,6 +744,14 @@ openChromeToggle?.addEventListener('click', () => setChromeConfig({ open: !chrom
 clockScaleInput?.addEventListener('input', () => setChromeConfig({ clockScale: Number(clockScaleInput.value) / 100 }));
 clockYInput?.addEventListener('input', () => setChromeConfig({ clockY: Number(clockYInput.value) / 100 }));
 updateChromeControls();
+titleLayerToggle?.addEventListener('click', () => setTitleConfig({ enabled: !titleConfig.enabled }));
+titleLayerText?.addEventListener('input', () => setTitleConfig({ text: titleLayerText.value }));
+titleSizeInput?.addEventListener('input', () => setTitleConfig({ size: Number(titleSizeInput.value) / 100 }));
+titleYInput?.addEventListener('input', () => setTitleConfig({ y: Number(titleYInput.value) / 100 }));
+titleTrackingInput?.addEventListener('input', () => setTitleConfig({ tracking: Number(titleTrackingInput.value) / 100 }));
+titleInInput?.addEventListener('input', () => setTitleConfig({ inTime: Number(titleInInput.value) }));
+redrawTitleLayer();
+updateTitleControls();
 
 function drawWorld(img, canvas, texture, chrome = false) {
   const context = canvas.getContext('2d');
@@ -1615,6 +1708,7 @@ function setAngle(value) {
     uWindowBreath.value = 0;
     uWindowLights.value = (TOKYO_620 || TOKYO_PLATFORM_FINAL) && angle >= 180 ? 1 : 0;
     uTowerLights.value = TOKYO_620 && angle >= 180 ? 1 : 0;
+    uTitleOpacity.value = titleConfig.enabled && angle >= 180 ? 1 : 0;
   }
   slider.value = angle;
   bend.value = (180 - angle) / 180 * Math.PI;
@@ -1735,8 +1829,10 @@ uniform float uRevealFront;
 uniform float uLayeredTokyo;
 uniform sampler2D tokyoLayerMask;
 uniform sampler2D screenChrome;
+uniform sampler2D screenTitle;
 uniform float uTokyo619;
 uniform vec2 uChromeOpacity;
+uniform float uTitleOpacity;
 uniform float uTokyoPulse;
 uniform float uWindowBreath;
 uniform float uCalibrationA;
@@ -2036,6 +2132,14 @@ vec3 screenColor() {
     #endif
     color = mix(color, chrome.rgb, chrome.a * visibility);
   }
+  #ifdef INNER_UI
+    // Independent title content: authored separately from lock-screen chrome,
+    // attached to the inner display UV, and never visible during the fold.
+    float titleOpening = 1.0 - foldAngle / 3.141592654;
+    vec4 titleLayer = texture2D(screenTitle, vMapUv);
+    float titleVisibility = step(0.99999, titleOpening) * uTitleOpacity;
+    color = mix(color, titleLayer.rgb, titleLayer.a * titleVisibility);
+  #endif
   return color;
 }
 `;
@@ -2121,8 +2225,10 @@ try {
           shader.uniforms.uLayeredTokyo = uLayeredTokyo;
           shader.uniforms.tokyoLayerMask = tokyoLayerMask;
           shader.uniforms.screenChrome = { value: chromeTextures[kind === 'inner' ? 'inner' : 'cover'] };
+          shader.uniforms.screenTitle = { value: titleTexture };
           shader.uniforms.uTokyo619 = uTokyo619;
           shader.uniforms.uChromeOpacity = uChromeOpacity;
+          shader.uniforms.uTitleOpacity = uTitleOpacity;
           shader.uniforms.uTokyoPulse = uTokyoPulse;
           shader.uniforms.uWindowBreath = uWindowBreath;
           shader.uniforms.uCalibrationA = uCalibrationA;
@@ -2361,7 +2467,7 @@ function startRecord() {
 const RECORD_FRAMING = {
   // V6.24 is a platform-stills crop: enough scale to make the physical device
   // the subject, with every shell edge, key and hinge retained in 16:9.
-  '16x9': { zoom: TOKYO_624 ? 1.70 : 1.25, panX: -167 },
+  '16x9': { zoom: (TOKYO_624 || TOKYO_625) ? 1.70 : 1.25, panX: -167 },
   '1x1': { zoom: 1.0, panX: -132 },
   '9x16': { zoom: 0.62, panX: -83 }, // V6.0.1: horizontal centering
 };
@@ -2466,6 +2572,9 @@ function driveRecord(nowMs) {
   }
   if (TOKYO_620) applyTokyo620Frame(recordFrameIndex / recordFps * 60);
   if (TOKYO_PLATFORM_FINAL) applyTokyo623Frame(recordFrameIndex / recordFps * 60);
+  else uTitleOpacity.value = titleConfig.enabled
+    ? smoothRange(t, titleConfig.inTime, titleConfig.inTime + titleConfig.fadeDuration)
+    : 0;
 
   const rw = STAGED_REVEAL ? uTransActive.value : 0;
   if (STAGED_REVEAL) {
@@ -2530,6 +2639,9 @@ function applyTokyo623Frame(frame) {
   uWindowLights.value = smoothRange(rawFold, 0.30, 0.92);
   uTowerLights.value = smoothRange(t, 4.15, 4.80);
   uChromeOpacity.value.set(0, 0);
+  uTitleOpacity.value = titleConfig.enabled
+    ? smoothRange(t, titleConfig.inTime, titleConfig.inTime + titleConfig.fadeDuration)
+    : 0;
   uTokyoPulse.value = 0;
   uWindowBreath.value = 0;
 }
@@ -2564,7 +2676,7 @@ window.__duo = {
     return png;
   },
   renderTokyoPlatformStill: frame => {
-    if (!TOKYO_624) throw new Error('Platform stills require ?tokyo=v624');
+    if (!TOKYO_624 && !TOKYO_625) throw new Error('Platform stills require ?tokyo=v624 or ?tokyo=v625');
     window.__duo.setReviewFrame(frame);
     renderer.render(scene, camera);
     const c = renderer.domElement;
@@ -2576,6 +2688,7 @@ window.__duo = {
       state: JSON.parse(JSON.stringify(window.__duo.state)),
     };
   },
+  setTitleConfig,
   renderTokyoFocusStill: ({ angle: stillAngle = 180, lights = 'weak' } = {}) => {
     if (!TOKYO_622) throw new Error('Focus stills require ?tokyo=v622');
     playing = false;
@@ -2649,6 +2762,7 @@ window.__duo = {
     return {
       angle, worldMix: worldMix.value, ready, recording,
       chrome: { ...chromeConfig },
+      titleLayer: { ...titleConfig, opacity: uTitleOpacity.value, surface: 'inner-display-only' },
       baseline: {
         id: PRODUCTION_BASELINE_ID,
         locked: PRODUCTION_BASELINE,
@@ -2689,7 +2803,7 @@ window.__duo = {
         windowsLight: uWindowLights.value,
         towerLight: uTowerLights.value,
         chromeDate: (TOKYO_622 || TOKYO_PLATFORM_FINAL) ? null : 'Fri Oct 23',
-        chromeCoordinates: TOKYO_PLATFORM_FINAL ? 'recording clean: no screen UI at any time' : TOKYO_622 ? 'no clock, date, title or home; Open Wi-Fi and right shortcuts only' : TOKYO_620 ? 'closed off; open clock 15 percent smaller and upper-left; no home indicator' : TOKYO_619 ? 'independently centered per physical display; inner only when flat' : 'right physical panel; independent texture',
+        chromeCoordinates: TOKYO_PLATFORM_FINAL ? 'recording clean: no lock-screen chrome; optional independent title is authored content' : TOKYO_622 ? 'no clock, date, title or home; Open Wi-Fi and right shortcuts only' : TOKYO_620 ? 'closed off; open clock 15 percent smaller and upper-left; no home indicator' : TOKYO_619 ? 'independently centered per physical display; inner only when flat' : 'right physical panel; independent texture',
         mask: TOKYO_FIXED ? 'source-derived city R / tower G / windows B' : 'source-derived city R / tower G',
       } : null,
       foldMotion: {

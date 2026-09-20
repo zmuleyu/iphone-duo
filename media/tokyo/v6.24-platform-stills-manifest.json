@@ -1,7 +1,8 @@
 {
   "version": "6.24",
-  "status": "pending-user-review",
-  "scope": "Static state screenshots only; no video, frame sequence, audio, upload or publication",
+  "status": "user-approved-2026-09-20",
+  "scope": "Approved static state screenshots; unlocks same-camera local master capture only, not upload or publication",
+  "userApproved": true,
   "baseCommit": "ba7a6c1a9ff66bcac67e0e41e61ae583fb12b2bc",
   "timeline": {
     "fps": 60,

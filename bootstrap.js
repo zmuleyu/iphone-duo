@@ -1,4 +1,4 @@
-const BUILD_ID = '6.24-platform-stills-candidate';
+const BUILD_ID = '6.25-independent-title-candidate';
 
 globalThis.__IPHONE_DUO_BUILD__ = BUILD_ID;
 document.documentElement.dataset.build = BUILD_ID;

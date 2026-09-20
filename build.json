@@ -1,8 +1,8 @@
 {
-  "build": "6.24-platform-stills-candidate",
+  "build": "6.25-independent-title-candidate",
   "baseline": "6.12",
-  "milestone": "Tokyo v6.24 platform framing state pack; screenshots only",
-  "status": "SCREENSHOT_GATE_PENDING_USER_REVIEW",
+  "milestone": "Tokyo v6.25 independent title layer review",
+  "status": "TITLE_SCREENSHOT_REVIEW_PENDING",
   "basedOn": "v5.1-production-fold",
   "changes": [
     "chrome: Closed UI defaults hidden, Open UI defaults visible, and direct controls adjust state, clock scale and clock vertical position",
@@ -34,7 +34,9 @@
     "v6.23-continuity: no authored left-screen blur, one fixed panorama UV/filtering path for both panels, no reveal/wipe, and no tower light before full Open",
     "v6.23-clean-record: all screen chrome is disabled for the final-video profile while physical device controls and camera hardware remain unchanged",
     "v6.24-platform-stills: same 16:9 camera and safe-area semantics at native 3840x2160 and deterministic 1920x1080 Lanczos downsample; no vertical derivative",
-    "v6.24-gate: state screenshots are pending user review; no video, frame sequence, audio, upload, deployment or publication"
+    "v6.24-gate: user approved the shared 16:9 state pack; local numbered 4K master capture is authorized, but upload, deployment and publication remain out of scope",
+    "v6.25-title: independent editable inner-screen title layer, centered at the former clock region by default, with text, size, Y, tracking and entrance controls; no lock-screen chrome restored",
+    "v6.25-sound: local masters and both platform derivatives remain silent; Xiaohongshu music is intentionally deferred to its in-platform licensed catalog"
   ],
   "lockedFromBaseline": "Device mesh, hinge, panel dimensions, materials and authored Screen UV remain unchanged except the two officially referenced +0.05y top-cap translations. V6.19 uses a new constant camera distance/FOV, a calibrated cover sampling offset, independent chrome and numbered frame clock. Older accepted world-pair assets remain immutable.",
   "mergePolicy": "Exact candidate requires local capture/QC, source delivery, then explicit production activation",
