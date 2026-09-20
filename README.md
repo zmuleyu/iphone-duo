@@ -53,6 +53,12 @@ The slider controls the fold from closed to open. The default view is fully open
 | `vercel.json` | Install and prepare assets during Vercel builds |
 | `vendor/three/` | Three.js runtime and required add-ons |
 
+## Production documents
+
+- [Elon STORM II visual cast authority](docs/specs/2026-09-20-elon-storm-ii-visual-cast-authority.md) — current character, wardrobe, cast hierarchy, source intake, and screenshot gate for the internal experimental branch.
+- [Tokyo asset authority](docs/tokyo-assets.md) — accepted Tokyo source assets and usage notes.
+- [Production followups](docs/followups.md) — deferred production actions and external blockers.
+
 ## Deploy
 
 The Vercel project is connected to this GitHub repository. Pushes to `main` publish the production site; other branches create preview deployments.
