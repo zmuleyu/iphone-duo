@@ -1,6 +1,7 @@
 {
   "version": "6.28-loop-preview",
-  "status": "pending-user-screenshot-review",
+  "status": "user-approved-A-capture-in-progress",
+  "userApproval": "无字 + 16:9 紧裁",
   "sourceBaseCommit": "177e4ec933a367c74deb2f9f6c7f28e75a8f6302",
   "inputFeedback": "C:/Users/Admin/Downloads/新建文件夹/iphone_duo_tokyo_tower_v6_27_x_integrated_feedback.md",
   "inputCropGuide": "C:/Users/Admin/Downloads/新建文件夹/crop_guide_v6_27.png",
@@ -19,7 +20,7 @@
     "upscale": false
   },
   "title": {
-    "A": "No text, preferred clean loop candidate",
+    "A": "No text, selected final composition",
     "B": "TOKYO, UNFOLDED. in Closed left negative space; visible from frame 0, fades 0.95-1.20s, restores only near Closed endpoint",
     "legacy": "Editable TOKYO TOWER screen title retained behind title=1 and existing editor; off by default for v628"
   },
@@ -27,6 +28,11 @@
   "unchanged": ["device mesh", "hinge", "panel geometry", "Screen UV", "fixed camera", "accepted Reality/RedBlack/tower plates", "no screen UI", "no halo/bloom/particles"],
   "sound": "silent local masters; Xiaohongshu in-platform catalog only after approval",
   "videoGenerated": false,
+  "delivery": {
+    "master": {"resolution": [3840, 2160], "fps": 60, "frames": 279, "durationSeconds": 4.65},
+    "xiaohongshu": {"resolution": [3840, 2160], "fps": 60, "audio": "none", "status": "pending-local-encode"},
+    "xOrganic": {"resolution": [1920, 1080], "fps": 40, "audio": "none", "status": "pending-local-encode"}
+  },
   "previewPack": "artifacts/v6.28-tokyo-loop-stills-r4/state-pack-manifest.json",
   "staticEvidence": {
     "states": 20,
@@ -41,5 +47,5 @@
   },
   "endpointMethod": "Evaluate frame 278 independently, verify Closed angle and zero light levels, then reuse frame 0 Closed raster to eliminate GPU multisample one-code-value noise",
   "uploadOrPublicationAuthorized": false,
-  "stopCondition": "Return static state pack; wait for explicit screenshot approval before either platform video export"
+  "stopCondition": "Capture 279 approved A frames, encode both local platform candidates, probe and visually inspect; no upload or publication"
 }
