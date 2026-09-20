@@ -56,7 +56,12 @@
       "must_have": ["recognizable editorial Elon likeness", "profile or three-quarter head silhouette readable small", "both hands and all fingers visible", "both shoes visible", "black tee or short dark jacket", "consistent cyan-left and amber-right rim lighting", "clean non-glowing alpha edge"],
       "must_not_have": ["cropped anatomy", "baked background or floor", "device", "logo", "text", "other person", "robot", "scene", "collage", "multiple poses", "endorsement gesture"],
       "reference_source": ["ELON-REF-001", "ELON-REF-002"],
-      "status": "pending-browser"
+      "generated_source": "artifacts/elon-storm-ii-character-prep/staging/ELON-CAL-001.png",
+      "sha256": "5E9AB2A85D9AFB07F2CCF45E8C78E2595CE76D37646B85B39466C6A3C3066218",
+      "selected_pass": "first-pass",
+      "repair_count": 1,
+      "qc_result": "real RGBA alpha; complete body; top/bottom padding 2.35%/2.14% fails the 10-15% contract",
+      "status": "retained-candidate-pending-human-review"
     },
     {
       "id": "ELON-CAL-002",
@@ -68,7 +73,12 @@
       "must_have": ["same face, proportions, wardrobe, and lighting as ELON-CAL-001", "clear weight shift without action exaggeration", "both hands and all fingers visible", "both shoes visible", "silhouette readable at thumbnail size", "clean non-glowing alpha edge"],
       "must_not_have": ["large wave or product-hold gesture", "cropped anatomy", "baked background or floor", "device", "logo", "text", "other person", "robot", "scene", "collage", "multiple poses"],
       "reference_source": ["ELON-REF-001", "ELON-REF-002"],
-      "status": "pending-browser"
+      "generated_source": "artifacts/elon-storm-ii-character-prep/staging/ELON-CAL-002.png",
+      "sha256": "302E3C5091CD74184A9FD1ED71E829E0FEBA966E330AB6F6B16C3AFCE7F83597",
+      "selected_pass": "first-pass",
+      "repair_count": 1,
+      "qc_result": "real RGBA alpha; complete body; top/bottom padding 3.35%/3.78% fails the 10-15% contract; half-turn, screen-left step, and weight shift remain unclear",
+      "status": "pending-human-review-pose-and-padding-blockers"
     },
     {
       "id": "JENSEN-SUP-001",
