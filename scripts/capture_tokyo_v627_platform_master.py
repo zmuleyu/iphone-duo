@@ -1,8 +1,9 @@
-"""Capture the approved v6.25 4K master as 360 numbered PNGs; no encoding."""
+"""Capture the approved v6.27 4K master as 360 numbered PNGs; no encoding."""
 import asyncio
 import base64
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -10,11 +11,12 @@ import websockets
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'artifacts/v6.25-tokyo-platform-master'
+OUT = ROOT / 'artifacts/v6.27-tokyo-platform-master'
 WS_URL = sys.argv[1]
 BASE = sys.argv[2] if len(sys.argv) > 2 else 'http://127.0.0.1:8774/'
-URL = BASE + '?cap=1&tokyo=v625&nofx=1&motion=tokyo-final&format=16x9&closedUi=0&openUi=0'
+URL = BASE + '?cap=1&tokyo=v627&nofx=1&motion=tokyo-final&format=16x9&closedUi=0&openUi=0'
 FPS, FRAME_COUNT = 60, 360
+SOURCE_COMMIT = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
 
 
 async def main():
@@ -24,10 +26,10 @@ async def main():
     if list(frames.glob('frame_*.png')):
         raise RuntimeError('4K frame output already exists; choose a fresh output directory')
     (OUT / 'run-manifest.json').write_text(json.dumps({
-        'version': '6.24', 'intent': 'approved-state-pack platform master capture',
+        'version': '6.27', 'intent': 'approved Tokyo Tower title-motion platform master capture',
         'status': 'capturing', 'timeline': {'fps': FPS, 'frameStart': 0, 'frameEndExclusive': FRAME_COUNT},
         'resolution': [3840, 2160], 'soundPolicy': 'silent', 'videoGenerated': False,
-        'sourceBaseCommit': '4bf30a09f9e1cd2eeb047c41cfc371f588165576',
+        'sourceBaseCommit': SOURCE_COMMIT,
         'url': URL,
     }, indent=2), encoding='utf-8')
 
@@ -82,7 +84,7 @@ async def main():
             break
         await asyncio.sleep(.1)
     else:
-        raise RuntimeError('v6.25 did not become ready')
+        raise RuntimeError('v6.27 did not become ready')
     await evaluate("window.__duo.setRecordFormat('16x9');window.__duo.setRecordFps(60);window.__duo.setRecordingMode(true)")
     await asyncio.sleep(.35)
 
@@ -119,10 +121,10 @@ async def main():
         'renderer-info.json': {'browser': browser, 'environment': environment, 'url': URL},
         'console-errors.json': errors,
         'run-manifest.json': {
-            'version': '6.24', 'intent': 'approved-state-pack platform master capture', 'status': 'captured-pending-qc',
+            'version': '6.27', 'intent': 'approved Tokyo Tower title-motion platform master capture', 'status': 'captured-pending-qc',
             'timeline': {'fps': FPS, 'frameStart': 0, 'frameEndExclusive': FRAME_COUNT, 'durationSeconds': FRAME_COUNT / FPS},
             'resolution': [3840, 2160], 'soundPolicy': 'silent', 'videoGenerated': False,
-            'sourceBaseCommit': '4bf30a09f9e1cd2eeb047c41cfc371f588165576', 'capture': environment,
+            'sourceBaseCommit': SOURCE_COMMIT, 'capture': environment,
         },
     }
     for name, value in records.items():

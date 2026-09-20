@@ -1,0 +1,24 @@
+{
+  "version": "6.27",
+  "status": "capture-in-progress",
+  "userApprovedTitlePreview": "media/tokyo/v6.26-bold-title-preview-manifest.json",
+  "userApprovedStatePack": "media/tokyo/v6.24-platform-stills-manifest.json",
+  "timeline": {"fps": 60, "frameStart": 0, "frameEndExclusive": 360, "durationSeconds": 6.0},
+  "title": {
+    "text": "TOKYO TOWER",
+    "weight": 850,
+    "entrance": "right-to-left reveal with 104-to-100-percent compression",
+    "startSeconds": 4.8,
+    "durationSeconds": 0.22
+  },
+  "composition": "Approved shared 16:9 v6.24 camera plus approved v6.26 bold title and v6.27 title entrance; physical device, hinge, Screen UV and Tokyo world lighting remain unchanged.",
+  "soundPolicy": "silent local masters and silent platform files; Xiaohongshu music is added only through the in-platform catalog after upload, outside this local delivery lane",
+  "master": {"resolution": [3840, 2160], "fps": 60, "format": "360 numbered PNG frames"},
+  "derivatives": {
+    "xiaohongshuQuality": {"resolution": [3840, 2160], "fps": 60, "status": "pending-local-encode"},
+    "xOrganic": {"resolution": [1920, 1080], "fps": 40, "status": "pending-local-encode", "source": "same 4K60 numbered-PNG master"}
+  },
+  "publicationAuthority": false,
+  "uploadAuthority": false,
+  "outputDirectory": "artifacts/v6.27-tokyo-platform-master"
+}

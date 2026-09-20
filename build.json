@@ -1,8 +1,8 @@
 {
-  "build": "6.26-bold-title-preview",
+  "build": "6.27-platform-video-master",
   "baseline": "6.12",
-  "milestone": "Tokyo v6.26 bold English title preview",
-  "status": "BOLD_TITLE_PREVIEW_PENDING",
+  "milestone": "Tokyo v6.27 two-platform silent video master",
+  "status": "PLATFORM_MASTER_CAPTURE_IN_PROGRESS",
   "basedOn": "v5.1-production-fold",
   "changes": [
     "chrome: Closed UI defaults hidden, Open UI defaults visible, and direct controls adjust state, clock scale and clock vertical position",
@@ -37,7 +37,9 @@
     "v6.24-gate: user approved the shared 16:9 state pack; local numbered 4K master capture is authorized, but upload, deployment and publication remain out of scope",
     "v6.25-title: independent editable inner-screen title layer, centered at the former clock region by default, with text, size, Y, tracking and entrance controls; no lock-screen chrome restored",
     "v6.25-sound: local masters and both platform derivatives remain silent; Xiaohongshu music is intentionally deferred to its in-platform licensed catalog",
-    "v6.26-title-preview: TOKYO TOWER in 850 weight, 7.2 percent screen-height size and 2 percent tracking; static preview only, no video generated"
+    "v6.26-title-preview: TOKYO TOWER in 850 weight, 7.2 percent screen-height size and 2 percent tracking; user approved the static preview",
+    "v6.27-title-motion: independent title reveals right-to-left over 220ms with a restrained 104-to-100-percent compression after the world and tower animation are complete",
+    "v6.27-export: one deterministic 3840x2160 60fps numbered-PNG master produces silent Xiaohongshu 4K60 and X 1080p40 H.264 derivatives"
   ],
   "lockedFromBaseline": "Device mesh, hinge, panel dimensions, materials and authored Screen UV remain unchanged except the two officially referenced +0.05y top-cap translations. V6.19 uses a new constant camera distance/FOV, a calibrated cover sampling offset, independent chrome and numbered frame clock. Older accepted world-pair assets remain immutable.",
   "mergePolicy": "Exact candidate requires local capture/QC, source delivery, then explicit production activation",

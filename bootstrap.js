@@ -1,4 +1,4 @@
-const BUILD_ID = '6.26-bold-title-preview';
+const BUILD_ID = '6.27-platform-video-master';
 
 globalThis.__IPHONE_DUO_BUILD__ = BUILD_ID;
 document.documentElement.dataset.build = BUILD_ID;

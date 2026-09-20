@@ -1,6 +1,7 @@
 {
   "version": "6.26",
-  "status": "pending-user-review",
+  "status": "user-approved-2026-09-20",
+  "userApproved": true,
   "scope": "Bold English title preview only; v6.24 camera, fold, Screen UV, world and tower remain unchanged.",
   "title": {
     "text": "TOKYO TOWER",

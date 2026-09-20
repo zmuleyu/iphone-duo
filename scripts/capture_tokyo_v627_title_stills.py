@@ -1,4 +1,4 @@
-"""Capture only the title-dependent v6.25 review states; never renders video."""
+"""Capture title-dependent review states through v6.27; never renders video."""
 import asyncio
 import base64
 import hashlib
@@ -16,10 +16,14 @@ WS_URL = sys.argv[1]
 BASE = sys.argv[2] if len(sys.argv) > 2 else 'http://127.0.0.1:8775/'
 REVISION = sys.argv[3] if len(sys.argv) > 3 else 'v625'
 IS_BOLD_PREVIEW = REVISION == 'v626'
-VERSION_LABEL = {'v625': 'v6.25', 'v626': 'v6.26'}.get(REVISION, REVISION)
-OUT = ROOT / ('artifacts/v6.26-tokyo-bold-title-preview' if IS_BOLD_PREVIEW else 'artifacts/v6.25-tokyo-title-stills-r3')
+IS_FINAL_MOTION = REVISION == 'v627'
+VERSION_LABEL = {'v625': 'v6.25', 'v626': 'v6.26', 'v627': 'v6.27'}.get(REVISION, REVISION)
+OUT = ROOT / ('artifacts/v6.27-tokyo-title-motion-stills' if IS_FINAL_MOTION else
+              'artifacts/v6.26-tokyo-bold-title-preview' if IS_BOLD_PREVIEW else
+              'artifacts/v6.25-tokyo-title-stills-r3')
 URL = BASE + f'?cap=1&tokyo={REVISION}&nofx=1&motion=tokyo-final&format=16x9&closedUi=0&openUi=0'
-STATES = [('hero-bold-title', 359)] if IS_BOLD_PREVIEW else [
+STATES = [('pre-title', 287), ('title-mid-reveal', 294), ('title-reveal-complete', 302),
+          ('final-title', 359)] if IS_FINAL_MOTION else [('hero-bold-title', 359)] if IS_BOLD_PREVIEW else [
     ('pre-title', 287), ('title-entry', 294), ('hero-title', 330), ('final-title', 359),
 ]
 SAFE = (.05, .06, .95, .94)
@@ -113,7 +117,7 @@ async def main():
             break
         await asyncio.sleep(.1)
     else:
-        raise RuntimeError('v6.25 did not become ready')
+        raise RuntimeError(f'{VERSION_LABEL} did not become ready')
     await evaluate("window.__duo.setRecordFormat('16x9');window.__duo.setRecordFps(60);window.__duo.setRecordingMode(true)")
     await asyncio.sleep(.35)
 
@@ -137,7 +141,15 @@ async def main():
     make_contact(items, OUT / 'contact-sheet-title-authority.png')
     if errors:
         raise RuntimeError(f'console/runtime errors: {errors[:3]}')
-    if IS_BOLD_PREVIEW:
+    if IS_FINAL_MOTION:
+        pre, mid, complete, final = [state['title'] for state in states]
+        if pre['opacity'] != 0 or pre['reveal'] != 0:
+            raise RuntimeError('Final title pre-entry invariant failed')
+        if not (0 < mid['reveal'] < 1 and 1 < mid['scale'] < 1.04):
+            raise RuntimeError('Final title right-to-left reveal invariant failed')
+        if complete['reveal'] != 1 or complete['scale'] != 1 or final['reveal'] != 1:
+            raise RuntimeError('Final title completion invariant failed')
+    elif IS_BOLD_PREVIEW:
         title = states[0]['title']
         if title['opacity'] != 1 or title['text'] != 'TOKYO TOWER' or title['weight'] < 800:
             raise RuntimeError('Bold title preview invariant failed')
