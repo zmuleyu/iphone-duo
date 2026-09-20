@@ -2,7 +2,7 @@
   "build": "6.28-loop-preview",
   "baseline": "6.12",
   "milestone": "Tokyo v6.28 shorter loop and tighter-framing screenshot gate",
-  "status": "V6_28_FINAL_CAPTURE_IN_PROGRESS",
+  "status": "V6_28_LOCAL_FINAL_DELIVERY_COMPLETE",
   "basedOn": "v5.1-production-fold",
   "changes": [
     "chrome: Closed UI defaults hidden, Open UI defaults visible, and direct controls adjust state, clock scale and clock vertical position",
