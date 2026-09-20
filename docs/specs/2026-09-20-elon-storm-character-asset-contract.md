@@ -1,6 +1,6 @@
 ---
 title: Elon STORM II Character Asset Contract
-status: calibration-repair-complete-pending-review
+status: support-batch-authorized-in-progress
 updated: 2026-09-20
 scope: STORM II-style iPhone Duo video character assets; internal preparation only
 ---
@@ -20,7 +20,7 @@ The user confirmed on 2026-09-20 that every current character role in this manif
 ```yaml
 project_root: D:/projects/creative_group/iphone-duo
 worktree: D:/projects/creative_group/iphone-duo-elon-character-calibration
-git_head: 68479ba3af2a212cbfecb8221f47366dd26faed6
+git_head: 84c653f5158fa1d82d6f3db66f132327985cec75
 branch: work/elon-storm-character-calibration
 source_checkout_observed: work/v6.24-tokyo-platform-stills@177e4ec
 source_checkout_dirty_paths: []
@@ -29,8 +29,8 @@ fold_authority: existing iphone-duo Fold Engine; unchanged
 camera_authority: existing iphone-duo camera; unchanged
 uv_authority: existing iphone-duo Screen UV; unchanged
 frame_clock_authority: existing frame-index contract; unchanged
-accepted_assets: []
-retained_candidates: [ELON-REF-001, ELON-REF-002, ELON-CAL-001, ELON-CAL-002]
+accepted_assets: [ELON-CAL-001, ELON-CAL-002]
+retained_candidates: [ELON-REF-001, ELON-REF-002]
 publication_authority: false
 deployment_authority: false
 paid_service_authority: false
@@ -42,9 +42,9 @@ The plans converge on three Elon motion states, not a generic character sheet:
 
 1. **Closed / RUMOR** — Elon sits in the screen-right third, looking toward screen-left/hinge in profile or three-quarter view. The final composition may crop face/shoulder, but the source asset should retain complete anatomy and enough margin for alternate crops.
 2. **Opening / FORMATION** — Elon travels a short distance toward the hinge, turns from profile through three-quarter, and settles. A readable weight shift and restrained arm position are required.
-3. **Full-open / HOLD-PULSE** — front or slight three-quarter anchor with one compact conductor-like downbeat after the open hold. The existing small-cue PNG is retained as the visual candidate for this state and must not be regenerated during calibration.
+3. **Full-open / HOLD-PULSE** — front or slight three-quarter anchor with one compact conductor-like downbeat after the open hold. The existing small-cue PNG remains a style and pose reference, but its baked background and upper-leg crop prevent production use; `ELON-OPEN-001` supplies the complete transparent source.
 
-Prototype 01 also requires Jensen Huang and Sam Altman as separate counter-anchor assets, plus exactly one midground person: Dario Amodei or Gwynne Shotwell. Those are separate manifest IDs and remain deferred until the Elon style calibration is accepted. Anonymous chorus units are not celebrity assets and are outside this calibration manifest.
+Prototype 01 also requires Jensen Huang and Sam Altman as separate counter-anchor assets, plus exactly one midground person. The user authorized continuous execution on 2026-09-20; the recommended midground choice is Dario Amodei because the safety/lab counterweight is the clearer narrative fit for the current formation. Gwynne Shotwell remains listed but is skipped for this batch. Anonymous chorus units are not celebrity assets and are outside this calibration manifest.
 
 ## Accepted style lock
 
@@ -80,15 +80,15 @@ The first ChatGPT Chat window contains exactly two new, independent images:
 
 `ELON-REF-001` supplies the full-open/downbeat candidate, so calibration does not regenerate the same pose merely to fill a three-image window. ChatGPT may make at most one targeted repair per new ID for a clear blocker. A repeated localized defect should route to image editing of the best candidate, not another full regeneration.
 
-## Human gate
+## Continuous support batch and final human gate
 
-The user accepted the visual style direction on 2026-09-20 and authorized one bounded repair window. That window may only correct `ELON-CAL-001` padding and `ELON-CAL-002` padding plus the half-turn, screen-left step, and weight shift. Preserve identity, wardrobe, lighting, and every already-correct region. No Jensen, Sam, Dario, Gwynne, chorus, video, composite, publication, deployment, or full batch begins before the repaired pair receives one consolidated review.
+The bounded Elon repair window is complete. `ELON-CAL-001` has 12.62%/13.27% top/bottom padding. `ELON-CAL-002` has a front-settled head, readable three-quarter torso, screen-left lead step and weight shift, 11.34%/13.69% top/bottom padding, and a normalized 1122×1402 canvas. Both retain real RGBA transparency; alpha values below 16 were cleared deterministically to remove distant glow without changing visible subject RGB or higher-alpha edges.
 
-The bounded repair window is complete. `ELON-CAL-001` now has 12.62%/13.27% top/bottom padding. `ELON-CAL-002` now has a front-settled head, readable three-quarter torso, screen-left lead step and weight shift, 11.34%/13.69% top/bottom padding, and a normalized 1122×1402 canvas. Both files retain real RGBA transparency; alpha values below 16 were cleared deterministically to remove distant glow without changing visible subject RGB or higher-alpha edges. Final acceptance remains pending the consolidated contact-sheet review.
+On 2026-09-20 the user confirmed the repaired direction and authorized the remaining character work to run as one continuous batch without intermediate intervention. `ELON-CAL-001` and `ELON-CAL-002` are therefore frozen as accepted baseline assets and must not be regenerated. The ordered remaining batch is:
 
-The user still needs to decide after the repair window:
+1. `ELON-OPEN-001` — complete transparent full-open/downbeat source;
+2. `JENSEN-SUP-001` — compute counter-anchor;
+3. `SAM-SUP-001` — conversation counter-anchor;
+4. `DARIO-MID-001` — the single selected midground counterweight.
 
-1. accept or reject the repaired `ELON-CAL-001` and `ELON-CAL-002` assets;
-2. accept `ELON-REF-001` as the open/downbeat visual baseline despite baked background and crop;
-3. choose Dario or Gwynne for the single midground slot;
-4. provide or confirm source/likeness rights and intended use before any public/commercial lane.
+Each ID may receive at most one whole-image repair and one localized follow-up. A blocked item must not stall later IDs. The next human decision is one consolidated review after all visible final candidates have been downloaded, mechanically checked, and assembled into the phase contact sheet. Video, composite, publication, deployment, and public/commercial use remain outside this batch. Source/likeness rights and intended use still require separate clearance before any public/commercial lane.

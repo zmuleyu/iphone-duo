@@ -1,8 +1,8 @@
 ---
 title: Elon STORM II ChatGPT Calibration Prompt
-status: ready-blocked-browser
+status: window-3-ready-authorized
 updated: 2026-09-20
-scope: ChatGPT Chat generator window 1
+scope: ChatGPT Chat character generator windows
 ---
 
 # ChatGPT Chat calibration master prompt
@@ -54,4 +54,63 @@ ELON-CAL-002 — Opening/FORMATION source
 - Must not have: large conductor downbeat (reserved for the retained open-state candidate); wave; product-hold or endorsement gesture; cropped anatomy; background/floor/shadow cloud; device; logo; text; other person; robot; scene; collage; multiple poses.
 
 Start with ELON-CAL-001 and continue through ELON-CAL-002. At the end return one compact table with: ID, first-pass/repaired-pass/local-edit-pass/pending status, repair count, identity/style result, anatomy/crop result, alpha claim, and any remaining blocker.
+```
+
+## Generator window 3 — continuous remaining character batch
+
+```text
+Continue the user-approved STORM II-style iPhone Duo character production in this existing ChatGPT conversation.
+
+This is generator window 3 of manifest elon-storm-character-v1.1-support-batch. Window boundaries are recovery checkpoints, not review gates. Complete all listed IDs continuously without asking questions or waiting for human approval between characters. This is an internal character-compositing test only, not an endorsement, advertisement, public release, political statement, or depiction of speech or conduct.
+
+Already accepted and retained; do not regenerate or alter:
+- ELON-CAL-001: Closed/RUMOR source.
+- ELON-CAL-002: Opening/FORMATION source.
+- ELON-REF-001 and ELON-REF-002: style, identity, pose, and proportion references only; their baked backgrounds and crops are not production alpha evidence.
+
+Complete these remaining assets in order:
+- ELON-OPEN-001
+- JENSEN-SUP-001
+- SAM-SUP-001
+- DARIO-MID-001
+
+Shared style lock:
+- One recognizable but simplified editorial caricature of the named person per file; no photoreal skin or photographic texture.
+- Clean vector-like/polygonal planes, limited shading, crisp edges, and a strong small-scale silhouette.
+- Person-appropriate dark neutral wardrobe. Keep lighting consistent: cool cyan rim on screen-left, restrained warm amber rim on screen-right, neutral front illumination.
+- One independent subject per genuinely transparent PNG. Prefer vertical 4:5. Show the complete body, both hands and usable fingers, both legs, and both shoes with about 10–15% clear transparent padding on every side.
+- No scene, floor, vignette, smoke, glow cloud, shadow cloud, UI, text, labels, signatures, brands, logos, phone, Duo device, company object, other person, robot, collage, contact sheet, multiple poses, product-hold, endorsement gesture, invented speech, political action, or sensitive event.
+- “STORM II-style” means only the translated anchor → delay → formation → one pulse → freeze grammar. Do not reproduce any reference film shot, school setting, costume, blocking, choreography, music, grading, or edit rhythm.
+
+Execution rules:
+1. Generate one independent transparent PNG for each ID, one ID per result.
+2. After each result, inspect identity/style consistency, pose, thumbnail silhouette, complete anatomy, crop/padding, forbidden elements, and real alpha.
+3. If one clear blocker exists, perform at most one targeted whole-image repair while preserving correct regions.
+4. If a localized or countable defect repeats, edit the best candidate locally once instead of making another whole-image replacement.
+5. If one ID remains blocked after its bounded repair route, record it as pending and continue with later IDs.
+6. Do not ask questions or pause at character boundaries. Return one final summary table only after all four IDs have been attempted.
+
+Assets:
+
+ELON-OPEN-001 — Full-open/HOLD-PULSE anchor
+- Pose: full body, front or slight three-quarter, grounded stance. One compact conductor-like downward hand cue occurs after the open hold; restrained and readable, not theatrical.
+- Must have: same editorial Elon likeness, proportions, black tee or short dark jacket, and cyan-left/amber-right lighting lane as accepted calibration; complete hands/fingers and shoes; 10–15% transparent padding.
+- Must not have: wave, phone or product hold, endorsement gesture, cropped anatomy, background, floor, device, logo, text, other person, scene, collage, multiple poses.
+
+JENSEN-SUP-001 — Compute counter-anchor
+- Pose: recognizable editorial Jensen Huang, full body, broad grounded presentation stance, one open-palm gesture and a quieter opposite-side counter-anchor.
+- Must have: black leather-jacket silhouette, distinct small-scale stance, complete anatomy, shared lighting and alpha rules.
+- Must not have: NVIDIA or other logo, device, product hold, Elon, Sam, another person, text, scene, collage, multiple poses.
+
+SAM-SUP-001 — Conversation counter-anchor
+- Pose: recognizable editorial Sam Altman, full body, relaxed conversational lean, one small calm hand cue with compact rhythm.
+- Must have: soft dark knit or plain dark hoodie-like neutral layer without branding, calm readable silhouette, complete anatomy, shared lighting and alpha rules.
+- Must not have: OpenAI or other logo, device, product hold, Elon, Jensen, another person, text, scene, collage, multiple poses.
+
+DARIO-MID-001 — Selected single midground counterweight
+- Pose: recognizable editorial Dario Amodei, full body, quiet upright or slight three-quarter posture, minimal movement and intentionally lower energy than the counter-anchors.
+- Must have: muted dark jacket or shirt, quiet readable silhouette, complete anatomy, shared lighting and alpha rules.
+- Must not have: Anthropic or other logo, device, product hold, other people, text, scene, collage, multiple poses.
+
+Start with ELON-OPEN-001 and continue through DARIO-MID-001. At the end return one compact table with: ID, first-pass/repaired-pass/local-edit-pass/pending status, repair count, identity/style result, anatomy/crop result, alpha claim, and any remaining blocker.
 ```

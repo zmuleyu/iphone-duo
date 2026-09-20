@@ -1,11 +1,11 @@
 {
-  "manifest_version": "elon-storm-character-v1.0-calibration",
+  "manifest_version": "elon-storm-character-v1.1-support-batch",
   "updated": "2026-09-20",
   "style_lane": "real-elon-editorial-caricature-internal-only",
   "character_lane_scope": "all current character roles are assets for STORM II-style iPhone Duo video generation; not generic character-library or Tokyo assets",
   "style_lock_status": "user-accepted-2026-09-20",
-  "phase": "elon-protagonist-calibration",
-  "human_review": "required-after-calibration-window",
+  "phase": "continuous-character-support-batch",
+  "human_review": "one-consolidated-review-after-local-qc",
   "repair_budget_per_generated_id": {
     "whole_image": 1,
     "local_edit_followup": 1
@@ -16,6 +16,7 @@
     "ELON-REF-002",
     "ELON-CAL-001",
     "ELON-CAL-002",
+    "ELON-OPEN-001",
     "JENSEN-SUP-001",
     "SAM-SUP-001",
     "DARIO-MID-001",
@@ -63,7 +64,7 @@
       "selected_pass": "local-edit-pass",
       "repair_count": 2,
       "qc_result": "real RGBA alpha; complete body; distant alpha fringe below 16 removed deterministically; top/bottom padding 12.62%/13.27% passes",
-      "status": "repaired-candidate-pending-human-review"
+      "status": "accepted-baseline"
     },
     {
       "id": "ELON-CAL-002",
@@ -80,7 +81,19 @@
       "selected_pass": "local-edit-followup-pass",
       "repair_count": 3,
       "qc_result": "real RGBA alpha; complete body; distant alpha fringe below 16 removed deterministically; normalized to 1122x1402; top/bottom padding 11.34%/13.69% passes; half-turn, front-settled head, screen-left lead step, and weight shift are readable",
-      "status": "repaired-candidate-pending-human-review"
+      "status": "accepted-baseline"
+    },
+    {
+      "id": "ELON-OPEN-001",
+      "character_name": "Elon Musk",
+      "representation_lane": "real-person-experimental",
+      "shot_use": "Full-open/HOLD-PULSE source after the stable open hold",
+      "pose_orientation": "full body; front or slight three-quarter; compact conductor-like downward hand cue; restrained grounded stance",
+      "composition": "single transparent subject, vertical 4:5 preferred, complete body and 10-15% clear padding",
+      "must_have": ["same recognizable editorial Elon lane as accepted calibration", "black tee or short dark jacket", "small readable downbeat cue", "both hands and all fingers visible", "both shoes visible", "consistent cyan-left and amber-right rim lighting", "clean non-glowing alpha edge"],
+      "must_not_have": ["wave", "product-hold or endorsement gesture", "cropped anatomy", "baked background or floor", "device", "logo", "text", "other person", "robot", "scene", "collage", "multiple poses"],
+      "reference_source": ["ELON-REF-001", "ELON-CAL-001", "ELON-CAL-002"],
+      "status": "pending-generator-window-3"
     },
     {
       "id": "JENSEN-SUP-001",
@@ -92,7 +105,7 @@
       "must_have": ["leather-jacket silhouette", "distinct stance at thumbnail size"],
       "must_not_have": ["Elon", "Sam", "other people", "brand logo", "text", "device", "collage"],
       "reference_source": "4o0Ga.jpg, identity mapping not provenance-confirmed",
-      "status": "deferred-after-elon-calibration"
+      "status": "pending-generator-window-3"
     },
     {
       "id": "SAM-SUP-001",
@@ -104,7 +117,7 @@
       "must_have": ["soft dark knit layer", "calm compact rhythm and readable silhouette"],
       "must_not_have": ["Elon", "Jensen", "other people", "brand logo", "text", "device", "collage"],
       "reference_source": "4o0Ga.jpg, identity mapping not provenance-confirmed",
-      "status": "deferred-after-elon-calibration"
+      "status": "pending-generator-window-3"
     },
     {
       "id": "DARIO-MID-001",
@@ -117,7 +130,7 @@
       "must_not_have": ["other people", "brand logo", "text", "device", "collage"],
       "reference_source": "qfFrT.jpg may contain a relevant bearded figure but identity is not provenance-confirmed",
       "choice_group": "MIDGROUND-001",
-      "status": "blocked-user-selection"
+      "status": "selected-pending-generator-window-3"
     },
     {
       "id": "GWYNNE-MID-001",
@@ -130,7 +143,7 @@
       "must_not_have": ["other people", "brand logo", "text", "device", "collage"],
       "reference_source": "no confirmed single-person local reference",
       "choice_group": "MIDGROUND-001",
-      "status": "blocked-user-selection"
+      "status": "skipped-not-selected-for-single-midground-slot"
     }
   ]
 }
