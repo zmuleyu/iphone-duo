@@ -1,21 +1,32 @@
 {
-  "build": "6.14",
-  "baseline": "6.12",
-  "milestone": "Tokyo final master (fixed camera + honest No-FX + two-beat timeline)",
-  "status": "PRODUCTION",
+  "build": "6.28-consolidated",
+  "baseline": "6.28",
+  "milestone": "Tokyo V6.28 local final plus STORM II screenshot-gated production lane",
+  "status": "LOCAL_SOURCE_READY",
   "basedOn": "v5.1-production-fold",
-  "changes": [
-    "chrome: cover-state layout defect fixed — cover displays panorama right half, so lock chrome is compressed 0.5x around u=0.75 (9:41 fully readable on closed cover; was cut to '41')",
-    "shell: two-key right rail per onmyduo (same Apple USDZ) — lower key cluster baked too; protrusion 0.12->0.08 (less floaty at 3/4 angles)",
-    "deploy: vercel.json buildCommand chains scripts/patch-shell-asset.py after prepare-assets.py so production model = baked model every deploy",
-    "audit: back/camera-island (white glass, dual-lens capsule) verified vs onmyduo; no Apple logo in stock asset (same as onmyduo)",
-    "record: fixed camera from frame zero; no fold-coupled zoom/pan or hero push-in",
-    "timeline: 5.50s Tokyo two-beat master — 0.50s Reality hold, 1.55s unfold, 0.20s pause, 1.20s Tower activation, 2.05s hero hold",
-    "nofx: disables external motion blur plus screen shader blur/darken",
-    "assets: bundled Wikipedia-origin Reality/RedBlack pair available with ?tokyo=1"
+  "currentModes": [
+    "default Fold Engine",
+    "Tokyo V6.28 horizontal loop",
+    "STORM II stage preset",
+    "STORM II deterministic motion reference"
   ],
-  "lockedFromBaseline": "V6.13 shell/model bake, fold geometry, R->L world reveal, v6.10 exposure, device materials and Screen UV unchanged",
-  "mergePolicy": "Exact candidate requires local capture/QC, source delivery, then explicit production activation",
-  "timestamp": "2026-09-20",
-  "promotedFrom": "V6.13 production baseline"
+  "lockedDeviceAuthority": [
+    "device mesh",
+    "hinge and panels",
+    "camera and Screen UV",
+    "fold timing",
+    "occlusion logic"
+  ],
+  "tokyoDelivery": {
+    "durationSeconds": 4.65,
+    "masterResolution": [3840, 2160],
+    "masterFps": 60,
+    "xiaohongshuSha256": "1E20FDC121FD6F55D473942CFF325B822614ABA4F6B05F4D652FF6F5617C77EE",
+    "xSha256": "F9291E99C5C46702B581422A11F02436D6DC812F0B232CFD2DDA1C1A9D7FFFE8"
+  },
+  "stormStatus": "four accepted character states retained; turn and reveal action keyframes pending recovery",
+  "assetPolicy": "Apple-derived model files and identifiable real-person references remain local-only and Git-ignored",
+  "publicationAuthorized": false,
+  "deploymentAuthorized": false,
+  "timestamp": "2026-09-20"
 }

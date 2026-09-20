@@ -1,9 +1,0 @@
-{
-  "goal": "v5.7 屏幕 chrome 状态栏（G-C）",
-  "date": "2026-09-18",
-  "state": "done",
-  "phase": "production-verified",
-  "writer": "hermes-desktop-session",
-  "branch": "work/v5.7-screen-chrome",
-  "production": "v5.7 PRODUCTION live (badge + setScreenChrome + 0 errors)"
-}

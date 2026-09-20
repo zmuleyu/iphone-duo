@@ -1,87 +1,72 @@
-# iPhone Duo · Fold Preview
+# iPhone Duo Fold Engine
 
-A browser-based study of foldable screen transitions, built with Three.js.
+This repository is the production core for deterministic iPhone Duo folding, screen projection, screenshot review, and horizontal video capture.
 
-[Live demo](https://iphone-duo-lv3.vercel.app/)
+## Current authority
 
-## Features
-
-- Only the cover half rotates; the rear-camera half stays fixed.
-- Screen content uses a fixed front-view projection during folding. The outer UI stays aligned with its hinge-side left edge.
-- Blur and darkening follow the image coordinates, including the image edges. Maximum blur radius is 72 source pixels; darkening uses twice the transition strength, capped at black.
-- Wallpaper, Launcher, and Custom modes. Custom opens the image picker directly and applies one image to both screens; the outer screen shows the image's right half.
-- Drag to orbit, scroll to zoom, or use the play button and slider to fold the device.
-- Responsive controls for desktop and mobile. Uploaded images stay in the current browser tab.
+- **Tokyo V6.28** is the accepted local video line. It uses a fixed camera, a 4.65-second closed-to-open-to-closed loop, no authored title by default, and separate horizontal masters for Xiaohongshu and X.
+- **STORM II** is an internal experimental character-compositing line. The Fold Engine owns the device, hinge, panels, camera, Screen UV, fold timing, and occlusion. Character assets never redefine device geometry.
+- **PixelLock** is the repository-local image geometry/QC tool under `tools/pixellock/`.
+- Identifiable real-person assets remain local-only and cannot be published or monetized without explicit rights, non-endorsement, disclosure, territory, monetization, and legal review.
 
 ## Run locally
 
-The application is static HTML, CSS, and JavaScript. No Node.js build step is required. Three.js is bundled locally.
+The application is static HTML, CSS, and JavaScript. Three.js is bundled locally.
 
-The Apple reference assets are downloaded separately. Use Python 3.12 to prepare them:
+The Apple reference assets are prepared separately and remain ignored by Git:
 
-```sh
-git clone https://github.com/jadon7/iphone-duo.git
-cd iphone-duo
-python3 -m venv .venv
-source .venv/bin/activate
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements-assets.txt
-python scripts/prepare-assets.py
+python scripts\prepare-assets.py
+python scripts\patch-shell-asset.py
 python -m http.server 8766 --bind 127.0.0.1
 ```
 
-On Windows, activate the environment with `.venv\Scripts\activate`.
+Open `http://127.0.0.1:8766/`. Do not open `index.html` directly because the browser cannot load the model through `file://`.
 
-Open [http://127.0.0.1:8766/](http://127.0.0.1:8766/). Serve the directory over HTTP; opening `index.html` as a local file cannot load the model.
+## Production entry points
 
-The preparation script downloads the original Star White USDZ and UI images from Apple, selects the model's Landscape pose, flattens its references, and rewrites texture paths for the browser. The resulting files stay in the ignored `assets/` directory. Asset URLs were verified on September 10, 2026.
+| Purpose | Query |
+| --- | --- |
+| Default Fold Engine | `/` |
+| Tokyo V6.28 | `/?cap=1&tokyo=v628&nofx=1&motion=tokyo-final&format=16x9&title=0` |
+| STORM II stage preset | `/?shot=storm-ii` |
+| STORM II deterministic motion reference | `/?shot=storm-ii&timeline=motion-reference` |
 
-## Screen controls
-
-Choose **Wallpaper** or **Launcher** for the default screen layouts. Choose **Custom** to select an image. The inner screen contains the whole image; the outer screen crops to the right-hand portion and aligns that portion to its left edge. Recommended image size: 2670 × 1878.
-
-The slider controls the fold from closed to open. The default view is fully open and paused. The outer screen turns off at full opening.
+Use screenshots and state packs as the approval gate. Generate video only after the required states have passed review.
 
 ## Source map
 
-| File | Purpose |
+| Path | Purpose |
 | --- | --- |
-| `index.html` | Screen-mode tabs and fold controls |
-| `main.js` | Three.js scene, fold deformation, projected UI, blur, and darkening |
+| `index.html` | Fold controls, production panels, and recording UI |
+| `main_v44.js` | Fold Engine, Tokyo V6.28, STORM II camera/stage preset, deterministic frame APIs |
 | `ui.js` | Default screen layouts |
-| `style.css` | Desktop and mobile layout |
-| `scripts/prepare-assets.py` | Download and prepare the reference assets |
-| `vercel.json` | Install and prepare assets during Vercel builds |
-| `vendor/three/` | Three.js runtime and required add-ons |
+| `style.css` | Desktop and mobile presentation |
+| `media/tokyo/` | Current Tokyo source and runtime plates |
+| `scripts/capture_tokyo_v628_loop_stills.py` | Screenshot-gated V6.28 review pack |
+| `scripts/capture_tokyo_v628_platform_master.py` | Deterministic V6.28 numbered 4K frames |
+| `tools/pixellock/` | Reusable geometry-lock and image-QC tool |
+| `docs/followups.md` | Ordered future work and unresolved gates |
+
+Local-only material is stored under ignored `local-archive/`, generated review evidence under ignored `artifacts/`, and final local exports under ignored `deliverables/`.
 
 ## Production documents
 
-- [Elon STORM II visual cast authority](docs/specs/2026-09-20-elon-storm-ii-visual-cast-authority.md) — current character, wardrobe, cast hierarchy, source intake, and screenshot gate for the internal experimental branch.
-- [Tokyo asset authority](docs/tokyo-assets.md) — accepted Tokyo source assets and usage notes.
-- [Production followups](docs/followups.md) — deferred production actions and external blockers.
+- [Tokyo V6.28 release receipt](docs/tokyo-v6.28-release.md)
+- [Tokyo asset authority](docs/tokyo-assets.md)
+- [Elon STORM II visual cast authority](docs/specs/2026-09-20-elon-storm-ii-visual-cast-authority.md)
+- [Production followups](docs/followups.md)
+- [Cleanup and archive record](docs/archive/2026-09-20-materials-cleanup.md)
 
-## Deploy
+## Deployment boundary
 
-The Vercel project is connected to this GitHub repository. Pushes to `main` publish the production site; other branches create preview deployments.
-
-`vercel.json` installs the asset tools and runs `scripts/prepare-assets.py` during each build. Git deployments therefore include the model and screen images without storing those assets in the repository.
-
-For a manual Vercel deployment:
-
-```sh
-vercel link
-vercel --prod
-```
-
-`.vercelignore` keeps local credentials and Git metadata out of deployments while including the prepared assets.
-
-For other static hosts, prepare the assets locally before publishing the project directory.
+Source delivery and local exports do not authorize production deployment or publication. The Vercel project may be connected to this repository, so merging to `main` must be treated as a production-impacting action and requires explicit authorization for that deployment.
 
 ## License and sources
 
-Original application code is released under the [MIT license](LICENSE). See [third-party notices](THIRD_PARTY_NOTICES.md) for bundled libraries and reference assets.
+Application code is MIT licensed. See [third-party notices](THIRD_PARTY_NOTICES.md).
 
-Apple models and imagery are excluded from the repository and the MIT license. The preparation script links to their original sources; their use is subject to Apple's terms. This project is an independent animation study.
-
-- [Apple iPhone Duo](https://www.apple.com/iphone-duo/)
-- [Apple HIG: Designing for iPhone Duo](https://developer.apple.com/design/human-interface-guidelines/designing-for-iphone-duo)
-- [Three.js](https://threejs.org/)
+Apple models and imagery are excluded from the repository license. Local preparation scripts link to original sources, and any use remains subject to the source terms. Tokyo imagery provenance and limits are recorded in [docs/tokyo-assets.md](docs/tokyo-assets.md).

@@ -1,0 +1,14 @@
+{
+  "id": "iphone_duo",
+  "name": "iPhone Duo Landscape A/B",
+  "source_expected": {"width": 1448, "height": 1086},
+  "intermediate": {"width": 1544, "height": 1086},
+  "extension": {"left": 96, "right": 0, "top": 0, "bottom": 0},
+  "final": {"width": 2670, "height": 1878},
+  "closed_crop": {"side": "right", "width": 1335, "height": 1878},
+  "api_multiple": 16,
+  "default_provider": "local_reflect",
+  "default_model": "gpt-image-2.5-sunburst",
+  "default_quality": "high",
+  "prompt": "Fill only the newly extended transparent area. Continue the existing scene naturally. Match the existing sky, lighting, perspective, atmospheric depth, building scale, density and color temperature. Do not add a new landmark or dominant object. Keep the extension visually quiet and seamless. Preserve all existing content."
+}

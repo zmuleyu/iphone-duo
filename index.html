@@ -73,6 +73,61 @@
               <input id="ui-upload" type="file" accept="image/*" hidden disabled>
               <input id="redblack-upload" type="file" accept="image/*" hidden disabled>
             </div>
+
+            <div class="chrome-controls" aria-label="Lock screen UI controls">
+              <div class="chrome-toggle-row">
+                <span><strong>Closed UI</strong><small>Hidden by default</small></span>
+                <button id="closed-chrome-toggle" class="switch" type="button" role="switch" aria-checked="false" aria-label="Show lock screen UI while closed" disabled><i></i></button>
+              </div>
+              <div class="chrome-toggle-row">
+                <span><strong>Open UI</strong><small>Visible by default</small></span>
+                <button id="open-chrome-toggle" class="switch" type="button" role="switch" aria-checked="true" aria-label="Show lock screen UI while open" disabled><i></i></button>
+              </div>
+              <div class="motion-grid chrome-tuning">
+                <label>
+                  <span>Clock Size <output id="clock-scale-value">78%</output></span>
+                  <input id="clock-scale" type="range" min="70" max="105" value="78" step="1" aria-label="Clock size" disabled>
+                </label>
+                <label>
+                  <span>Clock Y <output id="clock-y-value">2%</output></span>
+                  <input id="clock-y" type="range" min="-4" max="10" value="2" step="1" aria-label="Clock vertical position" disabled>
+                </label>
+              </div>
+            </div>
+
+            <div class="title-controls" aria-label="Independent title layer controls">
+              <div class="title-toggle-row">
+                <span><strong>Title Layer</strong><small>Independent authored overlay</small></span>
+                <button id="title-layer-toggle" class="switch" type="button" role="switch" aria-checked="false" aria-label="Show independent title layer" disabled><i></i></button>
+              </div>
+              <label class="title-text-field">
+                <span>Title</span>
+                <input id="title-layer-text" type="text" value="TOKYO" maxlength="32" autocomplete="off" spellcheck="false" aria-label="Title text" disabled>
+              </label>
+              <div class="motion-grid title-tuning">
+                <label>
+                  <span>Size <output id="title-size-value">6.2%</output></span>
+                  <input id="title-size" type="range" min="3.5" max="10" value="6.2" step="0.1" aria-label="Title size" disabled>
+                </label>
+                <label>
+                  <span>Position Y <output id="title-y-value">18%</output></span>
+                  <input id="title-y" type="range" min="8" max="35" value="18" step="1" aria-label="Title vertical position" disabled>
+                </label>
+                <label>
+                  <span>Tracking <output id="title-tracking-value">8%</output></span>
+                  <input id="title-tracking" type="range" min="0" max="16" value="8" step="1" aria-label="Title letter spacing" disabled>
+                </label>
+                <label>
+                  <span>Weight <output id="title-weight-value">600</output></span>
+                  <input id="title-weight" type="range" min="600" max="900" value="600" step="50" aria-label="Title font weight" disabled>
+                </label>
+                <label>
+                  <span>Title In <output id="title-in-value">4.80s</output></span>
+                  <input id="title-in" type="range" min="3.70" max="5.40" value="4.80" step="0.05" aria-label="Title entrance time" disabled>
+                </label>
+              </div>
+            </div>
+
             <div class="setup-motion">
               <div class="motion-presets" role="group" aria-label="Fold motion preset">
                 <button type="button" data-fold-preset="fast" aria-pressed="true" title="Short-form pacing" disabled><svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><strong>Fast Viral</strong></button>

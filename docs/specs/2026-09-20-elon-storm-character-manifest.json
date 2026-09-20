@@ -34,7 +34,7 @@
       "composition": "1122x1402 RGB PNG with baked dark background; no alpha",
       "must_have": ["recognizable simplified Elon likeness", "black tee", "small readable hand cue", "cyan-left and amber-right rim light"],
       "must_not_have": ["regeneration during calibration", "claim of production-ready transparency", "public or endorsement use"],
-      "reference_source": "C:/Users/Admin/Downloads/duo/人物库/ChatGPT Image 2026年9月19日 12_43_10.png",
+      "reference_source": "local-archive/source-materials-2026-09-20/人物库/ChatGPT Image 2026年9月19日 12_43_10.png",
       "sha256": "BC4319FF96209427B2DD49081817CA09E3D6D34951934C7BD990BB0B0A99E210",
       "status": "retained-candidate"
     },
@@ -47,7 +47,7 @@
       "composition": "784x1168 RGB JPEG with baked dark environment; no alpha",
       "must_have": ["complete body", "simple dark wardrobe", "head and shoe margin"],
       "must_not_have": ["regeneration during calibration", "use as transparent cutout", "decorative background entering the composite"],
-      "reference_source": "C:/Users/Admin/Downloads/duo/人物库/Te8Tr.jpg",
+      "reference_source": "local-archive/source-materials-2026-09-20/人物库/Te8Tr.jpg",
       "sha256": "A6FCCF6D9CCDFDDBA1AD80485CDD47D45CC691C4E1B37E8189339F0C60D4DE4D",
       "status": "retained-candidate"
     },
