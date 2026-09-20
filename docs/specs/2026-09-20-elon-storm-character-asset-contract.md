@@ -1,8 +1,8 @@
 ---
 title: Elon STORM II Character Asset Contract
-status: calibration-blocked-browser
+status: calibration-repair-complete-pending-review
 updated: 2026-09-20
-scope: iphone-duo internal character preparation only
+scope: STORM II-style iPhone Duo video character assets; internal preparation only
 ---
 
 # Elon STORM II character asset contract
@@ -13,12 +13,14 @@ This contract covers the Real Elon experimental character layer for the STORM-in
 
 This is an internal calibration lane. Source/provenance, likeness permission, territories, publication intent, monetization, and synthetic-media disclosure are unresolved. No generated result may be treated as cleared for public, commercial, advertising, product-endorsement, or release use. Voice, dialogue, quotes, logos, political content, and invented conduct are out of scope.
 
+The user confirmed on 2026-09-20 that every current character role in this manifest is for the STORM II-style video lane. These are not generic standalone character-library assets and they are not Tokyo assets. “STORM II-style” means the approved translated anchor → delay → formation → one pulse → freeze grammar; it does not authorize copying a reference film's shots, school setting, costumes, choreography, music, grading, or edit rhythm.
+
 ## Intake receipt
 
 ```yaml
 project_root: D:/projects/creative_group/iphone-duo
 worktree: D:/projects/creative_group/iphone-duo-elon-character-calibration
-git_head: e09c833
+git_head: 68479ba3af2a212cbfecb8221f47366dd26faed6
 branch: work/elon-storm-character-calibration
 source_checkout_observed: work/v6.24-tokyo-platform-stills@177e4ec
 source_checkout_dirty_paths: []
@@ -28,7 +30,7 @@ camera_authority: existing iphone-duo camera; unchanged
 uv_authority: existing iphone-duo Screen UV; unchanged
 frame_clock_authority: existing frame-index contract; unchanged
 accepted_assets: []
-retained_candidates: [ELON-REF-001, ELON-REF-002]
+retained_candidates: [ELON-REF-001, ELON-REF-002, ELON-CAL-001, ELON-CAL-002]
 publication_authority: false
 deployment_authority: false
 paid_service_authority: false
@@ -44,7 +46,7 @@ The plans converge on three Elon motion states, not a generic character sheet:
 
 Prototype 01 also requires Jensen Huang and Sam Altman as separate counter-anchor assets, plus exactly one midground person: Dario Amodei or Gwynne Shotwell. Those are separate manifest IDs and remain deferred until the Elon style calibration is accepted. Anonymous chorus units are not celebrity assets and are outside this calibration manifest.
 
-## Proposed style lock (not user-accepted)
+## Accepted style lock
 
 - Editorial caricature with recognizable but simplified facial structure; no photoreal skin or photographic texture.
 - Strong silhouette readable at small folded-screen scale: clear head shape, shoulders, hand cue, and stance before facial detail.
@@ -80,11 +82,13 @@ The first ChatGPT Chat window contains exactly two new, independent images:
 
 ## Human gate
 
-After the two files are visibly generated, self-checked, downloaded, and mechanically checked, stop for one consolidated user review. No Jensen, Sam, Dario, Gwynne, chorus, video, composite, publication, deployment, or full batch begins before that decision.
+The user accepted the visual style direction on 2026-09-20 and authorized one bounded repair window. That window may only correct `ELON-CAL-001` padding and `ELON-CAL-002` padding plus the half-turn, screen-left step, and weight shift. Preserve identity, wardrobe, lighting, and every already-correct region. No Jensen, Sam, Dario, Gwynne, chorus, video, composite, publication, deployment, or full batch begins before the repaired pair receives one consolidated review.
 
-The user still needs to decide:
+The bounded repair window is complete. `ELON-CAL-001` now has 12.62%/13.27% top/bottom padding. `ELON-CAL-002` now has a front-settled head, readable three-quarter torso, screen-left lead step and weight shift, 11.34%/13.69% top/bottom padding, and a normalized 1122×1402 canvas. Both files retain real RGBA transparency; alpha values below 16 were cleared deterministically to remove distant glow without changing visible subject RGB or higher-alpha edges. Final acceptance remains pending the consolidated contact-sheet review.
 
-1. accept, adjust, or reject the proposed style lock;
+The user still needs to decide after the repair window:
+
+1. accept or reject the repaired `ELON-CAL-001` and `ELON-CAL-002` assets;
 2. accept `ELON-REF-001` as the open/downbeat visual baseline despite baked background and crop;
 3. choose Dario or Gwynne for the single midground slot;
 4. provide or confirm source/likeness rights and intended use before any public/commercial lane.

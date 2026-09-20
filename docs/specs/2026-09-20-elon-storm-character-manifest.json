@@ -2,6 +2,8 @@
   "manifest_version": "elon-storm-character-v1.0-calibration",
   "updated": "2026-09-20",
   "style_lane": "real-elon-editorial-caricature-internal-only",
+  "character_lane_scope": "all current character roles are assets for STORM II-style iPhone Duo video generation; not generic character-library or Tokyo assets",
+  "style_lock_status": "user-accepted-2026-09-20",
   "phase": "elon-protagonist-calibration",
   "human_review": "required-after-calibration-window",
   "repair_budget_per_generated_id": {
@@ -57,11 +59,11 @@
       "must_not_have": ["cropped anatomy", "baked background or floor", "device", "logo", "text", "other person", "robot", "scene", "collage", "multiple poses", "endorsement gesture"],
       "reference_source": ["ELON-REF-001", "ELON-REF-002"],
       "generated_source": "artifacts/elon-storm-ii-character-prep/staging/ELON-CAL-001.png",
-      "sha256": "5E9AB2A85D9AFB07F2CCF45E8C78E2595CE76D37646B85B39466C6A3C3066218",
-      "selected_pass": "first-pass",
-      "repair_count": 1,
-      "qc_result": "real RGBA alpha; complete body; top/bottom padding 2.35%/2.14% fails the 10-15% contract",
-      "status": "retained-candidate-pending-human-review"
+      "sha256": "54E9BE808AD274FD307A0BA8CEB6C5AA169BAA54AE213BE53765296F60E45AE9",
+      "selected_pass": "local-edit-pass",
+      "repair_count": 2,
+      "qc_result": "real RGBA alpha; complete body; distant alpha fringe below 16 removed deterministically; top/bottom padding 12.62%/13.27% passes",
+      "status": "repaired-candidate-pending-human-review"
     },
     {
       "id": "ELON-CAL-002",
@@ -74,11 +76,11 @@
       "must_not_have": ["large wave or product-hold gesture", "cropped anatomy", "baked background or floor", "device", "logo", "text", "other person", "robot", "scene", "collage", "multiple poses"],
       "reference_source": ["ELON-REF-001", "ELON-REF-002"],
       "generated_source": "artifacts/elon-storm-ii-character-prep/staging/ELON-CAL-002.png",
-      "sha256": "302E3C5091CD74184A9FD1ED71E829E0FEBA966E330AB6F6B16C3AFCE7F83597",
-      "selected_pass": "first-pass",
-      "repair_count": 1,
-      "qc_result": "real RGBA alpha; complete body; top/bottom padding 3.35%/3.78% fails the 10-15% contract; half-turn, screen-left step, and weight shift remain unclear",
-      "status": "pending-human-review-pose-and-padding-blockers"
+      "sha256": "E2F2DABD745EFC915B19B1F993FFC7858C60372E8AEE307F7D058B96517E68EF",
+      "selected_pass": "local-edit-followup-pass",
+      "repair_count": 3,
+      "qc_result": "real RGBA alpha; complete body; distant alpha fringe below 16 removed deterministically; normalized to 1122x1402; top/bottom padding 11.34%/13.69% passes; half-turn, front-settled head, screen-left lead step, and weight shift are readable",
+      "status": "repaired-candidate-pending-human-review"
     },
     {
       "id": "JENSEN-SUP-001",
