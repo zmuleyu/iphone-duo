@@ -1,0 +1,100 @@
+{
+  "runId": "tokyo-v6.18-astra-feedback-repair-20260920",
+  "intent": "silent-review-preview",
+  "status": "ready-for-user-visual-review",
+  "author": "gpt-6-astra",
+  "sourceBaseCommit": "9a94c4b2d4c34ab37b2f698d3e8b5481e9e9df49",
+  "branch": "work/v6.16-tokyo-world-pair",
+  "determinism": "Frame-indexed Fold Engine; captureStream review preview, not a numbered-frame master",
+  "timeline": {
+    "fps": 60,
+    "frameStart": 0,
+    "frameEndExclusive": 348,
+    "durationSeconds": 5.8,
+    "closedHold": [0, 66],
+    "smoothUnfold": [66, 135],
+    "openHold": [135, 348],
+    "openSettledSeconds": 2.25,
+    "overshootPercent": 0,
+    "futurePulseSlotFrame": 191,
+    "futurePulseSlotSeconds": 3.183333333333333,
+    "pulseEnabled": false
+  },
+  "composition": {
+    "resolution": [1920, 1080],
+    "camera": "unchanged fixed v6.14 16x9 record framing",
+    "geometry": "unchanged Fold Engine hinge, panels, materials and Screen UV",
+    "red": "inner-only source-masked sky; hinge to right fixed panel, then moving left panel",
+    "black": "source-masked city after red",
+    "yellow": "source-masked tower after black",
+    "cover": "Reality only; swallowed from 18 to 57.6 degrees, before 90 degrees",
+    "chrome": "independent right-panel physical UV; inner visible only at 97–100 percent opening",
+    "date": "Fri Oct 23",
+    "audio": "none",
+    "motionBlur": "off",
+    "screenBlurAndDarken": "off; cover swallow is an explicit narrative opacity exit",
+    "birds": false,
+    "towerHighlight": false,
+    "extraText": false
+  },
+  "inputs": [
+    {
+      "path": "media/tokyo/candidates/reality-v6.16-astra-master.png",
+      "sha256": "73C49B072686D47795CFF0A2C3EF1290C4AC089450427E305E0CC2FFEFD1791F",
+      "role": "immutable accepted photographic source"
+    },
+    {
+      "path": "media/tokyo/candidates/reality-v6.18-natural.png",
+      "sha256": "54FB3D1B64C4BBFA818D50CBEBFEB63ABE39441CEA83804978B5E128C1BE1263",
+      "role": "new natural A; 28 percent source chroma and warm-white tower, identity geometry"
+    },
+    {
+      "path": "media/tokyo/candidates/redblack-v6.16-astra-master.png",
+      "sha256": "F54A66D8BC1F3917BB95398677B9CF90C17F1BCADB175D1EF3ED12F7FCE4B011",
+      "role": "immutable accepted B"
+    },
+    {
+      "path": "media/tokyo/candidates/layers-v6.18-mask.png",
+      "sha256": "B92982ADCBC0B69C7333C4DD6209E95186B1E9B54DC4CCBCA461F79C9CFB3F7D",
+      "role": "source-registered city R / tower G masks, not AI segmentation claims"
+    }
+  ],
+  "tools": {
+    "chrome": "153 headless",
+    "renderer": "ANGLE NVIDIA GeForce RTX 3070 Direct3D11",
+    "anisotropy": 16,
+    "captureDevicePixelRatio": 1.25,
+    "python": "3.11.9",
+    "ffmpeg": "8.1.1-full_build-www.gyan.dev"
+  },
+  "scripts": [
+    "scripts/build_tokyo_v618_layers.py",
+    "scripts/capture_tokyo_v618_demo.py",
+    "scripts/make_tokyo_v618_silent_demo.py",
+    "scripts/review_tokyo_v618.py"
+  ],
+  "outputs": [
+    {
+      "path": "artifacts/v6.18-tokyo-silent-demo/iphone-duo-tokyo-v6.18-silent-review-demo.mp4",
+      "sha256": "CA97B9A1B2B3F41F4532D06E6BF7EEE37FB9F0FC281EA61BA7379E6923052E6D",
+      "status": "ready-for-user-visual-review"
+    }
+  ],
+  "qc": {
+    "encodedFrames": 348,
+    "encodedDurationSeconds": 5.8,
+    "encodedAudioStreams": 0,
+    "consoleErrors": 0,
+    "runtimeFinalFrame": 347,
+    "clockPass": true,
+    "pairDimensions": [2670, 1878],
+    "pairDimensionGate": "pass",
+    "settleToFuturePulseMaxChannelDelta": 0,
+    "topCapMinY": [5.837323188781738, 5.837323188781738],
+    "topCapMaxY": [5.9425458908081055, 5.9425458908081055],
+    "lowerRightKey": "unchanged v6.15.1 flush seating; source model not edited",
+    "userVisualAcceptance": "pending"
+  },
+  "evidenceDirectory": "artifacts/v6.18-tokyo-silent-demo",
+  "rights": "Existing user-confirmed Wikipedia record only. No new source assertion, production deployment, or publication authority."
+}

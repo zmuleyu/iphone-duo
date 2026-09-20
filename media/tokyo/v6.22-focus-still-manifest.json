@@ -1,0 +1,20 @@
+{
+  "version": "6.22",
+  "status": "still-candidate",
+  "selection": "pending-user-selection",
+  "video": null,
+  "scope": "Static focus-transition candidates only; no video or frame sequence",
+  "outputDirectory": "artifacts/v6.22-tokyo-focus-still-review",
+  "baseCommit": "b9365e4ede78404d050f6075af3cb957ca4b8396",
+  "rejected": "v6.21 source candidates and working-source snapshot are recoverably archived under outputDirectory/rejected-v621/source; their prior renders remain under artifacts/v6.21-tokyo-still-review",
+  "authority": "User-confirmed Wikipedia photographic source; Fold Engine alone owns device pixels",
+  "assetRecipe": "scripts/build_tokyo_v622_focus_assets.py",
+  "captureRecipe": "scripts/capture_tokyo_v622_focus_stills.py",
+  "candidateAssets": ["reality-v6.22-clean-tower.png", "redblack-v6.22-weak.png", "redblack-v6.22-strong.png", "redblack-v6.22-hero.png", "tower-v6.22-natural-rgba.png", "tower-v6.22-unlit-rgba.png", "tower-v6.22-gold-rgba.png", "layers-v6.22-mask.png"],
+  "stills": ["01-closed-v619-refined-clean-tower.png", "02-fold-90deg-fixed-right-sharp.png", "03-fold-110deg-left-blurred.png", "04-fold-150deg-left-resolving.png", "05-open-weak-windows-edged-tower.png", "06-open-strong-windows-edged-tower.png", "07-open-lit-clean-tower.png", "08-tower-plate-before-after.png"],
+  "evidence": ["asset-evidence.json", "still-qc.json", "still-runtime-ledger.json", "focus-transition-proof.png", "focus-roi-closeups.png", "actual-tower-closeups.png", "frozen-input-hashes.json"],
+  "locks": ["2670x1878 identity source coordinates", "device shell and hinge", "authored UV", "fixed 100-unit camera", "physical unfolding direction", "top caps", "old v6.19/v6.20 profiles", "accepted source assets/videos"],
+  "ui": {"closed": "none", "clock": false, "date": false, "title": false, "homeIndicator": false, "openWifiAndShortcuts": true},
+  "transition": {"revealMode": "none/focus-only", "spatialFront": null, "innerWorld": "stable RedBlack at every angle", "movingLeftScreenOnly": true, "focusRadiusSourceTexels": "18 * sin(pi-angleRadians)^2; exactly zero at 180 degrees", "fixedRightRadius": 0},
+  "tower": "One source-aligned RGBA plate with natural-white, near-black dark-copper edge and warm-gold grades; tower light separate from city windows"
+}

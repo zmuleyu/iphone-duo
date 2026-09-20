@@ -1,0 +1,29 @@
+{
+  "version": "6.25",
+  "status": "pending-user-review",
+  "scope": "Independent authored title layer only; no change to the approved v6.24 camera, fold, world, tower or screen texture authority.",
+  "default": {
+    "enabled": true,
+    "text": "TOKYO",
+    "surface": "inner-display-only",
+    "horizontalAlignment": "center",
+    "verticalPositionPercent": 18,
+    "sizePercentOfScreenHeight": 6.2,
+    "trackingPercentOfFontSize": 8,
+    "entranceSeconds": 4.8,
+    "fadeDurationSeconds": 0.22,
+    "color": "#f3ede5"
+  },
+  "editorControls": ["enabled", "text", "size", "vertical-position", "tracking", "entrance-time"],
+  "timeline": {
+    "titleHiddenThroughFrame": 287,
+    "titleFadeStartsAtFrame": 288,
+    "titleFullyVisibleByFrame": 302,
+    "frameEndExclusive": 360
+  },
+  "soundPolicy": "silent local master; Xiaohongshu music added through the platform catalog only",
+  "reviewOutputDirectory": "artifacts/v6.25-tokyo-title-stills-r3",
+  "videoGenerated": false,
+  "publicationAuthority": false,
+  "uploadAuthority": false
+}

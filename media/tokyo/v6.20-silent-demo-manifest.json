@@ -1,0 +1,204 @@
+{
+  "runId": "tokyo-v6.20-astra-sequential-lighting-20260920",
+  "status": "ready-for-user-visual-review",
+  "author": "gpt-6-astra",
+  "sourceBaseCommit": "a60c6daa483ecab47ed53136fc5ed3002249c539",
+  "branch": "work/v6.16-tokyo-world-pair",
+  "locked": {
+    "device": "v6.19 shell, hinge, panel geometry, authored UV, materials and top-cap world Y +0.05",
+    "camera": "v6.19 fixed 100-unit camera, matched FOV and cover sampling registration",
+    "fold": "0.85s closed hold, 1.45s unfolding; fully open at frame 138",
+    "frameClock": "348 numbered PNGs, frame indices 0..347, 60 fps, 1920x1080",
+    "oldAssets": "v6.16, v6.18 and v6.19 files preserved"
+  },
+  "ui": {
+    "closed": "no screen overlay UI; physical camera retained",
+    "open": "date, clock, Wi-Fi and right utility controls; no home indicator",
+    "clockScaleVsV619": 0.85,
+    "clockPlacement": "slightly above and left of v6.19",
+    "openFadeFrames": [
+      138,
+      143
+    ]
+  },
+  "lighting": {
+    "darkUntilOpen": true,
+    "openDarkHold": [
+      138,
+      147
+    ],
+    "buildingWindows": [
+      147,
+      180
+    ],
+    "windowOrder": "fixed sparse source-derived component batches, far to near",
+    "pause": [
+      180,
+      185
+    ],
+    "towerRise": [
+      185,
+      211
+    ],
+    "towerOrder": "base to tip; tip last",
+    "heroHold": [
+      211,
+      348
+    ],
+    "legacyPulseEnabled": false,
+    "audio": false,
+    "halo": false,
+    "cameraOrGeometryMotionInHold": false
+  },
+  "assets": {
+    "dimensions": [
+      2670,
+      1878
+    ],
+    "route": "deterministic grading and source-coordinate masks only",
+    "A": "dormant graphite blue-grey photograph, readable ambient tower, lights off, retained shadow depth",
+    "B": "dormant red/black world plus independent window and tower lighting targets",
+    "towerCleanup": "repair tower/city support overlap before emissive grading; retain structural dark detail",
+    "outputs": {
+      "reality-v6.20-dormant.png": "4528AE920163CFB6C82EEF70ABF8D96579E9B5BA907CF767EDF90FAAB4736EC5",
+      "redblack-v6.20-dormant.png": "76E3ADF0B5CC3A31F1CC9047C6BB6626F0AF00DF0617CA3E543E7DCA158B0897",
+      "redblack-v6.20-lit.png": "D92D7500D10CFBC2F5A4BD3A361C90E2377D206457D28BDF1752B53D77F7F862",
+      "layers-v6.20-mask.png": "D86CB180FC45D9CC2A603279D29890B8A1764950C8D21D965D743D87D07BFF08",
+      "light-rank-v6.20.png": "71B392D68C613B4ABB073F37D69BA122F82FC4B47CB7F75A252EE2DA96F3841F"
+    },
+    "towerCityOverlapPixels": {
+      "before": 69339,
+      "after": 0
+    },
+    "opaqueDeckRepairPixels": 10177,
+    "windowComponents": 1498
+  },
+  "acceptance": {
+    "projected10To90Seconds": "approximately 0.9",
+    "maxVisibleStepPercent": "at most about 3.2",
+    "projectedOvershootPercent": "at most 2",
+    "openCompleteSeconds": 2.3,
+    "coverInnerTowerResidualPx": "at most 4",
+    "motionDuplicateFrames": 0,
+    "encodedFrames": 348,
+    "durationSeconds": 5.8,
+    "fps": 60,
+    "audioStreams": 0
+  },
+  "outputDirectory": "artifacts/v6.20-tokyo-silent-demo",
+  "publicationAuthority": false,
+  "capture": {
+    "method": "synchronous WebGL -> one numbered PNG per frame -> H.264; no captureStream or fps resampling",
+    "supersample": 2,
+    "frameLedger": "artifacts/v6.20-tokyo-silent-demo/frame-ledger.json",
+    "frameLedgerSha256": "198717672875DAFEC5D5D6CA5D9D61B30817456465B787F8A16191A3BDFC880B",
+    "byteReproducibilityAcrossEnvironments": false
+  },
+  "qc": {
+    "numberedFrames": 348,
+    "frameInterval": [
+      0,
+      348
+    ],
+    "authoredDurationSeconds": 5.8,
+    "motionDuplicateFrameIndices": [],
+    "projected10To90Seconds": 0.9,
+    "projected10To90Frames": [
+      64,
+      118
+    ],
+    "maximumVisibleStepPercent": 3.1141868512110733,
+    "visibleOvershootPercent": 1.0380622837370241,
+    "angleOvershootPercent": 0,
+    "openCompleteFrame": 138,
+    "uiFadeFrames": 6,
+    "legacyPulseEnabled": false,
+    "registration": {
+      "coverToInnerShiftPx": [
+        2,
+        0
+      ],
+      "distancePx": 2,
+      "normalizedCorrelation": 0.9780786633491516,
+      "roi": [
+        1180,
+        180,
+        1320,
+        720
+      ]
+    },
+    "consoleErrors": [],
+    "method": "Synchronous WebGL render -> PNG readback -> exactly one ordered PNG per frame index",
+    "lightStageFrames": {
+      "open": 138,
+      "windowsStart": 147,
+      "windowsComplete": 180,
+      "towerStart": 185,
+      "towerComplete": 211
+    },
+    "stableStateMaxChannelDelta": {
+      "143-147": 0,
+      "180-185": 0,
+      "211-347": 0
+    },
+    "frozenInputsVerified": 10,
+    "changedFrozenInputs": [],
+    "closedChromeEnabled": false,
+    "heroHoldStable": true,
+    "preservedPriorVideos": [
+      "artifacts/v6.18-tokyo-silent-demo/iphone-duo-tokyo-v6.18-silent-review-demo.mp4",
+      "artifacts/v6.19-tokyo-silent-demo/iphone-duo-tokyo-v6.19-silent-review.mp4"
+    ],
+    "encodedFrames": 348,
+    "encodedFps": 60,
+    "encodedDurationSeconds": 5.8,
+    "audioStreams": 0,
+    "decodedMotionDuplicateFrames": 0,
+    "userVisualAcceptance": "pending"
+  },
+  "v619Regression": {
+    "12": {
+      "maxChannelDelta": 0,
+      "changedBox": null
+    },
+    "91": {
+      "maxChannelDelta": 0,
+      "changedBox": null
+    },
+    "138": {
+      "maxChannelDelta": 0,
+      "changedBox": null
+    },
+    "191": {
+      "maxChannelDelta": 0,
+      "changedBox": null
+    },
+    "347": {
+      "maxChannelDelta": 0,
+      "changedBox": null
+    }
+  },
+  "tools": {
+    "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 (0x00002488) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "anisotropy": 16,
+    "python": "3.11.9",
+    "ffmpeg": "8.1.1-full_build-www.gyan.dev",
+    "ditherSeed": 620
+  },
+  "scripts": [
+    "scripts/build_tokyo_v620_layers.py",
+    "scripts/capture_tokyo_v620_frames.py",
+    "scripts/review_tokyo_v620.py",
+    "scripts/encode_tokyo_v620.py"
+  ],
+  "output": {
+    "path": "artifacts/v6.20-tokyo-silent-demo/iphone-duo-tokyo-v6.20-silent-review.mp4",
+    "sha256": "D5A0759A01A930016BA5288B470670E640160F933FA30011EBBDCF2C92FCA5A7"
+  },
+  "rejectedEvidence": [
+    "artifacts/v6.20-rejected-cold-window-leaks",
+    "artifacts/v6.20-rejected-window-rank-edges"
+  ],
+  "rights": "Existing user-confirmed Wikipedia source assertion retained; no new publication, licensing or deployment claim."
+}

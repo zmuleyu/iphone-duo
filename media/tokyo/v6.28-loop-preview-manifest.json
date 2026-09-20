@@ -1,0 +1,67 @@
+{
+  "version": "6.28-loop-preview",
+  "status": "local-final-delivery-complete",
+  "sourceCommit": "66264ac1d74da885780c24e62b2480457a20add7",
+  "userApproval": "无字 + 16:9 紧裁",
+  "sourceBaseCommit": "177e4ec933a367c74deb2f9f6c7f28e75a8f6302",
+  "inputFeedback": "C:/Users/Admin/Downloads/新建文件夹/iphone_duo_tokyo_tower_v6_27_x_integrated_feedback.md",
+  "inputCropGuide": "C:/Users/Admin/Downloads/新建文件夹/crop_guide_v6_27.png",
+  "timeline": {
+    "fps": 60, "frames": 279, "durationSeconds": 4.65,
+    "closed": [0, 0.65], "unfold": [0.65, 1.90], "unlitPause": [1.90, 2.25],
+    "towerActivation": [2.25, 2.80], "heroHold": [2.80, 4.35],
+    "towerExtinction": [4.35, 4.4333333333], "snapClose": [4.35, 4.6333333333],
+    "closedEndpointFrame": 278
+  },
+  "framing": {
+    "camera": "unchanged v6.27 fixed distance/FOV/zoom/view offset; no motion reframe",
+    "nativeSource": [4608, 2592],
+    "cropSource1920": { "16x9": [102, 90, 1600, 900], "4x3": [302, 90, 1200, 900] },
+    "output": { "16x9": [3840, 2160], "4x3Test": [2880, 2160] },
+    "upscale": false
+  },
+  "title": {
+    "A": "No text, selected final composition",
+    "B": "TOKYO, UNFOLDED. in Closed left negative space; visible from frame 0, fades 0.95-1.20s, restores only near Closed endpoint",
+    "legacy": "Editable TOKYO TOWER screen title retained behind title=1 and existing editor; off by default for v628"
+  },
+  "cover": "Retain 8 percent city/sky photographic signal until 75.6 degrees, excluding the accepted tower support mask to prevent duplicate towers; fades to zero at edge-on 90 degrees; no blur/glow",
+  "unchanged": ["device mesh", "hinge", "panel geometry", "Screen UV", "fixed camera", "accepted Reality/RedBlack/tower plates", "no screen UI", "no halo/bloom/particles"],
+  "sound": "silent local masters; Xiaohongshu in-platform catalog only after approval",
+  "videoGenerated": true,
+  "delivery": {
+    "master": {"resolution": [3840, 2160], "fps": 60, "frames": 279, "durationSeconds": 4.65, "loopEndpointsByteIdentical": true},
+    "xiaohongshu": {
+      "file": "iphone-duo-tokyo-loop-v6.28-xiaohongshu-4k60-silent.mp4",
+      "resolution": [3840, 2160], "fps": 60, "frames": 279, "durationSeconds": 4.65,
+      "codec": "H.264 High level 5.2", "pixelFormat": "yuv420p", "color": "limited BT.709",
+      "audioStreams": 0, "bitrateMbps": 45.75, "sizeBytes": 26593082,
+      "sha256": "1E20FDC121FD6F55D473942CFF325B822614ABA4F6B05F4D652FF6F5617C77EE",
+      "status": "local-final-delivery"
+    },
+    "xOrganic": {
+      "file": "iphone-duo-tokyo-loop-v6.28-x-1080p40-silent.mp4",
+      "resolution": [1920, 1080], "fps": 40, "frames": 186, "durationSeconds": 4.65,
+      "codec": "H.264 High level 4.2", "pixelFormat": "yuv420p", "color": "limited BT.709",
+      "audioStreams": 0, "bitrateMbps": 13.68, "sizeBytes": 7951833,
+      "sha256": "F9291E99C5C46702B581422A11F02436D6DC812F0B232CFD2DDA1C1A9D7FFFE8",
+      "status": "local-final-delivery",
+      "note": "Two-pass target was 22 Mbps with a 24 Mbps ceiling; the simple source reached near-zero QP at a lower average bitrate"
+    }
+  },
+  "previewPack": "artifacts/v6.28-tokyo-loop-stills-r4/state-pack-manifest.json",
+  "staticEvidence": {
+    "states": 20,
+    "consoleErrors": 0,
+    "firstMotionFrame": 41,
+    "loopPixelIdentical": true,
+    "conceptLoopPixelIdentical": true,
+    "openDeviceWidthPercent": 65.49,
+    "sampledMinimumTopBottomMargin4k": 117,
+    "visualReview": "Original-resolution cover-darkest and Gold Hero checked; no camera/UV/accepted-plate changes",
+    "motionSmoothness": "not yet accepted; screenshot gate precedes motion rendering"
+  },
+  "endpointMethod": "Evaluate frame 278 independently, verify Closed angle and zero light levels, then reuse frame 0 Closed raster to eliminate GPU multisample one-code-value noise",
+  "uploadOrPublicationAuthorized": false,
+  "stopCondition": "Capture 279 approved A frames, encode both local platform candidates, probe and visually inspect; no upload or publication"
+}
