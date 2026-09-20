@@ -1,6 +1,6 @@
 ---
 title: Elon STORM II Character Asset Contract
-status: character-phase-complete-pending-consolidated-review
+status: character-phase-accepted
 updated: 2026-09-20
 scope: STORM II-style iPhone Duo video character assets; internal preparation only
 ---
@@ -95,4 +95,4 @@ Each ID may receive at most one whole-image repair and one localized follow-up. 
 
 The continuous support batch is complete. The original four-ID master prompt was rejected before generation by the generator's content filter, so the same frozen requirements were recovered as four sequential single-character windows in the same durable chat. All four first-pass images were exported; no generative repair was used. Local processing only cleared alpha below 16 and uniformly scaled/recentered each complete subject to the frozen 10–15% safe-padding target. Original downloaded PNGs remain preserved beside the normalized finals.
 
-`ELON-OPEN-001`, `JENSEN-SUP-001`, `SAM-SUP-001`, and `DARIO-MID-001` all pass local visual inspection for the requested identity lane, pose hierarchy, complete visible anatomy, forbidden-object absence, and cyan-left/amber-right lighting. Mechanical QC confirms 1122×1402 RGBA, real transparency, clear canvas edges, and approximately 12.4–12.6% top/bottom padding for each new asset. The complete six-asset phase is now pending only the declared consolidated human review. Fold Engine, Tokyo assets, video, composite, and publication remain untouched.
+`ELON-OPEN-001`, `JENSEN-SUP-001`, `SAM-SUP-001`, and `DARIO-MID-001` all pass local visual inspection for the requested identity lane, pose hierarchy, complete visible anatomy, forbidden-object absence, and cyan-left/amber-right lighting. Mechanical QC confirms 1122×1402 RGBA, real transparency, clear canvas edges, and approximately 12.4–12.6% top/bottom padding for each new asset. On 2026-09-20 the user accepted the consolidated six-asset contact sheet. All six final hashes are frozen as the accepted STORM II character source set. Fold Engine, Tokyo assets, video, composite, and publication remain untouched.

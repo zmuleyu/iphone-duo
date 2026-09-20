@@ -4,8 +4,8 @@
   "style_lane": "real-elon-editorial-caricature-internal-only",
   "character_lane_scope": "all current character roles are assets for STORM II-style iPhone Duo video generation; not generic character-library or Tokyo assets",
   "style_lock_status": "user-accepted-2026-09-20",
-  "phase": "character-phase-complete-pending-consolidated-review",
-  "human_review": "pending-one-consolidated-character-phase-review",
+  "phase": "character-phase-accepted",
+  "human_review": "accepted-2026-09-20",
   "local_qc": "artifacts/elon-storm-ii-character-prep/generated-character-phase-mechanical-qc-v3.json",
   "contact_sheet": "artifacts/elon-storm-ii-character-prep/review/character-phase-contact-sheet-v3.jpg",
   "repair_budget_per_generated_id": {
@@ -100,7 +100,7 @@
       "selected_pass": "first-pass-plus-local-framing-normalization",
       "repair_count": 0,
       "qc_result": "visual pass; real RGBA alpha; complete body and hands; no forbidden object; top/bottom padding 12.41%/12.48%; edges clear",
-      "status": "local-qc-pass-pending-human-review"
+      "status": "accepted"
     },
     {
       "id": "JENSEN-SUP-001",
@@ -117,7 +117,7 @@
       "selected_pass": "first-pass-plus-local-framing-normalization",
       "repair_count": 0,
       "qc_result": "visual pass; recognizable editorial likeness; leather-jacket/open-palm silhouette; real RGBA alpha; top/bottom padding 12.48%/12.48%; edges clear",
-      "status": "local-qc-pass-pending-human-review"
+      "status": "accepted"
     },
     {
       "id": "SAM-SUP-001",
@@ -134,7 +134,7 @@
       "selected_pass": "first-pass-plus-local-framing-normalization",
       "repair_count": 0,
       "qc_result": "visual pass; recognizable editorial likeness; relaxed calm hand cue; real RGBA alpha; top/bottom padding 12.55%/12.48%; edges clear",
-      "status": "local-qc-pass-pending-human-review"
+      "status": "accepted"
     },
     {
       "id": "DARIO-MID-001",
@@ -152,7 +152,7 @@
       "selected_pass": "first-pass-plus-local-framing-normalization",
       "repair_count": 0,
       "qc_result": "visual pass; recognizable editorial likeness; quiet lower-energy posture; real RGBA alpha; top/bottom padding 12.48%/12.48%; edges clear",
-      "status": "local-qc-pass-pending-human-review"
+      "status": "accepted"
     },
     {
       "id": "GWYNNE-MID-001",
