@@ -107,6 +107,7 @@ const bgTransparentButton = document.querySelector('#bg-transparent');
 const bgUpload = document.querySelector('#bg-upload');
 const bgFit = document.querySelector('#bg-fit');
 const bgColor = document.querySelector('#bg-color');
+const STORM_II_SHOT = new URLSearchParams(location.search).get('shot') === 'storm-ii';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(32, 1, .1, 250);
@@ -119,7 +120,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setPixelRatio(new URLSearchParams(location.search).has('cap') ? 1.25 : Math.min(devicePixelRatio, 2)); // V6.3: original-master VP9 throughput
 // V6.10: preview was alpha-0 over CSS #f6f6f3 so blown Star White punched through to paper.
 // Opaque page-color clear for preview; Apple-white for cap.
-renderer.setClearColor(new URLSearchParams(location.search).has('cap') ? 0xffffff : 0xf6f6f3, 1);
+renderer.setClearColor(new URLSearchParams(location.search).has('cap') ? 0xffffff : STORM_II_SHOT ? 0x0b1119 : 0xf6f6f3, 1);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.18;
 viewport.appendChild(renderer.domElement);
@@ -147,6 +148,16 @@ function applyShellExposure() {
   rim.color.setHex(0xe8edf5);
 }
 applyShellExposure();
+if (STORM_II_SHOT) {
+  scene.environmentIntensity = 0.70;
+  hemi.color.setHex(0x203246);
+  hemi.groundColor.setHex(0x05070b);
+  hemi.intensity = 0.78;
+  key.color.setHex(0xffa66a);
+  key.intensity = 0.36;
+  rim.color.setHex(0x4bc8ff);
+  rim.intensity = 1.30;
+}
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = false;
@@ -314,7 +325,9 @@ if (subtitle) subtitle.textContent = NO_FX
 // Stage background is intentionally fixed in the production UI.
 // ---------------------------------------------------------------------------
 
-if (stageBackground) stageBackground.style.background = '#f6f6f3';
+if (stageBackground) stageBackground.style.background = STORM_II_SHOT
+  ? 'radial-gradient(ellipse at 50% 58%, #132333 0%, #0b1119 55%, #05080d 100%)'
+  : '#f6f6f3';
 
 // ---------------------------------------------------------------------------
 // World textures — ONE canvas per world, shared by both physical screens.
@@ -1978,7 +1991,7 @@ function startRecord() {
 // Tokyo Tower anchor must remain in the same output coordinates throughout the
 // fold; only the physical left panel moves.
 const RECORD_FRAMING = {
-  '16x9': { zoom: 1.25, panX: -167 }, // V6.0: +25% size, panned to horizontal center
+  '16x9': STORM_II_SHOT ? { zoom: 2.0, panX: -167 } : { zoom: 1.25, panX: -167 }, // STORM II: safe-frame locked hero framing
   '1x1': { zoom: 1.0, panX: -132 },
   '9x16': { zoom: 0.62, panX: -83 }, // V6.0.1: horizontal centering
 };
@@ -2000,6 +2013,10 @@ function resetRecordFraming() {
   camera.clearViewOffset();
   camera.updateProjectionMatrix();
 }
+
+// The top-level model loader may enter recording mode before this framing
+// table is initialized. Apply the STORM II camera only after both exist.
+if (STORM_II_SHOT && recordingMode) applyRecordFraming();
 
 // Lv3 record timeline (case-study §6): real fold drives geometry, three stage
 // uniforms drive the world hand-off on their own synced schedule.
@@ -2162,6 +2179,13 @@ window.__duo = {
         noFx: NO_FX,
         hingeLock: true,
         endpointSnap: true,
+      },
+      camera: {
+        fixed: true,
+        zoom: camera.zoom,
+        fov: camera.fov,
+        stormShot: STORM_II_SHOT,
+        viewOffsetEnabled: Boolean(camera.view?.enabled),
       },
       revealMode: STAGED_REVEAL ? 'staged' : 'clean-crossfade',
       foldMotion: {
