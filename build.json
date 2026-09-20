@@ -1,8 +1,8 @@
 {
-  "build": "6.22-focus-still-candidate",
+  "build": "6.23-motion-video-candidate",
   "baseline": "6.12",
-  "milestone": "Tokyo v6.22 focus-only static screen candidates and repaired independent tower plates; no video",
-  "status": "STILL_CANDIDATE_PENDING_USER_SELECTION",
+  "milestone": "Tokyo v6.23 six-second fixed-frame motion candidate with clean recording chrome",
+  "status": "VIDEO_CANDIDATE_PENDING_USER_REVIEW",
   "basedOn": "v5.1-production-fold",
   "changes": [
     "chrome: Closed UI defaults hidden, Open UI defaults visible, and direct controls adjust state, clock scale and clock vertical position",
@@ -29,7 +29,10 @@
     "v6.20-lighting: dark through unfold; frame 147-180 far-to-near window cohorts, pause to 185, tower base-to-tip rise through 211, stable hero; old pulse disabled",
     "v6.20-locks: v6.19 device, fixed camera, fold curve and UV unchanged; 348 fixed-step PNGs and five legacy-profile frames verified",
     "v6.22: no colour reveal, wipe, A/B mixing or title; stable inner RedBlack world with angle-driven left-screen-only optical defocus; fixed right remains sharp",
-    "v6.22-plates: source-aligned repaired tower RGBA in natural white, near-black dark-copper outline and independent warm-gold grades; no city/window ownership inside tower support"
+    "v6.22-plates: source-aligned repaired tower RGBA in natural white, near-black dark-copper outline and independent warm-gold grades; no city/window ownership inside tower support",
+    "v6.23-motion: 6.00s / 360-frame / 60fps deterministic timeline — 2.30s Closed, 1.40s unfold, 0.45s open pause, 0.65s tower activation, 1.20s clean hero hold",
+    "v6.23-continuity: no authored left-screen blur, one fixed panorama UV/filtering path for both panels, no reveal/wipe, and no tower light before full Open",
+    "v6.23-clean-record: all screen chrome is disabled for the final-video profile while physical device controls and camera hardware remain unchanged"
   ],
   "lockedFromBaseline": "Device mesh, hinge, panel dimensions, materials and authored Screen UV remain unchanged except the two officially referenced +0.05y top-cap translations. V6.19 uses a new constant camera distance/FOV, a calibrated cover sampling offset, independent chrome and numbered frame clock. Older accepted world-pair assets remain immutable.",
   "mergePolicy": "Exact candidate requires local capture/QC, source delivery, then explicit production activation",

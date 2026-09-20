@@ -1,0 +1,59 @@
+{
+  "version": "6.23",
+  "status": "video-candidate-pending-user-review",
+  "timeline": {
+    "fps": 60,
+    "frameStart": 0,
+    "frameEndExclusive": 360,
+    "durationSeconds": 6.0,
+    "closedReality": [0.0, 2.3],
+    "unfoldToRedBlack": [2.3, 3.7],
+    "openPause": [3.7, 4.15],
+    "towerActivation": [4.15, 4.8],
+    "cleanHeroHold": [4.8, 6.0]
+  },
+  "resolution": [1920, 1080],
+  "audio": null,
+  "screenUi": "none in v6.23 recording profile",
+  "transition": "physical unfold only; no reveal, wipe or authored screen blur",
+  "panorama": "one 1600x1125 RedBlack canvas and one fixed UV frame shared by both physical panels",
+  "tower": "registered v6.22 support; v6.23 near-black dark-copper unlit grade, followed by independent warm-gold plate",
+  "sourceAssets": [
+    "media/tokyo/candidates/reality-v6.22-clean-tower.png",
+    "media/tokyo/candidates/layers-v6.22-mask.png",
+    "media/tokyo/candidates/tower-v6.22-gold-rgba.png"
+  ],
+  "candidateAssets": [
+    "media/tokyo/candidates/redblack-v6.23-weak.png",
+    "media/tokyo/candidates/redblack-v6.23-strong.png",
+    "media/tokyo/candidates/redblack-v6.23-hero.png",
+    "media/tokyo/candidates/tower-v6.23-unlit-rgba.png"
+  ],
+  "recipes": {
+    "assets": "scripts/build_tokyo_v623_video_assets.py",
+    "capture": "scripts/capture_tokyo_v623_frames.py",
+    "review": "scripts/review_tokyo_v623.py",
+    "encode": "scripts/encode_tokyo_v623.py"
+  },
+  "outputDirectory": "artifacts/v6.23-tokyo-silent-video",
+  "video": "artifacts/v6.23-tokyo-silent-video/iphone-duo-tokyo-v6.23-silent-60fps.mp4",
+  "videoSha256": "43DD78D158DF2612EBA7EA5B5E31DC9D9FE86C69E6C9AEC7C8599703AAD7DD27",
+  "videoBytes": 926896,
+  "capture": {
+    "browser": "Chrome/152.0.7977.75",
+    "renderer": "ANGLE / NVIDIA GeForce RTX 3070 / D3D11",
+    "canvas": [2880, 1800],
+    "devicePixelRatio": 2,
+    "temporalDeterminism": "360 synchronous WebGL readbacks indexed 0..359"
+  },
+  "qc": {
+    "openCompleteFrame": 222,
+    "towerActivationFrames": [250, 288],
+    "openPauseMaxChannelDelta": 0,
+    "heroHoldMaxChannelDelta": 0,
+    "fixedTower150To180ShiftPx": 0,
+    "screenUiVisible": false,
+    "audioStreams": 0
+  },
+  "publicationAuthority": false
+}
